@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    # 로컬 MariaDB 주소와 생성한 DB 명칭입니다.
+    url: jdbc:mariadb://localhost:3306/hyperlocal_db
+    username: root
+    password: dangwon1391!!
+
+  jpa:
+    hibernate:
+      # 서버 실행 시 엔티티 구조에 맞춰 테이블을 자동으로 생성하거나 수정합니다.
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true

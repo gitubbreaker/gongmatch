@@ -1,0 +1,50 @@
+### 1번째 학생(정성원) 회원가입 테스트
+POST http://localhost:8080/api/students/register
+Content-Type: application/json
+
+{
+  "studentId": "202145825",
+  "name": "정성원",
+  "password": "password123",
+  "introduction": "IT응용공학과 4학년입니다. 졸업작품 웹 서비스를 개발 중입니다.",
+  "interests": "#Spring #MariaDB #PusanUniv"
+}
+
+### 1번째 학생(정성원) 가용 시간 등록 테스트
+POST http://localhost:8080/api/times/add
+Content-Type: application/json
+
+{
+  "student": {
+    "studentId": "202145825"
+  },
+  "dayOfWeek": "MONDAY",
+  "startTime": "10:00:00",
+  "endTime": "12:00:00"
+}
+
+### 2번째 학생(황중경) 회원가입 테스트
+POST http://localhost:8080/api/students/register
+Content-Type: application/json
+
+{
+  "studentId": "202145835",
+  "name": "황중경",
+  "password": "password456",
+  "introduction": "IT응용공학과 4학년입니다. 졸업작품 프론트엔드를 담당하고 있습니다.",
+  "interests": "#React #Frontend #PusanUniv"
+}
+
+### 2번째 학생(황중경) 가용 시간 등록 테스트
+POST http://localhost:8080/api/times/add
+Content-Type: application/json
+
+{
+  "student": {
+    "studentId": "202145835"
+  },
+  "dayOfWeek": "WEDNESDAY",
+  "startTime": "14:00:00",
+  "endTime": "18:00:00"
+}
+
