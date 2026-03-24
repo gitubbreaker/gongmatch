@@ -2,141 +2,78 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
-const MainContainer = styled.main`
+const Container = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 0 10%;
-  min-height: calc(100vh - 70px);
+  padding: 100px 8%;
+  background: radial-gradient(circle at 10% 20%, rgba(196, 255, 0, 0.05) 0%, transparent 50%);
 `;
 
-const LeftSection = styled.div`
-  max-width: 600px;
+const Left = styled.div`
+  h1 { font-size: 70px; font-weight: 800; line-height: 1.1; margin-bottom: 30px; }
+  h1 span { color: #c4ff00; }
+  p { font-size: 18px; color: #8a8b91; line-height: 1.6; margin-bottom: 50px; }
 `;
 
-const HeroTitle = styled.h1`
-  font-size: 72px;
-  font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 24px;
-  color: #fff;
-
-  span {
-    color: #c4ff00;
-    display: block;
-  }
-`;
-
-const SubText = styled.p`
-  font-size: 19px;
-  color: #9496a1;
-  margin-bottom: 48px;
-  line-height: 1.6;
-  font-weight: 500;
-`;
-
-const PrimaryBtn = styled.button`
-  background-color: #c4ff00;
-  color: #000;
-  padding: 18px 36px;
-  font-size: 17px;
-  font-weight: 800;
-  border: none;
-  border-radius: 12px;
-  &:hover {
-    transform: scale(1.05);
-  }
-`;
-
-const RightSection = styled.div`
-  flex: 1;
+const BtnGroup = styled.div`
   display: flex;
-  justify-content: flex-end;
+  gap: 15px;
+  .match { background: #c4ff00; color: #000; padding: 20px 30px; border-radius: 10px; font-weight: bold; font-size: 18px; }
+  .browse { background: #1a1b21; color: #fff; padding: 20px 30px; border-radius: 10px; font-weight: bold; font-size: 18px; border: 1px solid #2a2b36; }
 `;
 
-const AICard = styled.div`
-  background: linear-gradient(145deg, #1a1b23, #111218);
-  border: 1px solid #2a2b36;
-  border-radius: 24px;
-  padding: 32px;
+const RightCard = styled.div`
   width: 420px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  background: #15161d;
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid #2a2b36;
 `;
 
-const MemberItem = styled.div`
+const UserItem = styled.div`
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  background-color: rgba(255, 255, 255, 0.03);
-  padding: 16px;
-  border-radius: 14px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-`;
-
-const Avatar = styled.div`
-  width: 44px; height: 44px;
+  align-items: center;
+  padding: 15px;
+  background: #0b0c10;
   border-radius: 12px;
-  background-color: ${props => props.color};
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; color: #fff;
-`;
-
-const MatchRate = styled.div`
-  color: #c4ff00;
-  font-weight: 800;
-  font-size: 15px;
+  margin-bottom: 12px;
+  .info { display: flex; gap: 12px; }
+  .circle { width: 40px; height: 40px; border-radius: 50%; background: ${props => props.color}; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+  .rate { color: #c4ff00; font-weight: bold; }
 `;
 
 function MainPage() {
   const navigate = useNavigate();
-
   return (
-    <MainContainer>
-      <LeftSection>
-        <HeroTitle>
-          공모전 팀원 이제<br />힘들게 찾지 말고 <span>편하게</span>
-        </HeroTitle>
-        <SubText>
-          공공데이터 기반 매일 최신 공모전 업데이트,<br />
-          AI 알고리즘이 추천하는 최적의 팀원을 만나보세요!
-        </SubText>
-        <PrimaryBtn onClick={() => navigate('/contest-detail')}>
-          ⚡ 팀원 매칭 시작하기
-        </PrimaryBtn>
-      </LeftSection>
-
-      <RightSection>
-        <AICard>
-          <div style={{color: '#ff4b4b', fontWeight: '800', fontSize: '14px', marginBottom: '8px'}}>HOT</div>
-          <h2 style={{fontSize: '22px', fontWeight: '800', marginBottom: '24px'}}>2025 창업 경진대회</h2>
-
-          {[
-            { n: '김지원', r: 'Backend', c: '#5c7cfa', m: '94%' },
-            { n: '이수현', r: 'UI/UX', c: '#20c997', m: '89%' },
-            { n: '박도현', r: 'Data', c: '#ff6b6b', m: '87%' }
-          ].map(user => (
-            <MemberItem key={user.n}>
-              <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
-                <Avatar color={user.c}>{user.n[0]}</Avatar>
-                <div>
-                  <div style={{fontWeight: '700', fontSize: '15px'}}>{user.n}</div>
-                  <div style={{color: '#666', fontSize: '12px'}}>{user.r}</div>
-                </div>
-              </div>
-              <MatchRate>{user.m}</MatchRate>
-            </MemberItem>
-          ))}
-
-          <button
-            style={{width: '100%', padding: '16px', background: '#c4ff00', border: 'none', borderRadius: '12px', fontWeight: '800', marginTop: '12px'}}
-            onClick={() => navigate('/contest-detail')}
-          >
-            매칭 시작
-          </button>
-        </AICard>
-      </RightSection>
-    </MainContainer>
+    <Container>
+      <Left>
+        <h1>공모전 팀원 찾기<br /><span style={{color:'#fff', opacity:0.3}}>이제는</span><br /><span>공매치로 간편하게</span></h1>
+        <p>공공데이터 기반으로 매일 최신 공모전을 자동 업데이트하고,<br />AI 유사도 알고리즘이 나와 딱 맞는 팀원을 연결해드려요.</p>
+        <BtnGroup>
+          <button className="match" onClick={() => navigate('/contest-detail')}>⚡ 팀원 매칭 시작하기</button>
+          <button className="browse">공모전 둘러보기</button>
+        </BtnGroup>
+      </Left>
+      <RightCard>
+        <div style={{color:'#ff4b4b', fontSize:'13px', fontWeight:'bold', marginBottom:'10px'}}>🔥 지금 팀원 모집 중</div>
+        <h2 style={{fontSize:'20px', marginBottom:'20px'}}>2025 공공데이터 활용 창업 경진대회</h2>
+        {[
+          { n: '김지원', r: '백엔드 · Python', c: '#5c7cfa', rt: '94%' },
+          { n: '이수현', r: 'UI/UX · Figma', c: '#20c997', rt: '89%' },
+          { n: '박도현', r: '데이터분석 · R', c: '#ff6b6b', rt: '87%' }
+        ].map(u => (
+          <UserItem key={u.n} color={u.c}>
+            <div className="info">
+              <div className="circle">{u.n[0]}</div>
+              <div><div style={{fontWeight:'bold'}}>{u.n}</div><div style={{fontSize:'12px', color:'#666'}}>{u.r}</div></div>
+            </div>
+            <div className="rate">{u.rt}</div>
+          </UserItem>
+        ))}
+        <button onClick={() => navigate('/contest-detail')} style={{width:'100%', background:'#c4ff00', padding:'15px', borderRadius:'10px', fontWeight:'bold', marginTop:'15px'}}>👥 이 공모전으로 매칭 시작</button>
+      </RightCard>
+    </Container>
   );
 }
 
