@@ -3,31 +3,36 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
 const HeaderWrapper = styled.header`
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 50px;
-  background-color: #0f1015;
-  color: #ffffff;
-  border-bottom: 1px solid #2a2b36;
+  padding: 0 8%;
+  height: 70px;
+  background-color: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(10px); /* 유리 질감 효과 */
+  border-bottom: 1px solid #1a1b23;
 `;
 
 const Logo = styled(Link)`
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
   color: #c4ff00;
   text-decoration: none;
+  letter-spacing: 0.05em;
 `;
 
 const Nav = styled.nav`
   display: flex;
-  gap: 30px;
+  gap: 35px;
 
   a {
-    color: #a0a0a0;
+    color: #9496a1;
     text-decoration: none;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     &:hover {
       color: #ffffff;
     }
@@ -36,28 +41,21 @@ const Nav = styled.nav`
 
 const AuthButtons = styled.div`
   display: flex;
-  gap: 15px;
-  align-items: center;
-`;
-
-const LoginBtn = styled.button`
-  background: transparent;
-  color: #ffffff;
-  border: 1px solid #2a2b36;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
+  gap: 12px;
 `;
 
 const StartBtn = styled.button`
   background-color: #c4ff00;
   color: #000000;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(196, 255, 0, 0.3);
+  }
 `;
 
 function Header() {
@@ -66,13 +64,11 @@ function Header() {
       <Logo to="/">GONG MATCH</Logo>
       <Nav>
         <Link to="/">공모전</Link>
-        <Link to="/">팀원 찾기</Link>
+        <Link to="/contest-detail">팀원 찾기</Link>
         <Link to="/">커뮤니티</Link>
         <Link to="/">성공사례</Link>
-        <Link to="/">공지사항</Link>
       </Nav>
       <AuthButtons>
-        <LoginBtn>로그인</LoginBtn>
         <StartBtn>무료 시작</StartBtn>
       </AuthButtons>
     </HeaderWrapper>

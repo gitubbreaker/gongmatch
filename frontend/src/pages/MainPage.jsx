@@ -1,240 +1,139 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const MainContainer = styled.main`
   display: flex;
   justify-content: space-between;
-  padding: 100px 10%;
-  background-color: #0f1015;
-  color: #ffffff;
-  min-height: calc(100vh - 76px);
+  align-items: center;
+  padding: 0 10%;
+  min-height: calc(100vh - 70px);
 `;
 
 const LeftSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   max-width: 600px;
 `;
 
 const HeroTitle = styled.h1`
-  font-size: 64px;
+  font-size: 72px;
   font-weight: 900;
-  line-height: 1.2;
-  margin-bottom: 20px;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  color: #fff;
 
   span {
     color: #c4ff00;
+    display: block;
   }
 `;
 
 const SubText = styled.p`
-  font-size: 18px;
-  color: #8b8c94;
-  margin-bottom: 40px;
+  font-size: 19px;
+  color: #9496a1;
+  margin-bottom: 48px;
   line-height: 1.6;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 15px;
+  font-weight: 500;
 `;
 
 const PrimaryBtn = styled.button`
   background-color: #c4ff00;
   color: #000;
-  padding: 15px 30px;
-  font-size: 16px;
-  font-weight: bold;
+  padding: 18px 36px;
+  font-size: 17px;
+  font-weight: 800;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
-`;
-
-const SecondaryBtn = styled.button`
-  background-color: transparent;
-  color: #ffffff;
-  padding: 15px 30px;
-  font-size: 16px;
-  border: 1px solid #2a2b36;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 12px;
+  &:hover {
+    transform: scale(1.05);
+  }
 `;
 
 const RightSection = styled.div`
+  flex: 1;
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
 `;
 
 const AICard = styled.div`
-  background-color: #1a1b23;
+  background: linear-gradient(145deg, #1a1b23, #111218);
   border: 1px solid #2a2b36;
-  border-radius: 12px;
-  padding: 30px;
-  width: 400px;
-`;
-
-const CardTitle = styled.div`
-  font-size: 14px;
-  color: #ff5e5e;
-  margin-bottom: 10px;
-  font-weight: bold;
-`;
-
-const ContestName = styled.h2`
-  font-size: 20px;
-  margin-bottom: 15px;
-  font-weight: bold;
-`;
-
-const TagGroup = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 30px;
-`;
-
-const Tag = styled.span`
-  background-color: #2a2b36;
-  color: #c4ff00;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-`;
-
-const MemberList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
+  border-radius: 24px;
+  padding: 32px;
+  width: 420px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 `;
 
 const MemberItem = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #0f1015;
-  padding: 15px;
-  border-radius: 8px;
-`;
-
-const MemberInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 `;
 
 const Avatar = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 44px; height: 44px;
+  border-radius: 12px;
   background-color: ${props => props.color};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 18px;
-  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #fff;
 `;
 
-const MemberDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const MemberName = styled.span`
-  font-weight: bold;
-  font-size: 16px;
-`;
-
-const MemberRole = styled.span`
-  color: #8b8c94;
-  font-size: 12px;
-  margin-top: 2px;
-`;
-
-const MatchRate = styled.span`
+const MatchRate = styled.div`
   color: #c4ff00;
-  font-weight: bold;
-`;
-
-const MatchBtn = styled.button`
-  width: 100%;
-  background-color: #c4ff00;
-  color: #000;
-  border: none;
-  padding: 15px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
+  font-weight: 800;
+  font-size: 15px;
 `;
 
 function MainPage() {
+  const navigate = useNavigate();
+
   return (
     <MainContainer>
       <LeftSection>
         <HeroTitle>
-          공모전 팀원<br />
-          찾기 어려울때는<br />
-          <span>공매치로</span>
+          공모전 팀원 이제<br />힘들게 찾지 말고 <span>편하게</span>
         </HeroTitle>
         <SubText>
-          공공데이터 기반으로 매일 최신 공모전을 자동 업데이트하고,<br />
-          AI 유사도 알고리즘이 나와 딱 맞는 팀원을 연결해드려요.
+          공공데이터 기반 매일 최신 공모전 업데이트,<br />
+          AI 알고리즘이 추천하는 최적의 팀원을 만나보세요!
         </SubText>
-        <ButtonGroup>
-          <PrimaryBtn>팀원 매칭 시작하기</PrimaryBtn>
-          <SecondaryBtn>공모전 둘러보기</SecondaryBtn>
-        </ButtonGroup>
+        <PrimaryBtn onClick={() => navigate('/contest-detail')}>
+          ⚡ 팀원 매칭 시작하기
+        </PrimaryBtn>
       </LeftSection>
 
       <RightSection>
         <AICard>
-          <CardTitle>지금 팀원 모집 중</CardTitle>
-          <ContestName>2025 공공데이터 활용 창업 경진대회</ContestName>
-          <TagGroup>
-            <Tag>#데이터분석</Tag>
-            <Tag>#개발</Tag>
-            <Tag>#창업</Tag>
-          </TagGroup>
+          <div style={{color: '#ff4b4b', fontWeight: '800', fontSize: '14px', marginBottom: '8px'}}>HOT</div>
+          <h2 style={{fontSize: '22px', fontWeight: '800', marginBottom: '24px'}}>2025 창업 경진대회</h2>
 
-          <div style={{ color: '#8b8c94', fontSize: '14px', marginBottom: '15px' }}>AI 추천 팀원</div>
+          {[
+            { n: '김지원', r: 'Backend', c: '#5c7cfa', m: '94%' },
+            { n: '이수현', r: 'UI/UX', c: '#20c997', m: '89%' },
+            { n: '박도현', r: 'Data', c: '#ff6b6b', m: '87%' }
+          ].map(user => (
+            <MemberItem key={user.n}>
+              <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
+                <Avatar color={user.c}>{user.n[0]}</Avatar>
+                <div>
+                  <div style={{fontWeight: '700', fontSize: '15px'}}>{user.n}</div>
+                  <div style={{color: '#666', fontSize: '12px'}}>{user.r}</div>
+                </div>
+              </div>
+              <MatchRate>{user.m}</MatchRate>
+            </MemberItem>
+          ))}
 
-          <MemberList>
-            <MemberItem>
-              <MemberInfo>
-                <Avatar color="#5c7cfa">김</Avatar>
-                <MemberDetails>
-                  <MemberName>김지원</MemberName>
-                  <MemberRole>백엔드 · Python</MemberRole>
-                </MemberDetails>
-              </MemberInfo>
-              <MatchRate>94%</MatchRate>
-            </MemberItem>
-            <MemberItem>
-              <MemberInfo>
-                <Avatar color="#20c997">이</Avatar>
-                <MemberDetails>
-                  <MemberName>이수현</MemberName>
-                  <MemberRole>UI/UX · Figma</MemberRole>
-                </MemberDetails>
-              </MemberInfo>
-              <MatchRate>89%</MatchRate>
-            </MemberItem>
-            <MemberItem>
-              <MemberInfo>
-                <Avatar color="#ff6b6b">박</Avatar>
-                <MemberDetails>
-                  <MemberName>박도현</MemberName>
-                  <MemberRole>데이터분석 · R</MemberRole>
-                </MemberDetails>
-              </MemberInfo>
-              <MatchRate>87%</MatchRate>
-            </MemberItem>
-          </MemberList>
-
-          <MatchBtn>이 공모전으로 매칭 시작</MatchBtn>
+          <button
+            style={{width: '100%', padding: '16px', background: '#c4ff00', border: 'none', borderRadius: '12px', fontWeight: '800', marginTop: '12px'}}
+            onClick={() => navigate('/contest-detail')}
+          >
+            매칭 시작
+          </button>
         </AICard>
       </RightSection>
     </MainContainer>
