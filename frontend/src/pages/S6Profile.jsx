@@ -129,7 +129,7 @@ function S6Profile() {
         <div className="card2">
           <p className="slabel">팀원 요청 보내기</p>
           <div style={{ background: 'var(--card3)', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
-            <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx)' }}>2025 공공데이터 활용 창업 경진대회</p>
+            <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx)' }}>2026 공공데이터 활용 창업 경진대회</p>
             <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>행정안전부 주최 · D-3 마감</p>
           </div>
           <textarea className="field" rows="4" style={{ marginBottom: '12px' }} placeholder="간단한 소개나 같이 하고 싶은 이유를 적어보세요 (선택)&#10;수락률이 높아져요!"></textarea>
@@ -160,7 +160,7 @@ function S6Profile() {
             </div>
             <div style={{ background: 'var(--card3)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
               <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx)' }}>{reqModal.name} · 매칭 점수 {reqModal.score}점</p>
-              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>2025 공공데이터 활용 창업 경진대회</p>
+              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>2026 공공데이터 활용 창업 경진대회</p>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>요청 메시지 (선택)</p>
             <textarea className="field" rows="4" placeholder="간단한 소개나 같이 하고 싶은 이유를 적어보세요.&#10;수락률이 높아져요!&#10;&#10;예) 안녕하세요! 저는 PM 담당이고 공공데이터 경험이 있어요 😊" style={{ marginBottom: '16px' }}></textarea>

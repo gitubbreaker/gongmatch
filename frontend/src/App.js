@@ -10,6 +10,8 @@ import S4Board from './pages/S4Board';
 import S5Candidates from './pages/S5Candidates';
 import S6Profile from './pages/S6Profile';
 import S7Accept from './pages/S7Accept';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
@@ -90,6 +92,9 @@ const GlobalStyle = createGlobalStyle`
 
   .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card3); border: 1px solid var(--brd3); border-radius: 10px; padding: 13px 22px; font-size: 13px; color: var(--tx); z-index: 9999; transition: transform .3s cubic-bezier(.34,1.56,.64,1); white-space: nowrap; pointer-events: none; }
   .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal { background: var(--card2); border: 1px solid var(--brd3); border-radius: 18px; padding: 32px; max-width: 460px; width: 90%; }
 `;
 
 export const showToast = (msg) => {
@@ -127,6 +132,8 @@ function App() {
           <Route path="/candidates" element={<S5Candidates />} />
           <Route path="/profile" element={<S6Profile />} />
           <Route path="/accept" element={<S7Accept />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
         </Routes>
       </div>
       <div className={`toast ${toastShow ? 'show' : ''}`}>{toastMsg}</div>

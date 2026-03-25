@@ -25,7 +25,7 @@ function S5Candidates() {
       <div className="s5-hdr" style={{ background: 'var(--bg2)', borderBottom: '1px solid var(--brd)', padding: '22px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: '0' }}>
         <div>
           <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '5px' }}>공모전 → 팀원 찾기</p>
-          <p style={{ fontSize: '19px', fontWeight: '800' }}>2025 부산 공공데이터 활용 창업 경진대회</p>
+          <p style={{ fontSize: '19px', fontWeight: '800' }}>2026 부산 공공데이터 활용 창업 경진대회</p>
           <div style={{ display: 'flex', gap: '6px', marginTop: '9px', flexWrap: 'wrap' }}>
             <span className="tag" style={{ fontSize: '10px' }}>#데이터분석</span>
             <span className="tag" style={{ fontSize: '10px' }}>#개발</span>
@@ -164,7 +164,7 @@ function S5Candidates() {
             </div>
             <div style={{ background: 'var(--card3)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
               <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx)' }}>{reqModal.name} · 매칭 점수 {reqModal.score}점</p>
-              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>2025 공공데이터 활용 창업 경진대회</p>
+              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>2026 공공데이터 활용 창업 경진대회</p>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>요청 메시지 (선택)</p>
             <textarea className="field" rows="4" placeholder="간단한 소개나 같이 하고 싶은 이유를 적어보세요.&#10;수락률이 높아져요!&#10;&#10;예) 안녕하세요! 저는 PM 담당이고 공공데이터 경험이 있어요 😊" style={{ marginBottom: '16px' }}></textarea>

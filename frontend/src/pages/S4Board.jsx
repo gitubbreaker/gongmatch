@@ -58,7 +58,7 @@ function S4Board() {
                 <span className="badge-hot">🔥 HOT</span>
                 <span className="tag green" style={{ fontSize: '10px' }}>✓ 인증 공고</span>
               </div>
-              <div className="pc-title" style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '7px', lineHeight: '1.4' }}>2025 부산 공공데이터 활용 창업 경진대회</div>
+              <div className="pc-title" style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '7px', lineHeight: '1.4' }}>2026 부산 공공데이터 활용 창업 경진대회</div>
             </div>
             <span className="tag red" style={{ fontSize: '14px', fontWeight: '900', padding: '6px 13px', flexShrink: '0', marginLeft: '14px' }}>D-3</span>
           </div>
@@ -76,7 +76,7 @@ function S4Board() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
             <div>
               <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '8px' }}>🤝 봉사활동</div>
-              <div className="pc-title" style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '7px', lineHeight: '1.4' }}>부산광역시 청년 봉사단 2025 모집</div>
+              <div className="pc-title" style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '7px', lineHeight: '1.4' }}>부산광역시 청년 봉사단 2026 모집</div>
             </div>
             <span className="tag orange" style={{ fontSize: '14px', fontWeight: '900', padding: '6px 13px', flexShrink: '0', marginLeft: '14px' }}>D-15</span>
           </div>
@@ -94,7 +94,7 @@ function S4Board() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
             <div>
               <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '8px' }}>📋 청년 정책</div>
-              <div className="pc-title" style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '7px', lineHeight: '1.4' }}>부산 청년 창업 지원 사업 2025</div>
+              <div className="pc-title" style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '7px', lineHeight: '1.4' }}>부산 청년 창업 지원 사업 2026</div>
             </div>
             <span className="tag gray" style={{ fontSize: '14px', padding: '6px 13px', flexShrink: '0', marginLeft: '14px' }}>D-30</span>
           </div>
