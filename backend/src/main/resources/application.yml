@@ -15,3 +15,8 @@ spring:
       hibernate:
         format_sql: true
         highlight_sql: true
+
+# JWT 설정 (서버 재시작해도 토큰이 유효하도록 고정 키 사용)
+jwt:
+  secret: Z29uZ21hdGNoLWh5cGVybG9jYWwtcHJvamVjdC1zZWNyZXQta2V5LTIwMjUtc3ByaW5nLWJvb3Q=
+  expiration: 86400000  # 24시간 (밀리초)

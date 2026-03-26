@@ -24,6 +24,22 @@ public class TagService {
     private static final int MAX_TAGS = 10;
 
     /**
+     * 전체 태그 목록 조회 (인증 불필요)
+     */
+    @Transactional(readOnly = true)
+    public List<Tag> getAllTags() {
+        return tagRepository.findAll();
+    }
+
+    /**
+     * 카테고리별 태그 목록 조회 (인증 불필요)
+     */
+    @Transactional(readOnly = true)
+    public List<Tag> getTagsByCategory(String category) {
+        return tagRepository.findByCategory(category);
+    }
+
+    /**
      * 로그인한 사용자의 해시태그 목록 조회
      */
     @Transactional(readOnly = true)

@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GONG MATCH</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
+:root{
+  --bg:#07071A;--bg2:#0D0D22;--bg3:#111128;
+  --card:#14142E;--card2:#1A1A38;--card3:#212148;
+  --ac:#C8F226;--ac2:#DEFF3A;--ac-dim:rgba(200,242,38,.1);--ac-brd:rgba(200,242,38,.28);
+  --tx:#EDEEFF;--tx2:#9898C0;--tx3:#55557A;--tx4:#33334A;
+  --brd:rgba(255,255,255,.06);--brd2:rgba(255,255,255,.11);--brd3:rgba(255,255,255,.18);
+  --red:#FF4040;--red-dim:rgba(255,64,64,.12);--red-brd:rgba(255,64,64,.28);
+  --orange:#FF9124;--orange-dim:rgba(255,145,36,.12);
+  --blue:#5BA4FF;--blue-dim:rgba(91,164,255,.15);
+  --green:#3DD68C;--green-dim:rgba(61,214,140,.1);
+  --purple:#A78CF8;--purple-dim:rgba(167,140,248,.15);
+  --yellow:#FFD234;--yellow-dim:rgba(255,210,52,.12);
+  --r:10px;--r2:14px;--navh:58px;--tabh:50px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--tx4);border-radius:2px}
+
+/* ── SCREEN SYSTEM ── */
+.screen{display:none;min-height:calc(100vh - var(--navh) - var(--tabh))}
+.screen.on{display:block}
+#s1.on{display:grid;grid-template-columns:1fr 420px}
+#s4.on{display:grid;grid-template-columns:210px 1fr}
+#s5.on{display:flex;flex-direction:column}
+#s6.on{display:grid;grid-template-columns:1fr 310px}
+#s7.on{display:grid;grid-template-columns:1fr 1fr}
+
+/* ── TOP NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--navh);
+  background:rgba(7,7,26,.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;padding:0 36px}
+.logo{font-size:19px;font-weight:900;letter-spacing:-0.8px;cursor:pointer}
+.logo .g{color:var(--ac)}
+.navlinks{display:flex;gap:30px}
+.navlinks a{font-size:13px;color:var(--tx3);transition:color .2s;cursor:pointer}
+.navlinks a:hover,.navlinks a.on{color:var(--tx)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.livepill{display:inline-flex;align-items:center;gap:6px;background:var(--ac-dim);border:1px solid var(--ac-brd);color:var(--ac);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:700}
+.livepill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-ghost{background:transparent;border:1px solid var(--brd3);color:var(--tx2);padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s}
+.btn-ghost:hover{background:var(--card2);border-color:var(--brd3);color:var(--tx)}
+.btn-prim{background:var(--ac);border:none;color:#080F00;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:800;transition:all .2s;letter-spacing:-0.2px}
+.btn-prim:hover{background:var(--ac2);transform:translateY(-1px)}
+.btn-prim:active{transform:translateY(0)}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:7px}
+
+/* ── TABS ── */
+.tabs{position:fixed;top:var(--navh);left:0;right:0;z-index:199;height:var(--tabh);
+  background:rgba(13,13,34,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--brd2);display:flex;align-items:center;gap:3px;padding:0 24px;overflow-x:auto}
+.tabs::-webkit-scrollbar{height:0}
+.tabbt{background:transparent;border:1px solid transparent;color:var(--tx3);padding:7px 15px;
+  border-radius:7px;font-size:12px;font-weight:500;white-space:nowrap;transition:all .2s}
+.tabbt:hover{color:var(--tx2);background:var(--card)}
+.tabbt.on{background:var(--ac-dim);border-color:var(--ac-brd);color:var(--ac);font-weight:700}
+.main{padding-top:calc(var(--navh) + var(--tabh))}
+
+/* ── SHARED ATOMS ── */
+.tag{display:inline-flex;align-items:center;gap:4px;background:var(--ac-dim);color:var(--ac);border:1px solid var(--ac-brd);border-radius:5px;padding:3px 9px;font-size:11px;font-weight:600}
+.tag.gray{background:rgba(255,255,255,.05);color:var(--tx3);border-color:var(--brd2)}
+.tag.green{background:var(--green-dim);color:var(--green);border-color:rgba(61,214,140,.28)}
+.tag.blue{background:var(--blue-dim);color:var(--blue);border-color:rgba(91,164,255,.28)}
+.tag.red{background:var(--red-dim);color:var(--red);border-color:var(--red-brd)}
+.tag.orange{background:var(--orange-dim);color:var(--orange);border-color:rgba(255,145,36,.28)}
+.tag.yellow{background:var(--yellow-dim);color:var(--yellow);border-color:rgba(255,210,52,.28)}
+.tag.purple{background:var(--purple-dim);color:var(--purple);border-color:rgba(167,140,248,.28)}
+.badge-hot{display:inline-flex;align-items:center;gap:4px;background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,145,36,.28);border-radius:5px;padding:3px 9px;font-size:10px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:18px}
+.card2{background:var(--card2);border:1px solid var(--brd2);border-radius:var(--r);padding:18px}
+.card3{background:var(--card3);border:1px solid var(--brd3);border-radius:var(--r);padding:18px}
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+.bar-track{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;background:var(--ac);border-radius:3px;transition:width .4s}
+.divider{height:1px;background:var(--brd);margin:16px 0}
+.slabel{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px}
+.field{width:100%;background:var(--card);border:1px solid var(--brd2);border-radius:8px;color:var(--tx);font-size:13px;padding:11px 14px;outline:none;transition:border-color .2s}
+.field:focus{border-color:var(--ac-brd);box-shadow:0 0 0 3px rgba(200,242,38,.07)}
+.field::placeholder{color:var(--tx3)}
+textarea.field{resize:none}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--card3);border:1px solid var(--brd3);border-radius:10px;padding:13px 22px;
+  font-size:13px;color:var(--tx);z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.on{display:flex}
+.modal{background:var(--card2);border:1px solid var(--brd3);border-radius:18px;padding:32px;max-width:460px;width:90%;animation:mup .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes mup{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+
+/* ══════════ S1 HOME ══════════ */
+.s1-left{padding:68px 56px;display:flex;flex-direction:column;justify-content:center}
+.s1-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(200,242,38,.08);border:1px solid var(--ac-brd);color:var(--ac);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;margin-bottom:28px;width:fit-content}
+.s1-h1{font-size:58px;font-weight:900;line-height:1.06;letter-spacing:-2.5px;color:var(--tx);margin-bottom:4px}
+.s1-h1 .hi{color:var(--ac)}
+.s1-sub{font-size:15px;line-height:1.85;color:var(--tx2);margin:22px 0 34px}
+.s1-btns{display:flex;gap:12px;margin-bottom:32px}
+.s1-search{display:flex;background:var(--card2);border:1px solid var(--brd2);border-radius:11px;overflow:hidden;margin-bottom:14px;transition:border-color .2s}
+.s1-search:focus-within{border-color:var(--ac-brd)}
+.s1-search input{flex:1;background:transparent;border:none;color:var(--tx);font-size:13px;padding:14px 18px;outline:none}
+.s1-search input::placeholder{color:var(--tx3)}
+.s1-chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{display:inline-flex;background:rgba(255,255,255,.04);border:1px solid var(--brd2);color:var(--tx3);border-radius:20px;padding:5px 13px;font-size:12px;cursor:pointer;transition:all .2s}
+.chip:hover,.chip.on{background:var(--ac-dim);border-color:var(--ac-brd);color:var(--ac)}
+.s1-right{background:var(--bg2);border-left:1px solid var(--brd);padding:28px 22px;display:flex;flex-direction:column;gap:13px;overflow-y:auto}
+.pubcard{background:var(--card2);border:1px solid var(--brd2);border-radius:var(--r2);padding:18px;border-left:3px solid var(--ac);transition:border-color .2s;cursor:pointer}
+.pubcard:hover{border-color:var(--ac);background:var(--card3)}
+.pub-d{background:var(--red-dim);color:var(--red);border:1px solid var(--red-brd);border-radius:5px;padding:3px 9px;font-size:11px;font-weight:800;white-space:nowrap;flex-shrink:0}
+.match-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)}
+.match-row:last-child{border-bottom:none}
+.match-sc{font-size:15px;font-weight:800;color:var(--ac)}
+.s1-minipill{background:rgba(200,242,38,.06);border:1px solid var(--ac-brd);border-radius:8px;padding:11px 14px}
+
+/* ══════════ S2 TIME ══════════ */
+.s2-wrap{max-width:1120px;margin:0 auto;padding:48px 40px;display:grid;grid-template-columns:1fr 300px;gap:32px;align-items:start}
+.stepbar{display:flex;align-items:center;margin-bottom:32px}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--tx3)}
+.step.done .sn,.step.act .sn{background:var(--ac);color:#080F00}
+.step.done,.step.act{color:var(--ac)}
+.step.act{font-weight:700}
+.sn{width:24px;height:24px;border-radius:50%;background:var(--card3);border:1px solid var(--brd2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.stepline{flex:1;height:1px;background:var(--brd2);margin:0 10px}
+.step.done .stepline{background:rgba(200,242,38,.3)}
+.tb-outer{overflow-x:auto;border-radius:var(--r);border:1px solid var(--brd2)}
+.tbgrid{display:grid;grid-template-columns:52px repeat(13,1fr);gap:1px;background:var(--brd)}
+.tc{height:36px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--tx3);cursor:pointer;user-select:none;transition:background .1s;min-width:0}
+.tc:hover:not(.hd):not(.dh){background:rgba(200,242,38,.12)}
+.tc.sel{background:rgba(200,242,38,.28);color:var(--ac);font-weight:700}
+.tc.hd{background:var(--bg3);cursor:default;font-weight:600;color:var(--tx2)}
+.tc.dh{background:var(--bg3);cursor:default;font-weight:700;color:var(--tx);font-size:12px}
+.s2-side{display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(var(--navh)+var(--tabh)+20px)}
+
+/* ══════════ S3 TAGS ══════════ */
+.s3-wrap{max-width:1040px;margin:0 auto;padding:48px 40px;display:grid;grid-template-columns:1fr 340px;gap:32px;align-items:start}
+.tpick{display:inline-flex;background:rgba(255,255,255,.04);color:var(--tx3);border:1px solid var(--brd2);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;margin:3px;transition:all .15s}
+.tpick:hover{background:rgba(255,255,255,.07);color:var(--tx2)}
+.tpick.on{background:var(--ac-dim);color:var(--ac);border-color:var(--ac-brd);font-weight:700}
+.sprev{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:0}
+.sbox{background:var(--card);border-radius:8px;padding:14px;text-align:center;border:1px solid var(--brd)}
+.sbox.hi{background:var(--ac-dim);border-color:var(--ac-brd)}
+.snum{font-size:30px;font-weight:900;color:var(--ac);line-height:1}
+.slb{font-size:10px;color:var(--tx3);margin-top:4px}
+
+/* ══════════ S4 BOARD ══════════ */
+.sidebar{background:var(--bg2);border-right:1px solid var(--brd);padding:24px 18px;display:flex;flex-direction:column;gap:20px}
+.sb-title{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px}
+.fitem{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--tx2);padding:5px 0;cursor:pointer;transition:color .15s;gap:6px}
+.fitem:hover{color:var(--tx)}
+.fitem input[type=checkbox],.fitem input[type=radio]{accent-color:var(--ac);width:15px;height:15px;cursor:pointer;flex-shrink:0}
+.fcnt{font-size:11px;color:var(--tx3)}
+.board-main{padding:28px 32px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.pc{background:var(--card);border:1px solid var(--brd);border-radius:var(--r2);padding:22px 24px;transition:all .2s;cursor:pointer}
+.pc:hover{border-color:var(--brd3);background:var(--card2);transform:translateY(-1px)}
+.pc.hot{border-left:3px solid var(--ac)}
+.pc-title{font-size:16px;font-weight:800;color:var(--tx);margin-bottom:7px;line-height:1.4}
+.pc-meta{font-size:12px;color:var(--tx3);margin-bottom:12px}
+.pc-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+/* ══════════ S5 CANDIDATES ══════════ */
+.s5-hdr{background:var(--bg2);border-bottom:1px solid var(--brd);padding:22px 32px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.s5-body{display:grid;grid-template-columns:210px 1fr;flex:1;overflow:hidden}
+.clist{padding:20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.cc{background:var(--card);border:1px solid var(--brd);border-radius:var(--r2);padding:20px;transition:all .2s;cursor:pointer}
+.cc:hover{border-color:var(--brd3);background:var(--card2)}
+.cc.top{border-color:rgba(200,242,38,.3)}
+.cc-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.csc{font-size:34px;font-weight:900;color:var(--ac);line-height:1}
+.csc span{font-size:13px;font-weight:400;color:var(--tx3)}
+.sdet{background:var(--bg2);border-radius:8px;padding:13px 15px;margin-bottom:12px}
+.sr{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sr:last-child{margin-bottom:0}
+.srl{font-size:11px;color:var(--tx3);width:58px;flex-shrink:0}
+.srv{font-size:11px;color:var(--tx2);white-space:nowrap}
+
+/* ══════════ S6 PROFILE ══════════ */
+.prof-main{padding:32px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.prof-panel{background:var(--bg2);border-left:1px solid var(--brd);padding:26px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.statrow{display:flex;background:var(--card);border-radius:8px;overflow:hidden;margin-top:16px}
+.stb{flex:1;text-align:center;padding:13px;border-right:1px solid var(--brd)}
+.stb:last-child{border-right:none}
+.stnum{font-size:20px;font-weight:900;color:var(--ac)}
+.stlb{font-size:10px;color:var(--tx3);margin-top:3px}
+.htimeline{display:flex;flex-direction:column;gap:0}
+.hitem{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--brd);position:relative}
+.hitem:last-child{border-bottom:none}
+.hdot{width:9px;height:9px;border-radius:50%;background:var(--ac);flex-shrink:0;margin-top:5px}
+.hdot.gray{background:var(--tx3)}
+.htitle{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px;line-height:1.4}
+.hmeta{font-size:12px;color:var(--tx3)}
+.ovblocks{display:flex;gap:2px;flex:1}
+.ob{flex:1;height:22px;border-radius:3px}
+.ob-me{background:rgba(200,242,38,.2)}
+.ob-them{background:rgba(91,164,255,.22)}
+.ob-hit{background:rgba(200,242,38,.55);border:1px solid rgba(200,242,38,.7)}
+.ob-empty{background:rgba(255,255,255,.03)}
+
+/* ══════════ S7 ACCEPT ══════════ */
+.s7-left{display:flex;align-items:center;justify-content:center;background:var(--bg);border-right:1px solid var(--brd)}
+.accept-box{text-align:center;padding:48px 40px;max-width:400px}
+.accept-icon{width:90px;height:90px;background:var(--ac-dim);border:2px solid var(--ac-brd);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-size:38px}
+.accept-name{font-size:30px;font-weight:900;line-height:1.2;margin-bottom:8px}
+.accept-name em{color:var(--ac);font-style:normal}
+.accept-sub{font-size:14px;color:var(--tx2);line-height:1.75;margin-bottom:30px}
+.cntbtn{display:flex;align-items:center;gap:14px;background:var(--card2);border:1px solid var(--brd2);border-radius:12px;padding:16px 20px;cursor:pointer;text-align:left;margin-bottom:10px;transition:all .2s;width:100%}
+.cntbtn:hover{border-color:var(--ac-brd);background:var(--card3)}
+.cntbtn.kk{border-color:rgba(255,205,50,.22)}
+.cntbtn.kk:hover{border-color:rgba(255,205,50,.5)}
+.cnticon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.cnticon.kk{background:rgba(255,205,50,.15)}
+.cnticon.ml{background:var(--ac-dim)}
+.cntbt-title{font-size:14px;font-weight:700;color:var(--tx)}
+.cntbt-sub{font-size:11px;color:var(--tx3);margin-top:3px}
+.skip{font-size:12px;color:var(--tx3);margin-top:18px;cursor:pointer;transition:color .2s}
+.skip:hover{color:var(--tx2)}
+.s7-right{background:var(--bg2);display:flex;flex-direction:column}
+.chat-hdr{padding:16px 24px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.chat-user{display:flex;align-items:center;gap:12px}
+.ondot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
+.chat-ctx{background:var(--ac-dim);border:1px solid var(--ac-brd);border-radius:7px;padding:5px 13px;font-size:11px;color:var(--ac);font-weight:700}
+.msgs{flex:1;padding:22px 24px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.sysmsg{text-align:center}
+.sysmsg span{background:rgba(255,255,255,.05);color:var(--tx3);border-radius:12px;padding:5px 15px;font-size:11px}
+.msgrow{display:flex;gap:10px}
+.msgrow.me{justify-content:flex-end}
+.bubble{max-width:290px;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.65}
+.bubble.them{background:var(--card2);color:var(--tx);border-radius:4px 14px 14px 14px}
+.bubble.me{background:rgba(200,242,38,.13);border:1px solid rgba(200,242,38,.18);color:var(--tx);border-radius:14px 14px 4px 14px}
+.mtime{font-size:10px;color:var(--tx3);margin-top:5px}
+.mtime.r{text-align:right}
+.chat-inp{padding:14px 22px;border-top:1px solid var(--brd);flex-shrink:0}
+.inprow{display:flex;background:var(--card);border:1px solid var(--brd2);border-radius:10px;overflow:hidden;margin-bottom:10px;transition:border-color .2s}
+.inprow:focus-within{border-color:var(--ac-brd)}
+.inprow input{flex:1;background:transparent;border:none;color:var(--tx);font-size:13px;padding:12px 16px;outline:none}
+.inprow input::placeholder{color:var(--tx3)}
+.send-btn{background:var(--ac);border:none;color:#080F00;font-size:16px;font-weight:800;padding:0 20px;transition:background .2s}
+.send-btn:hover{background:var(--ac2)}
+.qbtns{display:flex;gap:8px;flex-wrap:wrap}
+.qbt{background:transparent;border:1px solid var(--brd2);color:var(--tx3);padding:6px 13px;border-radius:7px;font-size:11px;transition:all .2s}
+.qbt:hover{color:var(--tx);border-color:var(--brd3);background:var(--card)}
+
+/* ══════ TOOLTIP ══════ */
+.tipwrap{position:relative;display:inline-flex}
+.tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--card3);border:1px solid var(--brd3);color:var(--tx);font-size:11px;
+  padding:6px 12px;border-radius:7px;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .2s;z-index:100}
+.tipwrap:hover .tip{opacity:1}
+
+/* ══════ NOTIFICATION DROPDOWN ══════ */
+.notif-wrap{position:relative}
+.notif-icon{width:34px;height:34px;border-radius:8px;background:var(--card);border:1px solid var(--brd2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;font-size:16px}
+.notif-icon:hover{background:var(--card2)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--red);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;width:300px;background:var(--card2);border:1px solid var(--brd3);border-radius:12px;padding:14px;z-index:300;display:none}
+.notif-drop.on{display:block}
+.notif-item{display:flex;gap:10px;padding:10px;border-radius:8px;cursor:pointer;transition:background .15s;align-items:flex-start}
+.notif-item:hover{background:var(--card3)}
+.notif-item .ni-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);flex-shrink:0;margin-top:4px}
+.notif-item .ni-txt{font-size:12px;color:var(--tx);line-height:1.5}
+.notif-item .ni-time{font-size:10px;color:var(--tx3);margin-top:3px}
+
+/* ══════ PROFILE MINI DROPDOWN ══════ */
+.my-wrap{position:relative}
+.my-av{width:34px;height:34px;border-radius:50%;background:var(--blue-dim);border:2px solid var(--ac-brd);display:flex;align-items:center;justify-content:center;color:var(--ac);font-size:13px;font-weight:800;cursor:pointer;transition:border-color .2s}
+.my-av:hover{border-color:var(--ac)}
+.my-drop{position:absolute;top:calc(100% + 8px);right:0;width:200px;background:var(--card2);border:1px solid var(--brd3);border-radius:12px;padding:8px;z-index:300;display:none}
+.my-drop.on{display:block}
+.my-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;font-size:13px;color:var(--tx2);cursor:pointer;transition:all .15s}
+.my-item:hover{background:var(--card3);color:var(--tx)}
+
+</style>
+</head>
+<body>
+
+<!-- ══════ NAV ══════ -->
+<nav class="nav">
+  <div style="display:flex;align-items:center;gap:36px">
+    <div class="logo" onclick="goto('s1')"><span class="g">GONG</span>MATCH</div>
+    <div class="navlinks">
+      <a onclick="goto('s4')" id="nl-project">프로젝트 찾기</a>
+      <a onclick="goto('s5')" id="nl-team">팀원 찾기</a>
+      <a>커뮤니티</a>
+      <a>공지사항</a>
+    </div>
+  </div>
+  <div class="nav-r">
+    <div class="livepill">LIVE 업데이트 중</div>
+
+    <!-- 알림 드롭다운 -->
+    <div class="notif-wrap">
+      <div class="notif-icon" onclick="toggleDrop('notif-drop')">🔔<div class="notif-badge">3</div></div>
+      <div class="notif-drop" id="notif-drop">
+        <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:8px;padding:0 4px">알림</div>
+        <div class="notif-item" onclick="goto('s7');closeDrop('notif-drop')">
+          <div class="ni-dot"></div>
+          <div><div class="ni-txt"><b style="color:var(--ac)">김지원</b>님이 팀원 요청을 수락했어요 🎉</div><div class="ni-time">방금 전</div></div>
+        </div>
+        <div class="notif-item">
+          <div class="ni-dot" style="background:var(--blue)"></div>
+          <div><div class="ni-txt">새 공고 — 2025 K-데이터 청년 챌린지 등록</div><div class="ni-time">1시간 전</div></div>
+        </div>
+        <div class="notif-item">
+          <div class="ni-dot" style="background:var(--tx3)"></div>
+          <div><div class="ni-txt"><b style="color:var(--tx)">이수현</b>님이 쪽지를 보냈어요</div><div class="ni-time">어제</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 내 프로필 드롭다운 -->
+    <div class="my-wrap">
+      <div class="my-av" onclick="toggleDrop('my-drop')">나</div>
+      <div class="my-drop" id="my-drop">
+        <div style="padding:10px 12px;border-bottom:1px solid var(--brd);margin-bottom:6px">
+          <div style="font-size:13px;font-weight:700">나의 계정</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:2px">부산대 · 컴공 3학년</div>
+        </div>
+        <div class="my-item" onclick="goto('s2');closeDrop('my-drop')">⏰ 가용시간 설정</div>
+        <div class="my-item" onclick="goto('s3');closeDrop('my-drop')">🏷 관심사 관리</div>
+        <div class="my-item">⚙️ 계정 설정</div>
+        <div class="my-item" style="color:var(--red)">로그아웃</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════ TABS ══════ -->
+<div class="tabs">
+  <button class="tabbt on" id="tab-s1" onclick="goto('s1')">S1 · 홈 대시보드</button>
+  <button class="tabbt" id="tab-s2" onclick="goto('s2')">S2 · 가용시간 입력</button>
+  <button class="tabbt" id="tab-s3" onclick="goto('s3')">S3 · 관심사 해시태그</button>
+  <button class="tabbt" id="tab-s4" onclick="goto('s4')">S4 · 지역 프로젝트 보드</button>
+  <button class="tabbt" id="tab-s5" onclick="goto('s5')">S5 · 팀원 추천 목록</button>
+  <button class="tabbt" id="tab-s6" onclick="goto('s6')">S6 · 프로필 상세</button>
+  <button class="tabbt" id="tab-s7" onclick="goto('s7')">S7 · 매칭 수락</button>
+</div>
+
+<div class="main">
+
+<!-- ════════════════ S1 홈 ════════════════ -->
+<section class="screen on" id="s1">
+  <div class="s1-left">
+    <div class="s1-eyebrow">🏆 2025 프로젝트 시즌 오픈</div>
+    <h1 class="s1-h1">프로젝트·스터디<br><span class="hi">같이 하면 완주한다</span></h1>
+    <p class="s1-sub">공공데이터 기반으로 매일 최신 프로젝트 공고를 자동 업데이트하고,<br>가용 시간 + 해시태그 알고리즘으로 딱 맞는 팀원을 연결해드려요.</p>
+    <div class="s1-btns">
+      <button class="btn-prim" style="padding:14px 30px;font-size:14px" onclick="goto('s2')">⚡ 팀원 매칭 시작하기</button>
+      <button class="btn-ghost" style="padding:14px 28px;font-size:14px" onclick="goto('s4')">프로젝트 둘러보기</button>
+    </div>
+    <div class="s1-search">
+      <input type="text" id="s1-srch" placeholder="관심 해시태그 검색  —  예) #데이터분석  #공모전  #창업" onkeydown="if(event.key==='Enter'){doSearch()}">
+      <button class="btn-prim" style="border-radius:0;padding:0 24px;font-size:13px" onclick="doSearch()">검색</button>
+    </div>
+    <div class="s1-chips">
+      <span class="chip on" onclick="chipClick(this,'#공모전')">#공모전</span>
+      <span class="chip" onclick="chipClick(this,'#데이터분석')">#데이터분석</span>
+      <span class="chip" onclick="chipClick(this,'#창업')">#창업</span>
+      <span class="chip" onclick="chipClick(this,'#Python')">#Python</span>
+      <span class="chip" onclick="chipClick(this,'#부산')">#부산</span>
+      <span class="chip" onclick="chipClick(this,'#스터디')">#스터디</span>
+      <span class="chip" onclick="chipClick(this,'#Django')">#Django</span>
+    </div>
+    <!-- 통계 배너 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:36px">
+      <div class="card" style="padding:16px;text-align:center">
+        <div style="font-size:26px;font-weight:900;color:var(--ac)">1,248</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:3px">이번 달 매칭 성사</div>
+      </div>
+      <div class="card" style="padding:16px;text-align:center">
+        <div style="font-size:26px;font-weight:900;color:var(--ac)">342</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:3px">진행 중인 공고</div>
+      </div>
+      <div class="card" style="padding:16px;text-align:center">
+        <div style="font-size:26px;font-weight:900;color:var(--ac)">8,921</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:3px">가입한 대학생</div>
+      </div>
+    </div>
+  </div>
+  <div class="s1-right">
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
+      <span style="width:7px;height:7px;border-radius:50%;background:var(--ac);display:inline-block"></span>
+      <span style="font-size:11px;font-weight:700;color:var(--tx3)">오늘의 공공데이터 공고</span>
+    </div>
+    <!-- HOT 공고 카드 -->
+    <div class="pubcard" onclick="goto('s5')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+            <span style="font-size:11px;color:var(--tx3)">🏆 해커톤</span>
+            <span class="badge-hot">🔥 HOT</span>
+          </div>
+          <p style="font-size:14px;font-weight:700;line-height:1.4">2025 부산 공공데이터 활용 창업 경진대회</p>
+        </div>
+        <span class="pub-d">D-3</span>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+        <span class="tag" style="font-size:10px">#데이터분석</span>
+        <span class="tag" style="font-size:10px">#개발</span>
+        <span class="tag" style="font-size:10px">#창업</span>
+      </div>
+      <p style="font-size:11px;color:var(--tx3);margin-bottom:14px">행정안전부 주최 · 총상금 5,000만원 · 3~5인 팀</p>
+      <div class="divider" style="margin:12px 0"></div>
+      <p class="slabel">알고리즘 추천 팀원</p>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="match-row">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="av" style="width:30px;height:30px;background:var(--blue-dim);color:var(--blue);font-size:11px">김</div>
+            <div><div style="font-size:13px;font-weight:600">김지원</div><div style="font-size:10px;color:var(--tx3)">백엔드 · Python</div></div>
+          </div>
+          <span class="match-sc">94점</span>
+        </div>
+        <div class="match-row">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="av" style="width:30px;height:30px;background:var(--orange-dim);color:var(--orange);font-size:11px">이</div>
+            <div><div style="font-size:13px;font-weight:600">이수현</div><div style="font-size:10px;color:var(--tx3)">UI/UX · Figma</div></div>
+          </div>
+          <span class="match-sc">89점</span>
+        </div>
+        <div class="match-row">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="av" style="width:30px;height:30px;background:var(--purple-dim);color:var(--purple);font-size:11px">박</div>
+            <div><div style="font-size:13px;font-weight:600">박도현</div><div style="font-size:10px;color:var(--tx3)">데이터분석 · R</div></div>
+          </div>
+          <span class="match-sc">87점</span>
+        </div>
+      </div>
+      <button class="btn-prim" style="width:100%;margin-top:14px;padding:12px;font-size:13px" onclick="event.stopPropagation();goto('s5')">⚡ 이 공고로 매칭 시작</button>
+    </div>
+    <!-- 예정 일정 -->
+    <div class="card" style="padding:14px">
+      <p class="slabel">예정된 스터디 일정</p>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <p style="font-size:14px;font-weight:700">토요일 오후 2시</p>
+          <p style="font-size:11px;color:var(--tx3);margin-top:3px">공공데이터 창업 경진대회 팀</p>
+        </div>
+        <button class="btn-ghost btn-sm">일정 보기</button>
+      </div>
+    </div>
+    <!-- 공공데이터 연동 상태 -->
+    <div class="s1-minipill">
+      <p style="font-size:11px;font-weight:700;color:var(--ac);margin-bottom:3px">● 매일 오전 6시 자동 업데이트</p>
+      <p style="font-size:11px;color:var(--tx3)">data.go.kr API 연동 중 · 오늘 12건 수집됨</p>
+    </div>
+    <!-- 최근 가입 -->
+    <div class="card" style="padding:14px">
+      <p class="slabel">최근 가입한 팀원</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="tipwrap"><div class="av" style="width:34px;height:34px;background:var(--blue-dim);color:var(--blue);font-size:12px;cursor:pointer" onclick="goto('s6')">김</div><div class="tip">김지원 · 백엔드 개발</div></div>
+        <div class="tipwrap"><div class="av" style="width:34px;height:34px;background:var(--orange-dim);color:var(--orange);font-size:12px;cursor:pointer">이</div><div class="tip">이수현 · UI/UX 디자인</div></div>
+        <div class="tipwrap"><div class="av" style="width:34px;height:34px;background:var(--purple-dim);color:var(--purple);font-size:12px;cursor:pointer">박</div><div class="tip">박도현 · 데이터분석</div></div>
+        <div class="tipwrap"><div class="av" style="width:34px;height:34px;background:var(--green-dim);color:var(--green);font-size:12px;cursor:pointer">최</div><div class="tip">최민아 · 기획·PM</div></div>
+        <div class="tipwrap"><div class="av" style="width:34px;height:34px;background:rgba(255,100,100,.15);color:#FF7070;font-size:12px;cursor:pointer">정</div><div class="tip">정승우 · 프론트엔드</div></div>
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--card3);border:1px dashed var(--brd3);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--tx3);cursor:pointer" onclick="goto('s5')">+8</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ S2 가용시간 ════════════════ -->
+<section class="screen" id="s2">
+  <div class="s2-wrap">
+    <div>
+      <div class="stepbar">
+        <div class="step done"><div class="sn">✓</div><span>기본 정보</span></div>
+        <div class="stepline"></div>
+        <div class="step act"><div class="sn">2</div><span>가용 시간</span></div>
+        <div class="stepline"></div>
+        <div class="step"><div class="sn">3</div><span>관심사</span></div>
+        <div class="stepline"></div>
+        <div class="step"><div class="sn">4</div><span>완료</span></div>
+      </div>
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:6px">가용 시간을 선택해주세요</h2>
+      <p style="font-size:13px;color:var(--tx2);margin-bottom:22px">마우스 클릭 또는 드래그로 참여 가능한 시간대를 선택하세요</p>
+      <div class="tb-outer">
+        <div id="tbgrid" class="tbgrid"></div>
+      </div>
+      <div style="display:flex;gap:18px;margin-top:12px;align-items:center">
+        <div style="display:flex;align-items:center;gap:7px"><div style="width:16px;height:16px;background:rgba(200,242,38,.28);border-radius:3px"></div><span style="font-size:12px;color:var(--tx3)">참여 가능</span></div>
+        <div style="display:flex;align-items:center;gap:7px"><div style="width:16px;height:16px;background:var(--card);border:1px solid var(--brd2);border-radius:3px"></div><span style="font-size:12px;color:var(--tx3)">불가</span></div>
+        <button class="btn-ghost btn-sm" style="margin-left:auto" onclick="clearTime()">전체 초기화</button>
+        <button class="btn-ghost btn-sm" onclick="fillWeekend()">주말만 선택</button>
+      </div>
+    </div>
+    <div class="s2-side">
+      <div class="card2">
+        <p class="slabel">선택된 시간 요약</p>
+        <div id="tb-summary"><p style="font-size:13px;color:var(--tx3)">클릭해서 시간을 선택하세요</p></div>
+      </div>
+      <div class="card" style="padding:14px">
+        <p class="slabel">가용시간 점수 예측</p>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:6px">
+          <span id="time-score" style="font-size:32px;font-weight:900;color:var(--ac)">0</span>
+          <span style="font-size:13px;color:var(--tx3)">/ 50점</span>
+        </div>
+        <div class="bar-track" style="height:7px"><div class="bar-fill" id="time-bar" style="width:0%"></div></div>
+        <p style="font-size:11px;color:var(--tx3);margin-top:8px">주 10시간 이상 선택 시 만점에 가까워요</p>
+      </div>
+      <div class="card" style="padding:14px;font-size:12px;color:var(--tx2);line-height:1.7">
+        선택 데이터는 <span style="color:var(--ac);font-weight:600">REST API</span>로 전송되어 매칭 알고리즘 점수 산출에 사용됩니다.<br>(POST /api/available-time)
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn-ghost" style="padding:12px" onclick="goto('s1')">← 이전 단계</button>
+        <button class="btn-prim" style="padding:13px;font-size:14px" onclick="goto('s3');showToast('가용 시간이 저장되었어요 ✓')">저장 후 다음 단계 →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ S3 관심사 ════════════════ -->
+<section class="screen" id="s3">
+  <div class="s3-wrap">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div>
+        <h2 style="font-size:22px;font-weight:800;margin-bottom:6px">관심사 해시태그 선택</h2>
+        <p style="font-size:13px;color:var(--tx2)">최대 10개 · 선택한 태그로 매칭 알고리즘 점수(50점)를 산출합니다</p>
+      </div>
+      <div class="card">
+        <p class="slabel">📂 분야</p>
+        <div id="tf"></div>
+      </div>
+      <div class="card">
+        <p class="slabel">💻 기술 스택</p>
+        <div id="tt"></div>
+      </div>
+      <div class="card">
+        <p class="slabel">📍 지역</p>
+        <div id="tr"></div>
+      </div>
+      <div class="card">
+        <p class="slabel">🎯 관심 활동</p>
+        <div id="ta"></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(var(--navh)+var(--tabh)+20px)">
+      <div class="card2">
+        <p class="slabel">자기소개</p>
+        <textarea class="field" rows="5" placeholder="간단한 자기소개를 작성해주세요 (300자 이내)" id="intro-txt" oninput="updateIntro(this)">안녕하세요! 부산대 컴공 3학년입니다. Python/Django 백엔드 개발을 주로 하고, 공공데이터 활용 서비스에 관심이 많습니다.</textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:6px">
+          <span style="font-size:11px;color:var(--tx3)">마감 기한을 철저히 지키고 꼼꼼한 소통을 지향해요</span>
+          <span id="intro-cnt" style="font-size:11px;color:var(--tx3)">68 / 300</span>
+        </div>
+      </div>
+      <div class="card">
+        <p class="slabel">선택된 태그 <span id="tc" style="color:var(--ac)">0</span>/10</p>
+        <div id="sel-tags" style="min-height:28px"><p style="font-size:13px;color:var(--tx3)">태그를 선택해주세요</p></div>
+      </div>
+      <div class="card2">
+        <p class="slabel">매칭 점수 미리보기</p>
+        <div class="sprev">
+          <div class="sbox"><div class="snum" id="ps">0</div><div class="slb">관심사 점수</div></div>
+          <div class="sbox"><div class="snum" style="color:var(--tx2)">50</div><div class="slb">가용시간 점수</div></div>
+          <div class="sbox hi"><div class="snum" id="pt">50</div><div class="slb">예상 총점</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-ghost" style="flex:1;padding:12px" onclick="goto('s2')">← 이전</button>
+        <button class="btn-prim" style="flex:2;padding:13px;font-size:14px" onclick="goto('s1');showToast('프로필이 완성되었어요 🎉')">프로필 완성하기 →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ S4 지역 프로젝트 보드 ════════════════ -->
+<section class="screen" id="s4">
+  <div class="sidebar">
+    <div>
+      <p class="sb-title">카테고리</p>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" checked> 전체</span><span class="fcnt" style="color:var(--ac)">12</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 청년 정책</span><span class="fcnt">5</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 해커톤</span><span class="fcnt">4</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 창업 경진대회</span><span class="fcnt">2</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 봉사활동</span><span class="fcnt">1</span></label>
+    </div>
+    <div class="divider" style="margin:0"></div>
+    <div>
+      <p class="sb-title">지역</p>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" checked> 부산</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 경남</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 전국</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 온라인</span></label>
+    </div>
+    <div class="divider" style="margin:0"></div>
+    <div>
+      <p class="sb-title">팀 규모</p>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="radio" name="team" checked> 전체</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="radio" name="team"> 2~3인</span></label>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="radio" name="team"> 4~5인</span></label>
+    </div>
+    <div class="divider" style="margin:0"></div>
+    <div>
+      <p class="sb-title">마감 임박</p>
+      <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> D-7 이내</span></label>
+    </div>
+    <div style="margin-top:auto">
+      <div style="background:rgba(200,242,38,.06);border:1px solid var(--ac-brd);border-radius:8px;padding:12px">
+        <p style="font-size:11px;font-weight:700;color:var(--ac);margin-bottom:3px">● 매일 오전 6시 자동 업데이트</p>
+        <p style="font-size:11px;color:var(--tx3)">data.go.kr API · 오늘 12건 수집</p>
+      </div>
+    </div>
+  </div>
+  <div class="board-main">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h3 style="font-size:18px;font-weight:800">지역 프로젝트 보드</h3>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;color:var(--tx3)">총 12건</span>
+        <select class="field" style="width:140px;padding:7px 10px;font-size:12px">
+          <option>최신 등록순</option>
+          <option>마감 임박순</option>
+          <option>상금 높은 순</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="pc hot" onclick="goto('s5')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:11px;color:var(--tx3)">🏆 해커톤</span>
+            <span class="badge-hot">🔥 HOT</span>
+            <span class="tag green" style="font-size:10px">✓ 인증 공고</span>
+          </div>
+          <div class="pc-title">2025 부산 공공데이터 활용 창업 경진대회</div>
+        </div>
+        <span class="tag red" style="font-size:14px;font-weight:900;padding:6px 13px;flex-shrink:0;margin-left:14px">D-3</span>
+      </div>
+      <div class="pc-meta">행정안전부 주최 · 총상금 5,000만원 · 팀 규모 3~5인 · 접수기간 ~2025.04.14</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="tag">#데이터분석</span><span class="tag">#개발</span><span class="tag">#창업</span><span class="tag">#공기업</span>
+      </div>
+      <div class="pc-actions">
+        <button class="btn-ghost btn-sm" onclick="event.stopPropagation();showToast('공고 페이지로 이동합니다 ↗')">공고 상세 보기 ↗</button>
+        <button class="btn-prim btn-sm" onclick="event.stopPropagation();goto('s5')">팀원 찾기 →</button>
+      </div>
+    </div>
+
+    <div class="pc" onclick="showToast('팀원 찾기 페이지로 이동합니다')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">🤝 봉사활동</div>
+          <div class="pc-title">부산광역시 청년 봉사단 2025 모집</div>
+        </div>
+        <span class="tag orange" style="font-size:14px;font-weight:900;padding:6px 13px;flex-shrink:0;margin-left:14px">D-15</span>
+      </div>
+      <div class="pc-meta">부산광역시 주최 · 접수: 2025.03.01 ~ 2025.04.30 · 개인 또는 팀</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="tag">#봉사활동</span><span class="tag">#청년</span><span class="tag">#부산</span>
+      </div>
+      <div class="pc-actions">
+        <button class="btn-ghost btn-sm" onclick="event.stopPropagation();showToast('공고 페이지로 이동합니다 ↗')">공고 상세 보기 ↗</button>
+        <button class="btn-prim btn-sm" onclick="event.stopPropagation();showToast('팀원 찾기로 이동합니다')">팀원 찾기 →</button>
+      </div>
+    </div>
+
+    <div class="pc" onclick="showToast('팀원 찾기 페이지로 이동합니다')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">📋 청년 정책</div>
+          <div class="pc-title">부산 청년 창업 지원 사업 2025</div>
+        </div>
+        <span class="tag gray" style="font-size:14px;padding:6px 13px;flex-shrink:0;margin-left:14px">D-30</span>
+      </div>
+      <div class="pc-meta">부산경제진흥원 · 최대 지원금 2,000만원 · 개인 또는 팀</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="tag">#창업</span><span class="tag">#청년</span><span class="tag">#부산</span>
+      </div>
+      <div class="pc-actions">
+        <button class="btn-ghost btn-sm" onclick="event.stopPropagation()">공고 상세 보기 ↗</button>
+        <button class="btn-prim btn-sm" onclick="event.stopPropagation();showToast('팀원 찾기로 이동합니다')">팀원 찾기 →</button>
+      </div>
+    </div>
+
+    <div class="pc">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">💡 아이디어 공모</div>
+          <div class="pc-title">2025 K-데이터 청년 챌린지</div>
+        </div>
+        <span class="tag blue" style="font-size:14px;padding:6px 13px;flex-shrink:0;margin-left:14px">D-45</span>
+      </div>
+      <div class="pc-meta">과학기술정보통신부 · 총상금 3,000만원 · 팀 규모 2~4인</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="tag">#데이터분석</span><span class="tag">#아이디어</span><span class="tag">#전국</span>
+      </div>
+      <div class="pc-actions">
+        <button class="btn-ghost btn-sm">공고 상세 보기 ↗</button>
+        <button class="btn-prim btn-sm" onclick="showToast('팀원 찾기로 이동합니다')">팀원 찾기 →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ S5 팀원 추천 ════════════════ -->
+<section class="screen" id="s5">
+  <div class="s5-hdr">
+    <div>
+      <p style="font-size:11px;color:var(--tx3);margin-bottom:5px">공모전 → 팀원 찾기</p>
+      <p style="font-size:19px;font-weight:800">2025 부산 공공데이터 활용 창업 경진대회</p>
+      <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">
+        <span class="tag" style="font-size:10px">#데이터분석</span>
+        <span class="tag" style="font-size:10px">#개발</span>
+        <span class="tag" style="font-size:10px">#창업</span>
+        <span class="tag" style="font-size:10px">#공기업</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:28px;text-align:center">
+      <div><div style="font-size:34px;font-weight:900;color:var(--red)">D-3</div><div style="font-size:11px;color:var(--tx3);margin-top:3px">접수 마감</div></div>
+      <div><div style="font-size:34px;font-weight:900;color:var(--ac)">5</div><div style="font-size:11px;color:var(--tx3);margin-top:3px">알고리즘 추천 후보</div></div>
+      <div><div style="font-size:34px;font-weight:900;color:var(--blue)">3~5</div><div style="font-size:11px;color:var(--tx3);margin-top:3px">인 팀</div></div>
+    </div>
+  </div>
+  <div class="s5-body">
+    <div class="sidebar">
+      <div>
+        <p class="sb-title">역할 필터</p>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" checked> 전체</span><span class="fcnt" style="color:var(--ac)">5</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 개발자</span><span class="fcnt">2</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 디자이너</span><span class="fcnt">1</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 데이터 분석</span><span class="fcnt">1</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 기획·PM</span><span class="fcnt">1</span></label>
+      </div>
+      <div class="divider" style="margin:0"></div>
+      <div>
+        <p class="sb-title">최소 점수</p>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="radio" name="msc"> 90점 이상</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="radio" name="msc" checked> 80점 이상</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="radio" name="msc"> 70점 이상</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="radio" name="msc"> 제한 없음</span></label>
+      </div>
+      <div class="divider" style="margin:0"></div>
+      <div>
+        <p class="sb-title">공모전 경험</p>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 수상 경험 있음</span></label>
+        <label class="fitem"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox"> 3회 이상 참가</span></label>
+      </div>
+      <div class="divider" style="margin:0"></div>
+      <div>
+        <p class="sb-title">정렬 기준</p>
+        <select class="field" style="font-size:12px;padding:8px 10px">
+          <option>총점 높은 순</option>
+          <option>가용시간 많은 순</option>
+          <option>관심사 일치 순</option>
+          <option>최근 가입순</option>
+        </select>
+      </div>
+    </div>
+    <div class="clist">
+      <p style="font-size:12px;color:var(--tx3);margin-bottom:4px">알고리즘 추천 후보 5명 · 매칭 점수 = 가용시간(50점) + 관심사(50점)</p>
+
+      <!-- 1위 김지원 -->
+      <div class="cc top">
+        <div class="cc-hdr">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="av" style="width:50px;height:50px;background:var(--blue-dim);color:var(--blue);font-size:19px">김</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <span style="font-size:17px;font-weight:800">김지원</span>
+                <span class="tag green" style="font-size:10px">✓ 학교인증</span>
+                <span class="tag yellow" style="font-size:10px">대상 수상</span>
+              </div>
+              <p style="font-size:12px;color:var(--tx3)">백엔드 개발 · 한양대학교 컴퓨터공학과 3학년 · 응답률 96%</p>
+            </div>
+          </div>
+          <div style="text-align:right"><div class="csc">94<span>점</span></div></div>
+        </div>
+        <div class="sdet">
+          <div class="sr">
+            <span class="srl">가용시간</span>
+            <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+            <span class="srv">47 / 50</span>
+          </div>
+          <div class="sr">
+            <span class="srl">관심사</span>
+            <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+            <span class="srv">47 / 50</span>
+          </div>
+          <p style="font-size:10px;color:var(--tx3);margin-top:8px">⏰ 겹치는 시간: 토 14:00~17:00 (3h) · 수 14:00~15:00 (1h) · 금 10:00~11:30 (1.5h)</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <span class="tag gray" style="font-size:10px">Python</span><span class="tag gray" style="font-size:10px">Django</span><span class="tag gray" style="font-size:10px">REST API</span><span class="tag gray" style="font-size:10px">MySQL</span><span class="tag gray" style="font-size:10px">Docker</span><span class="tag gray" style="font-size:10px">AWS</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+          <div style="display:flex;align-items:center;gap:10px;flex:1">
+            <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+            <span style="color:var(--ac);font-weight:800;font-size:15px;white-space:nowrap">94점</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-ghost btn-sm" onclick="goto('s6')">프로필 보기</button>
+            <button class="btn-prim btn-sm" onclick="openReqModal('김지원')">팀원 요청</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2위 이수현 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="av" style="width:50px;height:50px;background:var(--orange-dim);color:var(--orange);font-size:19px">이</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <span style="font-size:17px;font-weight:800">이수현</span>
+                <span class="tag green" style="font-size:10px">✓ 학교인증</span>
+              </div>
+              <p style="font-size:12px;color:var(--tx3)">UI/UX 디자인 · 홍익대학교 시각디자인 4학년 · 응답률 88%</p>
+            </div>
+          </div>
+          <div class="csc">89<span>점</span></div>
+        </div>
+        <div class="sdet">
+          <div class="sr">
+            <span class="srl">가용시간</span>
+            <div class="bar-track"><div class="bar-fill" style="width:84%"></div></div>
+            <span class="srv">42 / 50</span>
+          </div>
+          <div class="sr">
+            <span class="srl">관심사</span>
+            <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+            <span class="srv">47 / 50</span>
+          </div>
+          <p style="font-size:10px;color:var(--tx3);margin-top:8px">⏰ 겹치는 시간: 금 15:00~18:00 (3h) · 토 10:00~12:00 (2h)</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <span class="tag gray" style="font-size:10px">Figma</span><span class="tag gray" style="font-size:10px">Adobe XD</span><span class="tag gray" style="font-size:10px">Illustrator</span><span class="tag gray" style="font-size:10px">Prototyping</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+          <div style="display:flex;align-items:center;gap:10px;flex:1">
+            <div class="bar-track"><div class="bar-fill" style="width:89%"></div></div>
+            <span style="color:var(--ac);font-weight:800;font-size:15px;white-space:nowrap">89점</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-ghost btn-sm">프로필 보기</button>
+            <button class="btn-prim btn-sm" onclick="openReqModal('이수현')">팀원 요청</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3위 박도현 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="av" style="width:50px;height:50px;background:var(--purple-dim);color:var(--purple);font-size:19px">박</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <span style="font-size:17px;font-weight:800">박도현</span>
+              </div>
+              <p style="font-size:12px;color:var(--tx3)">데이터 분석 · 서울대학교 통계학 대학원 · 응답률 92%</p>
+            </div>
+          </div>
+          <div class="csc">87<span>점</span></div>
+        </div>
+        <div class="sdet">
+          <div class="sr">
+            <span class="srl">가용시간</span>
+            <div class="bar-track"><div class="bar-fill" style="width:80%"></div></div>
+            <span class="srv">40 / 50</span>
+          </div>
+          <div class="sr">
+            <span class="srl">관심사</span>
+            <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+            <span class="srv">47 / 50</span>
+          </div>
+          <p style="font-size:10px;color:var(--tx3);margin-top:8px">⏰ 겹치는 시간: 토 14:00~16:00 (2h) · 일 13:00~15:00 (2h)</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <span class="tag gray" style="font-size:10px">Python</span><span class="tag gray" style="font-size:10px">R</span><span class="tag gray" style="font-size:10px">머신러닝</span><span class="tag gray" style="font-size:10px">통계분석</span><span class="tag gray" style="font-size:10px">Pandas</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+          <div style="display:flex;align-items:center;gap:10px;flex:1">
+            <div class="bar-track"><div class="bar-fill" style="width:87%"></div></div>
+            <span style="color:var(--ac);font-weight:800;font-size:15px;white-space:nowrap">87점</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-ghost btn-sm">프로필 보기</button>
+            <button class="btn-prim btn-sm" onclick="openReqModal('박도현')">팀원 요청</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ S6 프로필 상세 ════════════════ -->
+<section class="screen" id="s6">
+  <div class="prof-main">
+    <div class="card2">
+      <div style="display:flex;align-items:center;gap:18px">
+        <div class="av" style="width:66px;height:66px;background:var(--blue-dim);color:var(--blue);font-size:24px">김</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-size:22px;font-weight:900">김지원</span>
+            <span class="tag green">✓ 학교인증</span>
+            <span class="tag" style="font-size:13px;padding:5px 13px;font-weight:800">총점 94점</span>
+            <span class="tag yellow" style="font-size:10px">🏆 대상 수상</span>
+          </div>
+          <p style="font-size:13px;color:var(--tx3)">백엔드 개발 · 한양대학교 컴퓨터공학과 3학년 · 서울 성동구 · 가입 2024.09</p>
+        </div>
+        <button class="btn-ghost btn-sm">← 후보 목록</button>
+      </div>
+      <div class="statrow">
+        <div class="stb"><div class="stnum">8회</div><div class="stlb">공모전 참가</div></div>
+        <div class="stb"><div class="stnum">3회</div><div class="stlb">수상 경력</div></div>
+        <div class="stb"><div class="stnum">5팀</div><div class="stlb">함께한 팀</div></div>
+        <div class="stb"><div class="stnum">4.8★</div><div class="stlb">팀원 평점</div></div>
+        <div class="stb"><div class="stnum" style="color:var(--green)">96%</div><div class="stlb">응답률</div></div>
+      </div>
+    </div>
+
+    <!-- 자기소개 -->
+    <div class="card">
+      <p class="slabel">자기소개</p>
+      <p style="font-size:14px;line-height:1.8;color:var(--tx2)">안녕하세요! 한양대 컴공 3학년 김지원입니다. Python과 Django 백엔드 개발이 주특기이고, 공공데이터를 활용한 서비스 개발에 관심이 많아요. 작년 공공데이터 활용 앱 공모전에서 대상을 수상하며 실전 경험을 쌓았고, 데이터 기반의 임팩트 있는 서비스를 만드는 팀에서 기여하고 싶어요. 마감 기한을 철저히 지키고, 꼼꼼한 커뮤니케이션을 지향합니다.</p>
+    </div>
+
+    <!-- 매칭 점수 상세 -->
+    <div class="card">
+      <p class="slabel">매칭 점수 상세</p>
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <div style="flex:1;background:var(--bg2);border-radius:8px;padding:15px;text-align:center">
+          <div style="font-size:30px;font-weight:900;color:var(--ac)">47<span style="font-size:13px;color:var(--tx3)">/50</span></div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:4px">가용 시간 점수</div>
+        </div>
+        <div style="flex:1;background:var(--bg2);border-radius:8px;padding:15px;text-align:center">
+          <div style="font-size:30px;font-weight:900;color:var(--ac)">47<span style="font-size:13px;color:var(--tx3)">/50</span></div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:4px">관심사 점수</div>
+        </div>
+        <div style="flex:1;background:var(--ac-dim);border:1px solid var(--ac-brd);border-radius:8px;padding:15px;text-align:center">
+          <div style="font-size:30px;font-weight:900;color:var(--ac)">94<span style="font-size:13px;color:var(--tx3)">/100</span></div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:4px">총 매칭 점수</div>
+        </div>
+      </div>
+      <!-- 시간 교집합 시각화 -->
+      <div style="background:var(--bg2);border-radius:8px;padding:15px;margin-bottom:12px">
+        <p style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:12px">⏰ 가용 시간 교집합 시각화 (토요일)</p>
+        <div style="display:flex;padding-left:62px;margin-bottom:5px">
+          <div style="flex:1;font-size:9px;color:var(--tx3);text-align:center">14:00</div>
+          <div style="flex:1;font-size:9px;color:var(--tx3);text-align:center">15:00</div>
+          <div style="flex:1;font-size:9px;color:var(--tx3);text-align:center">16:00</div>
+          <div style="flex:1;font-size:9px;color:var(--tx3);text-align:center">17:00</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="min-width:54px;font-size:11px;color:var(--ac)">나 (토)</span>
+            <div class="ovblocks">
+              <div class="ob ob-me"></div><div class="ob ob-me"></div><div class="ob ob-me"></div><div class="ob ob-empty"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="min-width:54px;font-size:11px;color:var(--blue)">상대 (토)</span>
+            <div class="ovblocks">
+              <div class="ob ob-them"></div><div class="ob ob-them"></div><div class="ob ob-empty"></div><div class="ob ob-them"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="min-width:54px;font-size:11px;color:var(--ac);font-weight:700">교집합 ★</span>
+            <div class="ovblocks">
+              <div class="ob ob-hit"></div><div class="ob ob-hit"></div><div class="ob ob-empty"></div><div class="ob ob-empty"></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--tx3);margin-top:10px">총 겹치는 시간 4.5h → DB JOIN 연산 → 가용시간 점수 47/50점</p>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:13px">
+        <p style="font-size:11px;color:var(--tx3);margin-bottom:8px">공통 해시태그 — 관심사 점수 산출 근거</p>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <span class="tag">#공모전</span><span class="tag">#데이터분석</span><span class="tag">#창업</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 기술 스택 -->
+    <div class="card">
+      <p class="slabel">기술 스택</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="tag gray">Python</span><span class="tag gray">Django</span><span class="tag gray">REST API</span><span class="tag gray">MySQL</span><span class="tag gray">PostgreSQL</span><span class="tag gray">Docker</span><span class="tag gray">Git / GitHub</span><span class="tag gray">Linux</span><span class="tag gray">AWS EC2</span><span class="tag gray">Pandas</span><span class="tag gray">데이터 시각화</span>
+      </div>
+    </div>
+
+    <!-- 공모전 이력 -->
+    <div class="card">
+      <p class="slabel">공모전 이력 · 8회 참가 / 수상 3회</p>
+      <div class="htimeline">
+        <div class="hitem">
+          <div class="hdot"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div class="htitle">공공데이터 활용 앱 개발 공모전 2024</div>
+              <span class="tag" style="font-size:10px">대상</span>
+            </div>
+            <div class="hmeta">행정안전부 주최 · 2024년 11월 · 4인 팀</div>
+            <p style="font-size:12px;color:var(--tx2);margin-top:5px;line-height:1.6">공공 교통 데이터를 활용한 취약계층 이동권 지원 앱 개발. REST API 서버 설계 및 배포 전담. 최종 10팀 중 1위.</p>
+          </div>
+        </div>
+        <div class="hitem">
+          <div class="hdot"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div class="htitle">행안부 데이터 분석 챌린지 2024</div>
+              <span class="tag" style="font-size:10px">최우수</span>
+            </div>
+            <div class="hmeta">행정안전부 · 2024년 8월 · 3인 팀</div>
+            <p style="font-size:12px;color:var(--tx2);margin-top:5px;line-height:1.6">지역 소멸 위험 지수 분석 및 시각화 대시보드 구축. Django + Pandas 활용.</p>
+          </div>
+        </div>
+        <div class="hitem">
+          <div class="hdot gray"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div class="htitle">스마트시티 해커톤 2023</div>
+              <span class="tag gray" style="font-size:10px">장려</span>
+            </div>
+            <div class="hmeta">국토교통부 · 2023년 10월 · 5인 팀</div>
+            <p style="font-size:12px;color:var(--tx2);margin-top:5px;line-height:1.6">실시간 교통 혼잡도 예측 서비스. 24시간 해커톤 형식.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 관심 키워드 -->
+    <div class="card">
+      <p class="slabel">관심 키워드</p>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <span class="tag">#공공데이터</span><span class="tag">#데이터분석</span><span class="tag">#창업</span><span class="tag">#공기업</span><span class="tag">#백엔드</span><span class="tag">#소셜임팩트</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="prof-panel">
+    <div class="card2">
+      <p class="slabel">팀원 요청 보내기</p>
+      <div style="background:var(--card3);border-radius:8px;padding:12px;margin-bottom:14px">
+        <p style="font-size:12px;font-weight:700;color:var(--tx)">2025 공공데이터 활용 창업 경진대회</p>
+        <p style="font-size:11px;color:var(--tx3);margin-top:3px">행정안전부 주최 · D-3 마감</p>
+      </div>
+      <textarea class="field" rows="4" style="margin-bottom:12px" placeholder="간단한 소개나 같이 하고 싶은 이유를 적어보세요 (선택)
+수락률이 높아져요!"></textarea>
+      <button class="btn-prim" style="width:100%;padding:13px;font-size:14px" onclick="goto('s7');showToast('팀원 요청을 보냈어요 📨')">팀원 요청 보내기</button>
+      <button class="btn-ghost" style="width:100%;padding:11px;margin-top:8px;font-size:13px" onclick="showToast('쪽지를 보냈어요 ✉')">먼저 쪽지 보내기</button>
+    </div>
+    <div style="background:rgba(255,145,36,.07);border:1px solid rgba(255,145,36,.22);border-radius:var(--r);padding:13px">
+      <p style="font-size:12px;color:var(--orange);line-height:1.7">⚠ 요청 수락 시 카카오 오픈채팅 링크가 자동으로 공유됩니다. 무분별한 요청은 계정 제한을 받을 수 있어요.</p>
+    </div>
+    <div class="card" style="padding:15px">
+      <p class="slabel">비슷한 다른 후보</p>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px;border-radius:7px;transition:background .15s" onmouseover="this.style.background='var(--card3)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av" style="width:32px;height:32px;background:var(--orange-dim);color:var(--orange);font-size:12px">이</div>
+            <div><div style="font-size:13px;font-weight:600">이수현</div><div style="font-size:11px;color:var(--tx3)">UI/UX · 홍익대</div></div>
+          </div>
+          <span style="color:var(--ac);font-size:15px;font-weight:800">89점</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px;border-radius:7px;transition:background .15s" onmouseover="this.style.background='var(--card3)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av" style="width:32px;height:32px;background:var(--purple-dim);color:var(--purple);font-size:12px">박</div>
+            <div><div style="font-size:13px;font-weight:600">박도현</div><div style="font-size:11px;color:var(--tx3)">데이터분석 · 서울대</div></div>
+          </div>
+          <span style="color:var(--ac);font-size:15px;font-weight:800">87점</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px;border-radius:7px;transition:background .15s" onmouseover="this.style.background='var(--card3)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av" style="width:32px;height:32px;background:var(--green-dim);color:var(--green);font-size:12px">최</div>
+            <div><div style="font-size:13px;font-weight:600">최민아</div><div style="font-size:11px;color:var(--tx3)">기획·PM · 연세대</div></div>
+          </div>
+          <span style="color:var(--ac);font-size:15px;font-weight:800">82점</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ S7 매칭 수락 ════════════════ -->
+<section class="screen" id="s7">
+  <div class="s7-left">
+    <div class="accept-box">
+      <div class="accept-icon">🎉</div>
+      <div class="accept-name"><em>김지원</em>님이<br>수락했어요!</div>
+      <p class="accept-sub" style="margin-top:10px">GongMatch 매칭 알고리즘이 팀 매칭을 성사시켰어요.<br>카카오 오픈채팅 링크가 자동으로 준비되었어요.</p>
+      <button class="cntbtn kk" onclick="showToast('카카오 오픈채팅방으로 이동합니다 💬')">
+        <div class="cnticon kk">💬</div>
+        <div>
+          <div class="cntbt-title">카카오 오픈채팅방 입장하기</div>
+          <div class="cntbt-sub">링크가 자동으로 생성되었어요</div>
+        </div>
+      </button>
+      <button class="cntbtn" onclick="showToast('쪽지함으로 이동합니다 ✉')">
+        <div class="cnticon ml">✉</div>
+        <div>
+          <div class="cntbt-title">시스템 쪽지 보내기</div>
+          <div class="cntbt-sub">인박스에서 간단히 소통해요</div>
+        </div>
+      </button>
+      <p class="skip" onclick="goto('s1')">나중에 할게요</p>
+    </div>
+  </div>
+  <div class="s7-right">
+    <div class="chat-hdr">
+      <div class="chat-user">
+        <div class="av" style="width:40px;height:40px;background:var(--blue-dim);color:var(--blue);font-size:15px">김</div>
+        <div>
+          <div style="font-size:15px;font-weight:700">김지원</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+            <span class="ondot"></span>
+            <span style="font-size:11px;color:var(--green)">접속 중</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="chat-ctx">공공데이터 창업 경진대회</span>
+        <button class="btn-ghost btn-sm">공모전 정보 보기</button>
+      </div>
+    </div>
+    <div class="msgs" id="msgs">
+      <div style="background:var(--card2);border:1px solid var(--brd2);border-radius:8px;padding:10px 14px;text-align:center;margin:4px 0">
+        <p style="font-size:12px;font-weight:700;color:var(--ac)">🏆 2025 공공데이터 활용 창업 경진대회 · 행정안전부 주최</p>
+        <p style="font-size:11px;color:var(--tx3);margin-top:3px">D-3 마감</p>
+      </div>
+      <div class="sysmsg"><span>GongMatch 매칭 알고리즘이 팀 매칭을 성사시켰어요 💛<br>1대1 채팅방이 자동으로 생성되었어요</span></div>
+      <div class="msgrow me">
+        <div><div class="bubble me">안녕하세요! 공공데이터 공모전 같이 하게 됐네요 😊 저는 기획이랑 PM 담당이에요!</div><div class="mtime r">14:33</div></div>
+      </div>
+      <div class="msgrow">
+        <div class="av" style="width:30px;height:30px;background:var(--blue-dim);color:var(--blue);font-size:11px;align-self:flex-end">김</div>
+        <div><div class="bubble them">네 반갑습니다! 기대돼요 👀 저는 백엔드 개발 맡을게요. Django + REST API로 서버 구성할 계획이에요.</div><div class="mtime">14:34</div></div>
+      </div>
+      <div class="msgrow me">
+        <div><div class="bubble me">좋아요! 혹시 첫 미팅 언제 가능해요? 이번 주 토요일 어때요?</div><div class="mtime r">14:35</div></div>
+      </div>
+      <div class="msgrow">
+        <div class="av" style="width:30px;height:30px;background:var(--blue-dim);color:var(--blue);font-size:11px;align-self:flex-end">김</div>
+        <div><div class="bubble them">토요일 오후 2시 이후면 괜찮아요! 온라인으로 할게요? 아니면 학교 근처 카페도 좋아요 ☕</div><div class="mtime">14:36</div></div>
+      </div>
+    </div>
+    <div class="chat-inp">
+      <div class="inprow">
+        <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="send-btn" onclick="sendMsg()">→</button>
+      </div>
+      <div class="qbtns">
+        <button class="qbt" onclick="insertMsg('📅 미팅 일정: 토요일 오후 2시 어때요?')">📅 미팅 일정 잡기</button>
+        <button class="qbt" onclick="insertMsg('역할 분담을 정해볼까요? 저는 기획/PM 담당할게요.')">✅ 역할 분담</button>
+        <button class="qbt" onclick="showToast('파일 첨부 기능은 개발 예정이에요')">📎 파일 공유</button>
+        <button class="qbt" onclick="showToast('공모전 일정이 공유되었어요 📆')">📆 공모전 일정</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /main -->
+
+<!-- ══ MODAL : 팀원 요청 ══ -->
+<div class="modal-bg" id="req-modal" onclick="if(event.target===this)closeModal('req-modal')">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-size:17px;font-weight:800">팀원 요청 보내기</h3>
+      <button class="btn-ghost btn-sm" onclick="closeModal('req-modal')" style="padding:5px 10px">✕</button>
+    </div>
+    <div style="background:var(--card3);border-radius:8px;padding:12px;margin-bottom:16px">
+      <p style="font-size:12px;font-weight:700;color:var(--tx)" id="req-name-display">김지원</p>
+      <p style="font-size:11px;color:var(--tx3);margin-top:3px">2025 공공데이터 활용 창업 경진대회</p>
+    </div>
+    <p style="font-size:12px;color:var(--tx3);margin-bottom:8px">요청 메시지 (선택)</p>
+    <textarea class="field" rows="4" placeholder="간단한 소개나 같이 하고 싶은 이유를 적어보세요.&#10;수락률이 높아져요!&#10;&#10;예) 안녕하세요! 저는 PM 담당이고 공공데이터 경험이 있어요 😊" style="margin-bottom:16px"></textarea>
+    <div style="display:flex;gap:10px">
+      <button class="btn-ghost" style="flex:1;padding:12px" onclick="closeModal('req-modal')">취소</button>
+      <button class="btn-prim" style="flex:2;padding:12px;font-size:14px" onclick="closeModal('req-modal');goto('s7');showToast('팀원 요청을 보냈어요 📨')">요청 보내기</button>
+    </div>
+    <p style="font-size:11px;color:var(--tx3);margin-top:12px;text-align:center">⚠ 수락 시 카카오 오픈채팅 링크가 자동 공유됩니다</p>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── NAVIGATION ── */
+function goto(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tabbt').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  const tb=document.getElementById('tab-'+id);
+  if(tb)tb.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.querySelectorAll('.my-drop,.notif-drop').forEach(d=>d.classList.remove('on'));
+}
+
+/* ── DROPDOWNS ── */
+function toggleDrop(id){
+  const el=document.getElementById(id);
+  const was=el.classList.contains('on');
+  document.querySelectorAll('.my-drop,.notif-drop').forEach(d=>d.classList.remove('on'));
+  if(!was)el.classList.add('on');
+}
+function closeDrop(id){document.getElementById(id).classList.remove('on')}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.notif-wrap,.my-wrap'))
+    document.querySelectorAll('.my-drop,.notif-drop').forEach(d=>d.classList.remove('on'));
+});
+
+/* ── TOAST ── */
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ── MODAL ── */
+function openReqModal(name){
+  document.getElementById('req-name-display').textContent=name+' · 매칭 점수 '+({김지원:94,이수현:89,박도현:87}[name]||88)+'점';
+  document.getElementById('req-modal').classList.add('on');
+}
+function closeModal(id){document.getElementById(id).classList.remove('on')}
+
+/* ── S1 SEARCH & CHIPS ── */
+function doSearch(){
+  const v=document.getElementById('s1-srch').value.trim();
+  if(v){showToast('검색: '+v);goto('s5');}
+}
+function chipClick(el,tag){
+  el.classList.toggle('on');
+  document.getElementById('s1-srch').value=tag;
+}
+
+/* ── S2 TIMEBLOCK ── */
+const DAYS=['월','화','수','목','금','토','일'];
+const TIMES=['09','10','11','12','13','14','15','16','17','18','19','20','21'];
+const sel={};
+DAYS.forEach(d=>TIMES.forEach(t=>sel[d+t]=false));
+[['토',['14','15','16']],['수',['14','15']],['금',['10','11']]].forEach(([d,ts])=>ts.forEach(t=>sel[d+t]=true));
+let dragging=false;
+document.addEventListener('mouseup',()=>dragging=false);
+
+function buildGrid(){
+  const g=document.getElementById('tbgrid');
+  g.innerHTML='';
+  const empty=document.createElement('div');
+  empty.className='tc hd';g.appendChild(empty);
+  TIMES.forEach(t=>{
+    const c=document.createElement('div');
+    c.className='tc hd';c.textContent=t+':00';g.appendChild(c);
+  });
+  DAYS.forEach(day=>{
+    const dh=document.createElement('div');
+    dh.className='tc dh';dh.textContent=day;g.appendChild(dh);
+    TIMES.forEach(t=>{
+      const c=document.createElement('div');
+      c.className='tc'+(sel[day+t]?' sel':'');
+      c.onmousedown=()=>{dragging=true;sel[day+t]=!sel[day+t];buildGrid();updateSummary();};
+      c.onmouseover=()=>{if(dragging&&!sel[day+t]){sel[day+t]=true;buildGrid();updateSummary();}};
+      g.appendChild(c);
+    });
+  });
+}
+function updateSummary(){
+  const el=document.getElementById('tb-summary');
+  const byDay={};
+  DAYS.forEach(d=>{const ts=TIMES.filter(t=>sel[d+t]);if(ts.length)byDay[d]=ts;});
+  const total=Object.values(byDay).reduce((s,ts)=>s+ts.length,0);
+  if(!Object.keys(byDay).length){
+    el.innerHTML='<p style="font-size:13px;color:var(--tx3)">클릭해서 시간을 선택하세요</p>';
+    document.getElementById('time-score').textContent='0';
+    document.getElementById('time-bar').style.width='0%';
+    return;
+  }
+  el.innerHTML=Object.entries(byDay).map(([d,ts])=>
+    `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span style="color:var(--ac);font-weight:700;font-size:13px;min-width:18px">${d}</span>
+      <span style="font-size:13px;color:var(--tx2)">${ts[0]}:00 ~ ${String(parseInt(ts[ts.length-1])+1).padStart(2,'0')}:00</span>
+      <span style="font-size:11px;color:var(--tx3)">(${ts.length}h)</span>
+    </div>`
+  ).join('')+`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)"><span style="font-size:12px;color:var(--tx3)">총 <b style="color:var(--ac)">${total}시간</b> 선택됨</span></div>`;
+  const score=Math.min(50,Math.round(total/10*50));
+  document.getElementById('time-score').textContent=score;
+  document.getElementById('time-bar').style.width=(score/50*100)+'%';
+}
+function clearTime(){DAYS.forEach(d=>TIMES.forEach(t=>sel[d+t]=false));buildGrid();updateSummary();}
+function fillWeekend(){DAYS.forEach(d=>TIMES.forEach(t=>sel[d+t]=(d==='토'||d==='일')&&parseInt(t)>=10&&parseInt(t)<=18));buildGrid();updateSummary();}
+buildGrid();updateSummary();
+
+/* ── S3 TAGS ── */
+const TDEFS={
+  field:['#공모전','#스터디','#창업','#봉사활동','#데이터분석','#앱개발','#디자인','#소셜임팩트'],
+  tech: ['#Python','#Django','#React','#Java','#Spring','#Figma','#R','#Docker','#MySQL','#Swift','#TypeScript'],
+  region:['#부산','#경남','#온라인','#전국','#서울','#경기'],
+  act:  ['#공기업','#스타트업','#대기업','#해커톤','#연구']
+};
+const chosen=new Set(['#공모전','#창업','#데이터분석','#Python','#Django','#부산']);
+function buildTags(){
+  [['field','tf'],['tech','tt'],['region','tr'],['act','ta']].forEach(([k,id])=>{
+    const c=document.getElementById(id);c.innerHTML='';
+    TDEFS[k].forEach(tag=>{
+      const el=document.createElement('button');
+      el.className='tpick'+(chosen.has(tag)?' on':'');
+      el.textContent=tag;
+      el.onclick=()=>{
+        if(chosen.has(tag))chosen.delete(tag);
+        else if(chosen.size<10)chosen.add(tag);
+        else{showToast('최대 10개까지 선택할 수 있어요');return;}
+        buildTags();updateTagPreview();
+      };
+      c.appendChild(el);
+    });
+  });
+}
+function updateTagPreview(){
+  document.getElementById('tc').textContent=chosen.size;
+  const el=document.getElementById('sel-tags');
+  if(!chosen.size){el.innerHTML='<p style="font-size:13px;color:var(--tx3)">태그를 선택해주세요</p>';return;}
+  el.innerHTML=[...chosen].map(t=>`<span class="tag" style="margin:3px">${t}</span>`).join('');
+  const sc=Math.round(chosen.size/10*50);
+  document.getElementById('ps').textContent=sc;
+  document.getElementById('pt').textContent=50+sc;
+}
+function updateIntro(el){
+  const len=el.value.length;
+  document.getElementById('intro-cnt').textContent=len+' / 300';
+  if(len>300)el.value=el.value.slice(0,300);
+}
+buildTags();updateTagPreview();
+
+/* ── S7 CHAT ── */
+function sendMsg(){
+  const inp=document.getElementById('chat-input');
+  const v=inp.value.trim();if(!v)return;
+  const msgs=document.getElementById('msgs');
+  const d=new Date();
+  const time=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+  msgs.innerHTML+=`<div class="msgrow me"><div><div class="bubble me">${v}</div><div class="mtime r">${time}</div></div></div>`;
+  inp.value='';
+  msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(()=>{
+    const replies=['좋아요! 그렇게 해요 😊','네, 알겠어요!','오케이 그럼 토요일에 봬요 👍','공모전 자료 미리 준비해 올게요!'];
+    const r=replies[Math.floor(Math.random()*replies.length)];
+    const t2=new Date();
+    msgs.innerHTML+=`<div class="msgrow"><div class="av" style="width:30px;height:30px;background:var(--blue-dim);color:var(--blue);font-size:11px;align-self:flex-end">김</div><div><div class="bubble them">${r}</div><div class="mtime">${t2.getHours()}:${String(t2.getMinutes()).padStart(2,'0')}</div></div></div>`;
+    msgs.scrollTop=msgs.scrollHeight;
+  },900);
+}
+function insertMsg(text){
+  document.getElementById('chat-input').value=text;
+  document.getElementById('chat-input').focus();
+}
+</script>
+</body>
+</html>

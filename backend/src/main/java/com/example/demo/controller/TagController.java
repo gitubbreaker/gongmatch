@@ -18,6 +18,20 @@ public class TagController {
     private final TagService tagService;
 
     /**
+     * 전체 태그 목록 조회 (인증 불필요)
+     * GET /api/tags
+     * GET /api/tags?category=기술스택
+     */
+    @GetMapping
+    public ResponseEntity<List<Tag>> getAllTags(
+            @RequestParam(required = false) String category) {
+        if (category != null && !category.isEmpty()) {
+            return ResponseEntity.ok(tagService.getTagsByCategory(category));
+        }
+        return ResponseEntity.ok(tagService.getAllTags());
+    }
+
+    /**
      * 내 해시태그 목록 조회
      * GET /api/tags/me
      * Header: Authorization: Bearer {token}

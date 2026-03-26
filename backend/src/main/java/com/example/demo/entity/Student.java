@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "students")
 @Getter @Setter
@@ -37,6 +39,9 @@ public class Student {
 
     private int grade;
 
+    @Column(length = 50)
+    private String role; // 백엔드, 프론트엔드, UI/UX, 데이터분석, 기획·PM 등
+
     @Column(name = "is_verified")
     private boolean isVerified = false;
 
@@ -56,4 +61,12 @@ public class Student {
 
     @Column(name = "response_rate")
     private int responseRate = 0;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
