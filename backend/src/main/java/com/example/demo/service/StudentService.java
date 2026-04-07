@@ -23,7 +23,7 @@ public class StudentService {
     }
 
     @Transactional(readOnly = true)
-    public String login(String loginId, String password) {
+    public com.example.demo.controller.StudentController.LoginResponse login(String loginId, String password) {
         Student student = studentRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
 
@@ -31,6 +31,11 @@ public class StudentService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        return jwtTokenProvider.createToken(student.getLoginId());
+        String token = jwtTokenProvider.createToken(student.getLoginId());
+        return new com.example.demo.controller.StudentController.LoginResponse(
+                token,
+                student.getName(),
+                student.getLoginId()
+        );
     }
 }

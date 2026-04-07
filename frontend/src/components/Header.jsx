@@ -89,13 +89,13 @@ function Header() {
             <div className="my-wrap" style={{ position: 'relative' }}>
               <div className="my-av" onClick={() => toggleDrop('my')} style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--blue-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac)', fontSize: '14px', fontWeight: '900', cursor: 'pointer' }}>
                 {/* '나' 대신 사용자의 이름 첫 글자를 표시합니다 */}
-                {currentUser.name.charAt(0)}
+                {currentUser?.name?.charAt(0) ?? '?'}
               </div>
               {openDrop === 'my' && (
                 <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: '0', width: '200px', background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '12px', padding: '8px', zIndex: '300' }}>
                   <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--brd)', marginBottom: '6px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>{currentUser.name}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>{currentUser.id}</div>
+                    <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>{currentUser?.name ?? currentUser?.studentId ?? '사용자'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>{currentUser?.studentId ?? currentUser?.id ?? ''}</div>
                   </div>
                   <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer' }} onClick={() => { navigate('/time'); setOpenDrop(null); }}>가용시간 설정</div>
                   <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer' }} onClick={() => { navigate('/tags'); setOpenDrop(null); }}>관심사 관리</div>
