@@ -32,8 +32,10 @@ dependencies {
 	// MariaDB 드라이버 (DB 연결용)
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-	// 보안 및 인증 (JWT 구현용)
+	// Spring Security (보안 및 인증)
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// JWT 토큰 처리를 위한 라이브러리
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
@@ -46,4 +48,9 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// plain jar 생성 비활성화 (bootJar만 생성)
+tasks.named('jar') {
+	enabled = false
 }

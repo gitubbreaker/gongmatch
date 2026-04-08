@@ -1,0 +1,43 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: gongmatch-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: hyperlocal_db
+      MYSQL_USER: gongmatch_user
+      MYSQL_PASSWORD: password123
+    ports:
+      - "3306:3306"
+    # DB가 정상 작동하는지 체크하는 로직 추가
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gongmatch-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy # DB가 '건강함' 상태가 될 때까지 대기
+    environment:
+      # docker-compose 환경변수가 application.yml 값을 오버라이드
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/hyperlocal_db
+      SPRING_DATASOURCE_USERNAME: gongmatch_user
+      SPRING_DATASOURCE_PASSWORD: password123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  frontend:
+    build: ./frontend
+    container_name: gongmatch-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend

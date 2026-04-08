@@ -1,17 +1,31 @@
 spring:
+  application:
+    name: demo
+
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    # 로컬 MariaDB 주소와 생성한 DB 명칭입니다.
-    url: jdbc:mariadb://localhost:3306/hyperlocal_db
-    username: root
-    password: dangwon1391!!
+    # Docker Compose 환경: 서비스명 'db' 사용
+    url: jdbc:mariadb://db:3306/hyperlocal_db
+    username: gongmatch_user
+    password: password123
 
   jpa:
     hibernate:
-      # 서버 실행 시 엔티티 구조에 맞춰 테이블을 자동으로 생성하거나 수정합니다.
+      # 서버 실행 시 엔티티 구조에 맞춰 테이블을 자동으로 생성/수정
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         highlight_sql: true
+
+# JWT 설정 (서버 재시작해도 토큰이 유효하도록 고정 키 사용)
+jwt:
+  secret: Z29uZ21hdGNoLWh5cGVybG9jYWwtcHJvamVjdC1zZWNyZXQta2V5LTIwMjUtc3ByaW5nLWJvb3Q=
+  expiration: 86400000  # 24시간 (밀리초)
+
+# 보안 설정 디버깅용 로그
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.example.demo.config: DEBUG
