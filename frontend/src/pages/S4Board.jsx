@@ -39,7 +39,12 @@ function S4Board() {
 
       <div className="board-main" style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '800' }}>지역 프로젝트 보드</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '800' }}>지역 프로젝트 보드</h3>
+            <button className="btn-prim btn-sm" onClick={() => navigate('/write')} style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '14px' }}>+</span> 새 프로젝트 등록
+            </button>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '13px', color: 'var(--tx3)' }}>총 12건</span>
             <select className="field" style={{ width: '140px', padding: '7px 10px', fontSize: '12px' }}>

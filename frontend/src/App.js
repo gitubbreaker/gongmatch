@@ -12,6 +12,8 @@ import S6Profile from './pages/S6Profile';
 import S7Accept from './pages/S7Accept';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import S8Summary from './pages/S8Summary';
+import S9Write from './pages/S9Write';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
@@ -134,6 +136,8 @@ function App() {
           <Route path="/accept" element={<S7Accept />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/summary" element={<S8Summary />} />
+          <Route path="/write" element={<S9Write />} />
         </Routes>
       </div>
       <div className={`toast ${toastShow ? 'show' : ''}`}>{toastMsg}</div>
