@@ -12,6 +12,7 @@ import S6Profile from './pages/S6Profile';
 import S7Accept from './pages/S7Accept';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import PrivateRoute from './components/PrivateRoute';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
@@ -125,15 +126,18 @@ function App() {
       <Tabs />
       <div className="main">
         <Routes>
+          {/* 공개 라우트 */}
           <Route path="/" element={<S1Home />} />
-          <Route path="/time" element={<S2Time />} />
-          <Route path="/tags" element={<S3Tags />} />
           <Route path="/board" element={<S4Board />} />
-          <Route path="/candidates" element={<S5Candidates />} />
-          <Route path="/profile" element={<S6Profile />} />
-          <Route path="/accept" element={<S7Accept />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+
+          {/* 로그인 필요 라우트 */}
+          <Route path="/time" element={<PrivateRoute><S2Time /></PrivateRoute>} />
+          <Route path="/tags" element={<PrivateRoute><S3Tags /></PrivateRoute>} />
+          <Route path="/candidates" element={<PrivateRoute><S5Candidates /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><S6Profile /></PrivateRoute>} />
+          <Route path="/accept" element={<PrivateRoute><S7Accept /></PrivateRoute>} />
         </Routes>
       </div>
       <div className={`toast ${toastShow ? 'show' : ''}`}>{toastMsg}</div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
 import { showToast } from '../App';
@@ -45,6 +45,7 @@ const Links = styled.div`
 
 function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
   const [modalType, setModalType] = useState(null);
@@ -70,7 +71,9 @@ function LoginPage() {
         // 사용자 정보는 currentUser 키에 저장 (Header 표시용)
         localStorage.setItem('gongmatch_currentUser', JSON.stringify({ name, loginId }));
         showToast(`${name}님 환영합니다.`);
-        navigate('/');
+        // redirect 파라미터가 있으면 해당 경로로, 없으면 홈으로
+        const redirectPath = searchParams.get('redirect') || '/';
+        navigate(redirectPath);
       }
     } catch (error) {
       console.error("로그인 에러:", error);
