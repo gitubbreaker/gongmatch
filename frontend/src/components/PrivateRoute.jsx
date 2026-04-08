@@ -7,9 +7,22 @@ import { Navigate, useLocation } from 'react-router-dom';
  */
 function PrivateRoute({ children }) {
   const location = useLocation();
-  const user = localStorage.getItem('gongmatch_currentUser');
+  const token = localStorage.getItem('gongmatch_token');
+  const userStr = localStorage.getItem('gongmatch_currentUser');
 
-  if (!user) {
+  let isValidUser = false;
+  try {
+    if (token && userStr && userStr !== "undefined" && userStr !== "null") {
+      const parsed = JSON.parse(userStr);
+      if (parsed && typeof parsed === 'object') {
+        isValidUser = true;
+      }
+    }
+  } catch (e) {
+    isValidUser = false;
+  }
+
+  if (!isValidUser) {
     // 로그인 후 원래 가려던 페이지로 돌아올 수 있도록 redirect 파라미터 포함
     return (
       <Navigate

@@ -12,9 +12,13 @@ function Header() {
   // 페이지(경로)가 바뀔 때마다 로그인 상태 확인
   useEffect(() => {
     const userStr = localStorage.getItem('gongmatch_currentUser');
-    if (userStr) {
-      setCurrentUser(JSON.parse(userStr));
-    } else {
+    try {
+      if (userStr && userStr !== "undefined" && userStr !== "null") {
+        setCurrentUser(JSON.parse(userStr));
+      } else {
+        setCurrentUser(null);
+      }
+    } catch (e) {
       setCurrentUser(null);
     }
   }, [location]);
