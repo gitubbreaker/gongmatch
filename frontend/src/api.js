@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { showToast } from './App';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+// 배포 환경이면 현재 도메인을 사용하고, 아니면 로컬호스트를 사용합니다.
+const API_URL = process.env.REACT_APP_API_URL || window.location.origin;
+
+console.log('API_URL configured as:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -29,7 +32,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      // 로그인이 필요하거나 세션이 만료된 경우
       const isLoginPage = window.location.pathname === '/login';
       
       if (!isLoginPage) {
