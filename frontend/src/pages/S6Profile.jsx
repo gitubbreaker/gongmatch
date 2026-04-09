@@ -15,6 +15,10 @@ function S6Profile() {
   const [times, setTimes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 카카오톡 링크 수정 모달 상태
+  const [isKakaoModalOpen, setKakaoModalOpen] = useState(false);
+  const [kakaoUrlInput, setKakaoUrlInput] = useState('');
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -35,6 +39,23 @@ function S6Profile() {
     };
     fetchData();
   }, []);
+
+  const handleUpdateKakaoUrl = async () => {
+    if (kakaoUrlInput && !kakaoUrlInput.startsWith('http')) {
+      showToast('유효한 웹 주소(http...)를 입력해주세요.');
+      return;
+    }
+    try {
+      await api.patch('/api/students/me', { openChatUrl: kakaoUrlInput });
+      showToast('오픈채팅 연결 링크가 성공적으로 저장되었습니다.');
+      setKakaoModalOpen(false);
+      // 업데이트된 내 정보만 다시 불러오기
+      const res = await api.get('/api/students/me');
+      setStudent(res.data);
+    } catch (e) {
+      showToast('저장에 실패했습니다.');
+    }
+  };
 
   if (loading) {
     return (
@@ -124,6 +145,14 @@ function S6Profile() {
           <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '16px' }}>내 매칭 정보를 수정하여 더 나은 팀원을 찾아보세요.</p>
           <button className="btn-prim" style={{ width: '100%', padding: '13px', fontSize: '14px', marginBottom: '8px' }} onClick={() => navigate('/time')}>가용 시간 수정</button>
           <button className="btn-prim" style={{ width: '100%', padding: '13px', fontSize: '14px', marginBottom: '8px' }} onClick={() => navigate('/tags')}>관심사/자기소개 수정</button>
+          
+          <button className="btn-ghost" style={{ width: '100%', padding: '13px', fontSize: '14px', marginBottom: '16px', color: 'var(--tx)', border: '1px solid var(--yellow)', background: 'var(--yellow-dim)' }} onClick={() => {
+            setKakaoUrlInput(student?.openChatUrl || '');
+            setKakaoModalOpen(true);
+          }}>
+            카카오톡 연락처 설정
+          </button>
+
           <button className="btn-ghost" style={{ width: '100%', padding: '11px', fontSize: '13px' }} onClick={() => {
             localStorage.removeItem('gongmatch_token');
             localStorage.removeItem('gongmatch_currentUser');
@@ -138,6 +167,30 @@ function S6Profile() {
           <button className="btn-prim btn-sm" style={{ marginTop: '10px', width: '100%' }} onClick={() => navigate('/accept')}>매칭 요청 확인</button>
         </div>
       </div>
+
+      {/* 카카오 링크 수정 모달 */}
+      {isKakaoModalOpen && (
+        <div className="modal-bg" onClick={() => setKakaoModalOpen(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '10px' }}>연락처 정보 설정</h3>
+            <p style={{ fontSize: '13px', color: 'var(--tx3)', marginBottom: '24px', lineHeight: '1.5' }}>
+              팀 매칭이 성사되었을 때 <b>나와 매칭된 상대방에게만</b> 공개할 카카오톡 1:1 오픈채팅방 링크를 입력해주세요.
+            </p>
+            <input 
+              className="field" 
+              type="url" 
+              placeholder="https://open.kakao.com/o/..." 
+              value={kakaoUrlInput} 
+              onChange={e => setKakaoUrlInput(e.target.value)} 
+              style={{ marginBottom: '24px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn-ghost" style={{ flex: 1, padding: '14px' }} onClick={() => setKakaoModalOpen(false)}>취소</button>
+              <button className="btn-prim" style={{ flex: 1, padding: '14px' }} onClick={handleUpdateKakaoUrl}>저장하기</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
