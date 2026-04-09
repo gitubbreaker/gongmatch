@@ -15,7 +15,7 @@ spring:
     show-sql: false # 운영 시에는 꺼두는 것이 깔끔함
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: false
 
 # JWT 설정 (Railway 환경 변수에서 비밀키 로드 권장)
 jwt:
