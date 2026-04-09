@@ -113,8 +113,9 @@ public class StudentService {
                     .tagScore(tagScore)
                     .timeScore(timeScore)
                     .totalScore(tagScore + timeScore)
-                    .overlapText(overlapText)
+                    .overlapText(getOverlapSummary(myTimes, otherTimes))
                     .tags(new ArrayList<>(otherTagNames))
+                    .commonTags(myTagNames.stream().filter(otherTagNames::contains).collect(Collectors.toList()))
                     .role(other.getRole())
                     .build());
         }
@@ -122,6 +123,29 @@ public class StudentService {
         // 총점 기준 내림차순 정렬
         results.sort((a, b) -> b.getTotalScore() - a.getTotalScore());
         return results;
+    }
+
+    private String getOverlapSummary(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
+        List<String> days = new ArrayList<>();
+        int totalOverlap = 0;
+        for (AvailableTime mt : myTimes) {
+            for (AvailableTime ot : otherTimes) {
+                if (mt.getDayOfWeek() == ot.getDayOfWeek()) {
+                    LocalTime start = mt.getStartTime().isAfter(ot.getStartTime()) ? mt.getStartTime() : ot.getStartTime();
+                    LocalTime end = mt.getEndTime().isBefore(ot.getEndTime()) ? mt.getEndTime() : ot.getEndTime();
+                    if (start.isBefore(end)) {
+                        totalOverlap += (end.getHour() - start.getHour());
+                        String dayName = switch (mt.getDayOfWeek()) {
+                            case MONDAY -> "월"; case TUESDAY -> "화"; case WEDNESDAY -> "수";
+                            case THURSDAY -> "목"; case FRIDAY -> "금"; case SATURDAY -> "토"; case SUNDAY -> "일";
+                        };
+                        if (!days.contains(dayName)) days.add(dayName);
+                    }
+                }
+            }
+        }
+        if (days.isEmpty()) return "상호 가용시간 불일치";
+        return String.join(", ", days) + "요일에 겹치는 시간 " + totalOverlap + "시간";
     }
 
     private int calculateOverlapHours(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
@@ -154,6 +178,7 @@ public class StudentService {
         private int tagScore;
         private String overlapText;
         private List<String> tags;
+        private List<String> commonTags;
         private String role;
     }
 }

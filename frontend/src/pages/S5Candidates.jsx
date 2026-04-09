@@ -6,7 +6,9 @@ import api from '../api';
 function S5Candidates() {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({ major: false, grade: [] });
   const [reqModal, setReqModal] = useState({ open: false, id: null, name: '', score: 0 });
   const [reqMessage, setReqMessage] = useState('');
 
@@ -14,16 +16,40 @@ function S5Candidates() {
     fetchCandidates();
   }, []);
 
+  useEffect(() => {
+    applyFilters();
+  }, [filters, candidates]);
+
   const fetchCandidates = async () => {
     try {
       const response = await api.get('/api/students/recommendations');
       setCandidates(response.data);
+      setFiltered(response.data);
     } catch (error) {
       console.error('추천 후보 로딩 실패:', error);
       showToast('후보 목록을 불러오지 못했습니다.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilters = () => {
+    let list = [...candidates];
+    if (filters.major) {
+      // 내 전공과 같은 사람 우선 (간단 구현)
+      list = list.sort((a, b) => (a.major === 'IT응용공학' ? -1 : 1));
+    }
+    if (filters.grade.length > 0) {
+      list = list.filter(c => filters.grade.includes(c.grade));
+    }
+    setFiltered(list);
+  };
+
+  const toggleGrade = (g) => {
+    setFilters(prev => ({
+      ...prev,
+      grade: prev.grade.includes(g) ? prev.grade.filter(i => i !== g) : [...prev.grade, g]
+    }));
   };
 
   const openModal = (id, name, score) => {
@@ -53,127 +79,166 @@ function S5Candidates() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg)', color: 'var(--tx2)' }}>
-        맞춤형 팀원 추천 후보를 계산하는 중...
+        <div style={{textAlign:'center'}}>
+          <div className="spin" style={{width:'30px', height:'30px', border:'3px solid var(--brd)', borderTopColor:'var(--ac)', borderRadius:'50%', margin:'0 auto 15px'}}></div>
+          최적의 팀원 궁합을 계산하는 중...
+        </div>
       </div>
     );
   }
 
   return (
     <section className="screen on" id="s5" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
-      <div className="s5-hdr" style={{ background: 'var(--bg2)', borderBottom: '1px solid var(--brd)', padding: '22px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: '0' }}>
+      {/* 상단 타이틀 섹션 */}
+      <div className="s5-hdr" style={{ background: 'var(--bg2)', borderBottom: '1px solid var(--brd)', padding: '28px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '5px' }}>공모전 → 팀원 찾기</p>
-          <p style={{ fontSize: '19px', fontWeight: '800' }}>2026 공공데이터 활용 창업 경진대회</p>
-          <div style={{ display: 'flex', gap: '6px', marginTop: '9px', flexWrap: 'wrap' }}>
-            <span className="tag" style={{ fontSize: '10px' }}>#전체</span>
-            <span className="tag" style={{ fontSize: '10px' }}>#추천순</span>
+          <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'8px'}}>
+            <span style={{ fontSize: '11px', color: 'var(--ac)', background:'var(--ac-dim)', padding:'3px 8px', borderRadius:'4px', fontWeight:'700' }}>BEST MATCHING</span>
+            <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>2026 공공데이터 활용 창업 경진대회</span>
           </div>
+          <p style={{ fontSize: '24px', fontWeight: '900', letterSpacing:'-0.5px' }}>나와 꼭 맞는 최고의 팀원 후보들</p>
         </div>
-        <div style={{ display: 'flex', gap: '28px', textAlign: 'center' }}>
-          <div><div style={{ fontSize: '34px', fontWeight: '900', color: 'var(--red)' }}>D-3</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>접수 마감</div></div>
-          <div><div style={{ fontSize: '34px', fontWeight: '900', color: 'var(--ac)' }}>{candidates.length}</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>매칭 후보군</div></div>
-          <div><div style={{ fontSize: '34px', fontWeight: '900', color: 'var(--blue)' }}>3~5</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>인 팀</div></div>
+        <div style={{ display: 'flex', gap: '32px' }}>
+          <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>매칭 후보군</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--ac)' }}>{candidates.length}<span style={{fontSize:'14px', fontWeight:'500'}}>명</span></div></div>
+          <div style={{width:'1px', height:'40px', background:'var(--brd)', marginTop:'10px'}}></div>
+          <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>접수 마감</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--red)' }}>D-3</div></div>
         </div>
       </div>
 
-      <div className="s5-body" style={{ display: 'grid', gridTemplateColumns: '210px 1fr', flex: '1', overflow: 'hidden' }}>
-        <div className="sidebar" style={{ background: 'var(--bg2)', borderRight: '1px solid var(--brd)', padding: '24px 18px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
+      <div className="s5-body" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', flex: '1' }}>
+        {/* 필터 사이드바 */}
+        <div className="sidebar" style={{ background: 'var(--bg2)', borderRight: '1px solid var(--brd)', padding: '32px 24px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
           <div>
-            <p className="sb-title" style={{ fontSize: '10px', fontWeight: '700', color: 'var(--tx3)', letterSpacing: '.6px', textTransform: 'uppercase', marginBottom: '10px' }}>필터링</p>
-            <label className="fitem" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--tx2)', padding: '5px 0' }}>
-              <input type="checkbox" defaultChecked style={{ accentColor: 'var(--ac)' }} /> 내 전공 우선
+            <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '16px' }}>SMART FILTER</p>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent:'space-between', padding:'12px 14px', background:'var(--card)', borderRadius:'10px', border:'1px solid var(--brd)', cursor:'pointer' }}>
+              <span style={{fontSize:'13px', fontWeight:'600'}}>내 전공 우선 추천</span>
+              <input type="checkbox" checked={filters.major} onChange={e => setFilters(f => ({...f, major: e.target.checked}))} style={{ accentColor: 'var(--ac)', width:'16px', height:'16px' }} />
             </label>
+          </div>
+          
+          <div>
+            <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '16px' }}>학년 선택</p>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px'}}>
+              {[1,2,3,4].map(g => (
+                <button 
+                  key={g} 
+                  onClick={() => toggleGrade(g)}
+                  style={{
+                    padding:'10px', borderRadius:'8px', border:'1px solid', fontSize:'12px', fontWeight:'700',
+                    background: filters.grade.includes(g) ? 'var(--ac-dim)' : 'var(--card)',
+                    borderColor: filters.grade.includes(g) ? 'var(--ac-brd)' : 'var(--brd2)',
+                    color: filters.grade.includes(g) ? 'var(--ac)' : 'var(--tx3)'
+                  }}
+                >{g}학년</button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="clist" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
-          <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '4px' }}>
-            점수 계산 기준: 가용시간(50점) + 관심사(50점) 교집합 연산
-          </p>
-
-          {candidates.length === 0 ? (
-            <div className="card" style={{padding:'40px', textAlign:'center', color:'var(--tx3)'}}>아직 추천할 수 있는 후보가 없습니다.</div>
+        {/* 메인 리스트 */}
+        <div className="clist" style={{ padding: '32px 40px', display: 'flex', flexDirection: 'column', gap: '20px', background:'var(--bg)' }}>
+          {filtered.length === 0 ? (
+            <div style={{padding:'100px', textAlign:'center', color:'var(--tx3)'}}>
+              <p style={{fontSize:'15px', marginBottom:'10px'}}>조건에 맞는 후보가 없습니다.</p>
+              <button className="btn-ghost btn-sm" onClick={() => setFilters({major:false, grade:[]})}>필터 초기화</button>
+            </div>
           ) : (
-            candidates.map(c => (
-              <div key={c.id} className="cc" style={{ background: 'var(--card)', border: '1px solid var(--brd)', borderRadius: 'var(--r2)', padding: '20px' }}>
-                <div className="cc-hdr" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div className="av" style={{ width: '50px', height: '50px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '19px', fontWeight:'800' }}>
-                      {c.name.charAt(0)}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '17px', fontWeight: '800' }}>{c.name}</span>
-                        <span className="tag green" style={{ fontSize: '10px' }}>✓ 학교인증</span>
-                        {c.totalScore >= 90 && <span className="tag yellow" style={{ fontSize: '10px' }}>최우수 매칭</span>}
+            filtered.map(c => (
+              <div key={c.id} className="candidate-card" style={{ 
+                background: 'var(--card)', border: '1px solid var(--brd)', borderRadius: '20px', padding: '28px',
+                display:'grid', gridTemplateColumns:'80px 1fr 220px', gap:'24px', transition:'transform .2s, border-color .2s',
+                cursor:'default'
+              }}>
+                {/* 왼쪽: 아바타 */}
+                <div style={{textAlign:'center'}}>
+                  <div style={{ width: '70px', height: '70px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', fontWeight:'900', borderRadius:'22px', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px' }}>
+                    {c.name.charAt(0)}
+                  </div>
+                  <div style={{fontSize:'10px', color:'var(--tx3)', fontWeight:'700'}}>{c.role || 'MEMBER'}</div>
+                </div>
+
+                {/* 중앙: 정보 및 인사이트 */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '20px', fontWeight: '900' }}>{c.name}</span>
+                    <span style={{ fontSize: '13px', color: 'var(--tx2)', fontWeight:'500' }}>{c.major} · {c.grade}학년</span>
+                    <span style={{fontSize:'10px', color:'#999', marginLeft:'auto'}}>#{c.id}</span>
+                  </div>
+                  
+                  <div style={{fontSize:'14px', color:'var(--tx2)', marginBottom:'18px', lineHeight:'1.5'}}>
+                    "{c.introduction || '팀워크를 소중히 여기는 팀원입니다.'}"
+                  </div>
+
+                  {/* 매칭 인사이트 섹션 */}
+                  <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+                    <div style={{background:'rgba(255,255,255,0.03)', padding:'12px 16px', borderRadius:'12px', border:'1px dashed var(--brd2)'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
+                        <span style={{fontSize:'11px', fontWeight:'900', color:'var(--ac)'}}>TIME MATCH</span>
+                        <div style={{flex:1, height:'1px', background:'var(--brd2)'}}></div>
                       </div>
-                      <p style={{ fontSize: '12px', color: 'var(--tx3)' }}>{c.role || '팀원'} · {c.major} {c.grade}학년</p>
+                      <p style={{fontSize:'13px', fontWeight:'600', color:'var(--tx)'}}>
+                        🎯 {c.overlapText}
+                      </p>
+                    </div>
+
+                    <div style={{background:'rgba(255,255,255,0.03)', padding:'12px 16px', borderRadius:'12px', border:'1px dashed var(--brd2)'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
+                        <span style={{fontSize:'11px', fontWeight:'900', color:'var(--ac)'}}>INTEREST MATCH</span>
+                        <div style={{flex:1, height:'1px', background:'var(--brd2)'}}></div>
+                      </div>
+                      <div style={{display:'flex', gap:'6px', flexWrap:'wrap'}}>
+                        {/* 공통 태그는 강조색 */}
+                        {c.commonTags && c.commonTags.map(t => (
+                          <span key={t} className="tag green" style={{fontSize:'11px', padding:'4px 10px', border:'1.5px solid var(--ac)'}}>🔥 {t}</span>
+                        ))}
+                        {/* 일반 태그는 회색 (너무 많지 않게 7개까지만) */}
+                        {c.tags && c.tags.filter(t => !c.commonTags.includes(t)).slice(0, 7).map(t => (
+                          <span key={t} className="tag gray" style={{fontSize:'11px', padding:'4px 10px'}}>#{t}</span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div className="csc" style={{ fontSize: '34px', fontWeight: '900', color: 'var(--ac)', lineHeight: '1' }}>
-                      {c.totalScore}<span style={{ fontSize: '13px', fontWeight: '400', color: 'var(--tx3)' }}>점</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="sdet" style={{ background: 'var(--bg2)', borderRadius: '8px', padding: '13px 15px', marginBottom: '12px' }}>
-                  <div className="sr" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <span className="srl" style={{ fontSize: '11px', color: 'var(--tx3)', width: '58px', flexShrink: '0' }}>가용시간</span>
-                    <div className="bar-track"><div className="bar-fill" style={{ width: `${(c.timeScore/50)*100}%` }}></div></div>
-                    <span className="srv" style={{ fontSize: '11px', color: 'var(--tx2)', whiteSpace: 'nowrap' }}>{c.timeScore} / 50</span>
-                  </div>
-                  <div className="sr" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0' }}>
-                    <span className="srl" style={{ fontSize: '11px', color: 'var(--tx3)', width: '58px', flexShrink: '0' }}>관심사</span>
-                    <div className="bar-track"><div className="bar-fill" style={{ width: `${(c.tagScore/50)*100}%` }}></div></div>
-                    <span className="srv" style={{ fontSize: '11px', color: 'var(--tx2)', whiteSpace: 'nowrap' }}>{c.tagScore} / 50</span>
-                  </div>
-                  <p style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '8px' }}>⏰ {c.overlapText}</p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
-                  {c.tags && c.tags.slice(0, 5).map(t => <span key={t} className="tag gray" style={{ fontSize: '10px' }}>#{t}</span>)}
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                  <div style={{ flex: '1', fontSize:'12px', color:'var(--tx3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    "{c.introduction || '안녕하세요! 같이 프로젝트 해요.'}"
+                {/* 오른쪽: 점수 및 액션 */}
+                <div style={{ borderLeft:'1px solid var(--brd)', paddingLeft:'24px', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', gap:'20px' }}>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', fontWeight:'800', color:'var(--tx3)', marginBottom:'4px', letterSpacing:'1px'}}>MATCH SCORE</div>
+                    <div style={{fontSize:'48px', fontWeight:'950', color:'var(--ac)', lineHeight:'1'}}>{c.totalScore}</div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn-ghost btn-sm" onClick={() => navigate(`/profile`)}>내 정보 확인</button>
-                    <button className="btn-prim btn-sm" onClick={() => openModal(c.id, c.name, c.totalScore)}>팀원 요청</button>
+                  <div style={{display:'flex', flexDirection:'column', gap:'8px', width:'100%'}}>
+                    <button className="btn-prim" style={{width:'100%', padding:'12px', borderRadius:'10px', fontSize:'14px', fontWeight:'800'}} onClick={() => openModal(c.id, c.name, c.totalScore)}>팀원 요청하기</button>
+                    <button className="btn-ghost" style={{width:'100%', padding:'10px', fontSize:'12px'}} onClick={() => navigate(`/profile`)}>상세 프로필 보기</button>
                   </div>
                 </div>
               </div>
             ))
           )}
-
         </div>
       </div>
 
+      {/* 요청 모달 */}
       {reqModal.open && (
-        <div className="modal-bg on" style={{ position: 'fixed', inset: '0', background: 'rgba(0,0,0,.7)', zIndex: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={(e) => { if(e.target === e.currentTarget) closeModal(); }}>
-          <div className="modal" style={{ background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '18px', padding: '32px', maxWidth: '460px', width: '90%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '17px', fontWeight: '800' }}>팀원 요청 보내기</h3>
-              <button className="btn-ghost btn-sm" onClick={closeModal} style={{ padding: '5px 10px' }}>✕</button>
+        <div className="modal-bg on" style={{ position: 'fixed', inset: '0', background: 'rgba(0,0,0,.85)', zIndex: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }} onClick={(e) => { if(e.target === e.currentTarget) closeModal(); }}>
+          <div className="modal" style={{ background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '24px', padding: '40px', maxWidth: '480px', width: '90%', boxShadow:'0 20px 50px rgba(0,0,0,0.5)' }}>
+            <div style={{ textAlign:'center', marginBottom: '24px' }}>
+              <div style={{width:'60px', height:'60px', background:'var(--ac)', color:'#000', borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', fontWeight:'900', margin:'0 auto 16px'}}>{reqModal.name.charAt(0)}</div>
+              <h3 style={{ fontSize: '20px', fontWeight: '900', marginBottom:'4px' }}>{reqModal.name}님께 팀원 요청</h3>
+              <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>{reqModal.score}점의 환상적인 궁합인 동료입니다!</p>
             </div>
-            <div style={{ background: 'var(--card3)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
-              <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx)' }}>{reqModal.name} · 매칭 점수 {reqModal.score}점</p>
-              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>2026 공공데이터 활용 창업 경진대회</p>
-            </div>
-            <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>요청 메시지 (선택)</p>
+            
             <textarea 
               className="field" 
-              rows="4" 
-              placeholder="간단한 소개나 같이 하고 싶은 이유를 적어보세요.&#10;수락률이 높아져요!&#10;&#10;예) 안녕하세요! 저는 PM 담당이고 공공데이터 경험이 있어요 😊" 
-              style={{ marginBottom: '16px' }}
+              rows="5" 
+              placeholder="상대방에게 전달할 메시지를 입력해 주세요.&#10;나의 강점이나 같이 하고 싶은 이유를 적으면 수락 확률이 높아집니다." 
+              style={{ marginBottom: '20px', borderRadius:'12px', padding:'15px', fontSize:'14px' }}
               value={reqMessage}
               onChange={(e) => setReqMessage(e.target.value)}
             ></textarea>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button className="btn-ghost" style={{ flex: '1', padding: '12px' }} onClick={closeModal}>취소</button>
-              <button className="btn-prim" style={{ flex: '2', padding: '12px', fontSize: '14px' }} onClick={handleRequest}>요청 보내기</button>
+            
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn-ghost" style={{ flex: '1', padding: '14px', borderRadius:'12px' }} onClick={closeModal}>취소</button>
+              <button className="btn-prim" style={{ flex: '2', padding: '14px', borderRadius:'12px', fontSize: '15px', fontWeight:'800' }} onClick={handleRequest}>정중하게 요청 보내기</button>
             </div>
           </div>
         </div>
