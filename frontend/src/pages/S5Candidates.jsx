@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from '../App';
 import api from '../api';
 
 function S5Candidates() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const projectTitle = location.state?.projectTitle || '맞춤형 프로젝트 팀원 찾기';
+  const projectDDay = location.state?.dDay || '상시';
+  
   const [candidates, setCandidates] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,14 +98,14 @@ function S5Candidates() {
         <div>
           <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'8px'}}>
             <span style={{ fontSize: '11px', color: 'var(--ac)', background:'var(--ac-dim)', padding:'3px 8px', borderRadius:'4px', fontWeight:'700' }}>BEST MATCHING</span>
-            <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>2026 공공데이터 활용 창업 경진대회</span>
+            <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{projectTitle}</span>
           </div>
           <p style={{ fontSize: '24px', fontWeight: '900', letterSpacing:'-0.5px' }}>나와 꼭 맞는 최고의 팀원 후보들</p>
         </div>
         <div style={{ display: 'flex', gap: '32px' }}>
           <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>매칭 후보군</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--ac)' }}>{candidates.length}<span style={{fontSize:'14px', fontWeight:'500'}}>명</span></div></div>
           <div style={{width:'1px', height:'40px', background:'var(--brd)', marginTop:'10px'}}></div>
-          <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>접수 마감</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--red)' }}>D-3</div></div>
+          <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>접수 마감</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--red)' }}>{projectDDay}</div></div>
         </div>
       </div>
 

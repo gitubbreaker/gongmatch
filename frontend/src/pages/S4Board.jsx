@@ -55,7 +55,7 @@ function S4Board() {
           </div>
         </div>
 
-        <div className="pc hot" onClick={() => navigate('/candidates')} style={{ background: 'var(--card)', border: '1px solid var(--brd)', borderRadius: 'var(--r2)', padding: '22px 24px', cursor: 'pointer', borderLeft: '3px solid var(--ac)' }}>
+        <div className="pc hot" onClick={() => navigate('/candidates', { state: { projectTitle: '2026 부산 공공데이터 활용 창업 경진대회', dDay: 'D-3' } })} style={{ background: 'var(--card)', border: '1px solid var(--brd)', borderRadius: 'var(--r2)', padding: '22px 24px', cursor: 'pointer', borderLeft: '3px solid var(--ac)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -73,7 +73,7 @@ function S4Board() {
           </div>
           <div className="pc-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
             <button className="btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); showToast('공고 페이지로 이동합니다 ↗'); }}>공고 상세 보기 ↗</button>
-            <button className="btn-prim btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>팀원 찾기 →</button>
+            <button className="btn-prim btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/candidates', { state: { projectTitle: '2026 부산 공공데이터 활용 창업 경진대회', dDay: 'D-3' } }); }}>팀원 찾기 →</button>
           </div>
         </div>
 
@@ -91,7 +91,7 @@ function S4Board() {
           </div>
           <div className="pc-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
             <button className="btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); showToast('공고 페이지로 이동합니다 ↗'); }}>공고 상세 보기 ↗</button>
-            <button className="btn-prim btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/candidates'); showToast('팀원 찾기로 이동합니다'); }}>팀원 찾기 →</button>
+            <button className="btn-prim btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/candidates', { state: { projectTitle: '부산광역시 청년 봉사단 2026 모집', dDay: 'D-15' } }); showToast('팀원 찾기로 이동합니다'); }}>팀원 찾기 →</button>
           </div>
         </div>
 
@@ -109,7 +109,7 @@ function S4Board() {
           </div>
           <div className="pc-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
             <button className="btn-ghost btn-sm" onClick={(e) => e.stopPropagation()}>공고 상세 보기 ↗</button>
-            <button className="btn-prim btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/candidates'); showToast('팀원 찾기로 이동합니다'); }}>팀원 찾기 →</button>
+            <button className="btn-prim btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/candidates', { state: { projectTitle: '부산 청년 창업 지원 사업 2026', dDay: 'D-30' } }); showToast('팀원 찾기로 이동합니다'); }}>팀원 찾기 →</button>
           </div>
         </div>
 
