@@ -61,7 +61,12 @@ public class GlobalExceptionHandler {
     // 그 외 예상치 못한 서버 오류
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneral(Exception e) {
+        String errorMsg = e.getMessage();
+        if (e.getCause() != null) {
+            errorMsg += " | Cause: " + e.getCause().getMessage();
+        }
+        e.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."));
+                .body(Map.of("message", "[서버 에러] " + errorMsg));
     }
 }
