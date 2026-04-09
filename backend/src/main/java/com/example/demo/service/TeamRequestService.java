@@ -76,4 +76,20 @@ public class TeamRequestService {
         request.setStatus(status);
         return teamRequestRepository.save(request);
     }
+
+    /**
+     * 요청 내역 영구 삭제 (보낸 사람이나 받은 사람만 가능)
+     */
+    @Transactional
+    public void deleteRequest(Long requestId, String loginId) {
+        TeamRequest request = teamRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 요청입니다."));
+        
+        // 권한 체크: 보낸 사람이나 받은 사람만 삭제 가능
+        if (!request.getSender().getLoginId().equals(loginId) && !request.getReceiver().getLoginId().equals(loginId)) {
+            throw new IllegalArgumentException("이 요청을 삭제할 권한이 없습니다.");
+        }
+        
+        teamRequestRepository.delete(request);
+    }
 }

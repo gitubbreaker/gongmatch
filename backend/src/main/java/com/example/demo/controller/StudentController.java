@@ -50,7 +50,8 @@ public class StudentController {
                 loginId, 
                 request.getIntroduction(), 
                 request.getMajor(), 
-                request.getGrade()
+                request.getGrade(),
+                request.getOpenChatUrl()
         );
         updatedStudent.setPassword(null);
         return ResponseEntity.ok(updatedStudent);
@@ -97,5 +98,6 @@ public class StudentController {
         private String introduction;
         private String major;
         private Integer grade;
+        private String openChatUrl; // 추가
     }
 }

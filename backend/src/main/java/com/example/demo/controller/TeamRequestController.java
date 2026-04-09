@@ -65,6 +65,17 @@ public class TeamRequestController {
         return ResponseEntity.ok(teamRequestService.updateStatus(id, body.getStatus()));
     }
 
+    /**
+     * 알림(요청) 영구 삭제
+     * DELETE /api/team-requests/{id}
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRequest(@PathVariable Long id, Authentication authentication) {
+        String loginId = authentication.getName();
+        teamRequestService.deleteRequest(id, loginId);
+        return ResponseEntity.ok().build();
+    }
+
     @Getter @Setter
     static class TeamRequestSendRequest {
         private Long receiverId;

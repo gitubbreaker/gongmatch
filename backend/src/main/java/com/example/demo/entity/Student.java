@@ -42,6 +42,9 @@ public class Student {
     @Column(length = 50)
     private String role; // 백엔드, 프론트엔드, UI/UX, 데이터분석, 기획·PM 등
 
+    @Column(length = 255)
+    private String openChatUrl; // 카카오톡 오픈채팅 URL 추가
+
     @Column(name = "is_verified")
     private boolean isVerified = false;
 

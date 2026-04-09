@@ -59,13 +59,14 @@ public class StudentService {
     }
 
     @Transactional
-    public Student updateStudentInfo(String loginId, String introduction, String major, Integer grade) {
+    public Student updateStudentInfo(String loginId, String introduction, String major, Integer grade, String openChatUrl) {
         Student student = studentRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         if (introduction != null) student.setIntroduction(introduction);
         if (major != null) student.setMajor(major);
         if (grade != null) student.setGrade(grade);
+        if (openChatUrl != null) student.setOpenChatUrl(openChatUrl);
 
         return studentRepository.save(student);
     }
@@ -102,7 +103,6 @@ public class StudentService {
             int timeScore = Math.min(50, overlapHours * 10);
 
             // 겹치는 시간 정보 텍스트 생성 (간소화)
-            String overlapText = overlapHours > 0 ? "총 " + overlapHours + "시간 겹침" : "상호 가용시간 불일치";
 
             results.add(RecommendationResponse.builder()
                     .id(other.getId())

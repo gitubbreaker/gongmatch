@@ -25,7 +25,7 @@ const Card = styled.div`
 
 function SignupPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ name: '', id: '', pw: '', pwConfirm: '' });
+  const [formData, setFormData] = useState({ name: '', id: '', pw: '', pwConfirm: '', openChatUrl: '' });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -50,6 +50,7 @@ function SignupPage() {
         name: formData.name,
         loginId: formData.id,
         password: formData.pw,
+        openChatUrl: formData.openChatUrl,
         grade: 4,
         major: 'IT응용공학과'
       });
@@ -101,6 +102,10 @@ function SignupPage() {
             <div>
               <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>비밀번호 확인</label>
               <input className="field" type="password" name="pwConfirm" placeholder="비밀번호 다시 입력" value={formData.pwConfirm} onChange={handleChange} />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>카카오톡 오픈채팅방 링크 (선택)</label>
+              <input className="field" type="url" name="openChatUrl" placeholder="https://open.kakao.com/..." value={formData.openChatUrl} onChange={handleChange} style={{ borderColor: 'var(--yellow)' }} />
             </div>
 
             <button type="submit" className="btn-prim" style={{ padding: '16px', fontSize: '15px', marginTop: '16px' }}>가입 완료</button>

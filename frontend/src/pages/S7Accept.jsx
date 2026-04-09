@@ -47,6 +47,20 @@ function S7Accept() {
     }
   };
 
+  const handleDeleteRequest = async (requestId) => {
+    if (!window.confirm('이 요청 내역을 삭제하시겠습니까? (상대방 화면에서도 사라집니다)')) return;
+    try {
+      await api.delete(`/api/team-requests/${requestId}`);
+      showToast('요청 내역이 삭제되었습니다.');
+      if (activeChat && activeChat.requestId === requestId) {
+         setActiveChat(null);
+      }
+      fetchRequests();
+    } catch (error) {
+      showToast('삭제 처리에 실패했습니다.');
+    }
+  };
+
   // derived lists
   const currentList = activeTab === 'RECEIVED' ? receivedRequests : sentRequests;
 
@@ -108,9 +122,20 @@ function S7Accept() {
                          {req.status === 'PENDING' && isSentByMe && <span style={{fontSize:'11px', background:'var(--brd2)', color:'var(--tx3)', padding:'4px 10px', borderRadius:'10px', fontWeight:'800'}}>상대방 수락 대기중</span>}
                          {req.status === 'REJECTED' && <span style={{fontSize:'11px', background:'var(--red)', color:'#fff', padding:'4px 10px', borderRadius:'10px', fontWeight:'800'}}>아쉽게 거절됨</span>}
                       </div>
+
+                      {/* 삭제 버튼: PENDING이 아닌 완료된 내역이거나, 내가 보낸 요청 중 거절된 것은 삭제 가능 */}
+                      {(req.status !== 'PENDING' || isSentByMe) && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteRequest(req.requestId); }}
+                          style={{ position:'absolute', top:'16px', right:'16px', background:'transparent', border:'none', color:'var(--tx3)', fontSize:'18px', cursor:'pointer', padding:'4px' }}
+                          title="목록에서 삭제"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
                     
-                    <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', background: 'var(--bg)', padding: '12px 16px', borderRadius: '10px', marginBottom: '14px' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', background: 'var(--bg)', padding: '12px 16px', borderRadius: '10px', marginBottom: '14px', paddingRight: '30px' }}>
                       "{req.message || '안녕하세요! 같이 팀 하고 싶습니다.'}"
                     </p>
                     
@@ -156,24 +181,46 @@ function S7Accept() {
                  <b>{(activeTab === 'SENT' ? activeChat.receiver.name : activeChat.sender.name)}</b>님과 함께 팀을 이뤄<br/>멋진 공모전 프로젝트를 시작해 보세요.
                </p>
 
-               <div style={{ background:'var(--bg)', borderRadius:'16px', padding:'24px', marginBottom:'28px', border:'1px solid var(--brd2)', textAlign:'left' }}>
-                 <div style={{ fontSize:'12px', color:'var(--tx3)', fontWeight:'800', marginBottom:'12px', letterSpacing:'1px' }}>CONTACT INFO</div>
-                 <div style={{ fontSize:'18px', color:'var(--tx)', fontWeight:'700', letterSpacing:'0.5px' }}>
-                   {(activeTab === 'SENT' ? activeChat.receiver.loginId : activeChat.sender.loginId)}
-                 </div>
-               </div>
+               {/* 카카오 오픈채팅 주소가 있을 경우 렌더링 로직 추가 */}
+               {(() => {
+                 const targetUser = activeTab === 'SENT' ? activeChat.receiver : activeChat.sender;
+                 const hasKakao = !!targetUser.openChatUrl && targetUser.openChatUrl.startsWith('http');
+                 
+                 return (
+                   <>
+                     <div style={{ background:'var(--bg)', borderRadius:'16px', padding:'24px', marginBottom:'28px', border:'1px solid var(--brd2)', textAlign:'left' }}>
+                       <div style={{ fontSize:'12px', color:'var(--tx3)', fontWeight:'800', marginBottom:'12px', letterSpacing:'1px' }}>
+                         {hasKakao ? 'KAKAO OPEN CHAT' : 'CONTACT INFO'}
+                       </div>
+                       <div style={{ fontSize:'16px', color:'var(--tx)', fontWeight:'700', letterSpacing:'0.5px', wordBreak: 'break-all' }}>
+                         {hasKakao ? targetUser.openChatUrl : targetUser.loginId}
+                       </div>
+                     </div>
 
-               <button 
-                 className="btn-prim" 
-                 style={{ width:'100%', padding:'18px', borderRadius:'16px', fontSize:'16px', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
-                 onClick={() => {
-                   navigator.clipboard.writeText(activeTab === 'SENT' ? activeChat.receiver.loginId : activeChat.sender.loginId);
-                   showToast('이메일 주소가 클립보드에 복사되었습니다!');
-                 }}
-               >
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                 이메일 정보 복사하기
-               </button>
+                     {hasKakao ? (
+                       <button 
+                         style={{ width:'100%', padding:'18px', borderRadius:'16px', fontSize:'16px', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px', background:'#FEE500', color:'#000000', border:'none', cursor:'pointer' }}
+                         onClick={() => window.open(targetUser.openChatUrl, '_blank')}
+                       >
+                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 3C6.48 3 2 6.81 2 11.5c0 2.65 1.48 5 3.75 6.5l-1.07 3.51a.5.5 0 0 0 .63.63l4.13-1.42c.83.21 1.69.31 2.56.31 5.52 0 10-3.81 10-8.5S17.52 3 12 3z"></path></svg>
+                         카카오톡 오픈채팅방 열기
+                       </button>
+                     ) : (
+                       <button 
+                         className="btn-prim" 
+                         style={{ width:'100%', padding:'18px', borderRadius:'16px', fontSize:'16px', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
+                         onClick={() => {
+                           navigator.clipboard.writeText(targetUser.loginId);
+                           showToast('이메일 주소가 클립보드에 복사되었습니다!');
+                         }}
+                       >
+                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                         이메일 정보 복사하기
+                       </button>
+                     )}
+                   </>
+                 );
+               })()}
             </div>
           </div>
         )}
