@@ -79,7 +79,8 @@ function S2Time() {
       navigate('/tags');
     } catch (error) {
       console.error('가용시간 저장 실패:', error);
-      showToast('저장에 실패했습니다. 다시 시도해주세요.');
+      const serverMsg = error.response?.data?.message || error.message;
+      showToast('저장에 실패했습니다: ' + serverMsg);
     }
   };
 
