@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../App';
+import api from '../api'; // 공통 API 인스턴스
 
 const TDEFS = {
   field: ['#공모전', '#스터디', '#창업', '#봉사활동', '#데이터분석', '#앱개발', '#디자인', '#소셜임팩트'],
@@ -9,10 +10,76 @@ const TDEFS = {
   act: ['#공기업', '#스타트업', '#대기업', '#해커톤', '#연구']
 };
 
+// 백엔드 카테고리 맵핑
+const CAT_MAP = {
+  field: '분야',
+  tech: '기술스택',
+  region: '지역',
+  act: '관심활동'
+};
+
 function S3Tags() {
   const navigate = useNavigate();
-  const [chosen, setChosen] = useState(new Set(['#공모전', '#창업', '#데이터분석', '#Python', '#Django', '#부산']));
-  const [intro, setIntro] = useState('안녕하세요! 부산대 컴공 3학년입니다. Python/Django 백엔드 개발을 주로 하고, 공공데이터 활용 서비스에 관심이 많습니다.');
+  const [chosen, setChosen] = useState(new Set());
+  const [intro, setIntro] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const fetchInitialData = async () => {
+    try {
+      // 1. 내 정보(자기소개) 불러오기
+      const studentRes = await api.get('/api/students/me');
+      if (studentRes.data.introduction) {
+        setIntro(studentRes.data.introduction);
+      }
+
+      // 2. 내 태그 목록 불러오기
+      const tagRes = await api.get('/api/tags/me');
+      const savedTags = new Set();
+      tagRes.data.forEach(t => {
+        // 백엔드 저장 시 '#'이 빠졌을 수도 있으므로 안전하게 처리
+        const tagName = t.name.startsWith('#') ? t.name : `#${t.name}`;
+        savedTags.add(tagName);
+      });
+      setChosen(savedTags);
+    } catch (error) {
+      console.error('데이터 로딩 실패:', error);
+      // showToast('기존 프로필 정보를 불러올 수 없습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleComplete = async () => {
+    try {
+      // 1. 관심사 태그 저장
+      const tagRequests = [];
+      Object.entries(TDEFS).forEach(([catKey, tagList]) => {
+        tagList.forEach(tagName => {
+          if (chosen.has(tagName)) {
+            tagRequests.push({
+              category: CAT_MAP[catKey],
+              name: tagName.replace('#', '') // 백엔드 저장 시 '#' 제거
+            });
+          }
+        });
+      });
+
+      await api.put('/api/tags/me', { tags: tagRequests });
+
+      // 2. 자기소개 정보 저장
+      await api.patch('/api/students/me', { introduction: intro });
+
+      showToast('프로필이 완성되었어요 🎉');
+      navigate('/');
+    } catch (error) {
+      console.error('프로필 저장 실패:', error);
+      showToast('저장에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
 
   const toggleTag = (tag) => {
     setChosen(prev => {
@@ -49,7 +116,18 @@ function S3Tags() {
     ));
   };
 
-  const score = Math.round((chosen.size / 10) * 50);
+  const tagScore = Math.round((chosen.size / 10) * 50);
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', 
+        background: 'var(--bg)', color: 'var(--tx2)', fontSize: '15px'
+      }}>
+        관심사 정보를 불러오는 중...
+      </div>
+    );
+  }
 
   return (
     <section className="screen on">
@@ -96,7 +174,7 @@ function S3Tags() {
             <p className="slabel">매칭 점수 미리보기</p>
             <div className="sprev" style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
               <div className="sbox" style={{background:'var(--card)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
-                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{score}</div>
+                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{tagScore}</div>
                 <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>관심사 점수</div>
               </div>
               <div className="sbox" style={{background:'var(--card)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
@@ -104,7 +182,7 @@ function S3Tags() {
                 <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>가용시간 점수</div>
               </div>
               <div className="sbox" style={{background:'var(--ac-dim)', borderColor:'var(--ac-brd)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
-                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{50 + score}</div>
+                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{50 + tagScore}</div>
                 <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>예상 총점</div>
               </div>
             </div>
@@ -112,7 +190,7 @@ function S3Tags() {
 
           <div style={{display:'flex', gap:'10px'}}>
             <button className="btn-ghost" style={{flex:1, padding:'12px'}} onClick={() => navigate('/time')}>← 이전</button>
-            <button className="btn-prim" style={{flex:2, padding:'13px', fontSize:'14px'}} onClick={() => { showToast('프로필이 완성되었어요 🎉'); navigate('/'); }}>프로필 완성하기 →</button>
+            <button className="btn-prim" style={{flex:2, padding:'13px', fontSize:'14px'}} onClick={handleComplete}>프로필 완성하기 →</button>
           </div>
         </div>
       </div>

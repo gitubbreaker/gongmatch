@@ -1,15 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../App';
+import api from '../api';
 
 function S1Home() {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
   const [selectedChip, setSelectedChip] = useState('#공모전');
+  const [projects, setProjects] = useState([]);
+  const [bestMatch, setBestMatch] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHomeData();
+  }, []);
+
+  const fetchHomeData = async () => {
+    try {
+      const projRes = await api.get('/api/projects');
+      setProjects(projRes.data.slice(0, 3));
+
+      const token = localStorage.getItem('gongmatch_token');
+      if (token) {
+        const recoRes = await api.get('/api/students/recommendations');
+        if (recoRes.data && recoRes.data.length > 0) {
+          setBestMatch(recoRes.data[0]);
+        }
+      }
+    } catch (error) {
+      console.error('홈 데이터 로딩 실패:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = () => {
     if (searchValue.trim()) {
-      showToast('검색: ' + searchValue);
       navigate('/candidates');
     }
   };
@@ -63,47 +89,61 @@ function S1Home() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginTop: '36px' }}>
-          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>1,248</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>이번 달 매칭 성사</div></div>
+          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>1,248</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>매칭 성사</div></div>
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>342</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>진행 중인 공고</div></div>
-          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>8,921</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>가입한 대학생</div></div>
+          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>8,921</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>활동 학생</div></div>
         </div>
       </div>
 
       <div className="s1-right" style={{ background: 'var(--bg2)', borderLeft: '1px solid var(--brd)', padding: '28px 22px', display: 'flex', flexDirection: 'column', gap: '13px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '2px' }}>
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--ac)', display: 'inline-block' }}></span>
-          <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--tx3)' }}>오늘의 공공데이터 공고</span>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--tx3)' }}>오늘의 추천 공고 및 매칭</span>
         </div>
 
-        <div className="pubcard" onClick={() => navigate('/candidates')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>🏆 해커톤</span>
-                <span className="badge-hot">🔥 HOT</span>
+        {projects.length === 0 ? (
+          <div className="card" style={{padding:'30px', textAlign:'center', color:'var(--tx3)', fontSize:'12px'}}>불러올 공고가 없습니다.</div>
+        ) : (
+          projects.map(p => (
+            <div key={p.projectId} className="pubcard" onClick={() => navigate('/candidates')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>🏆 {p.category || '공모전'}</span>
+                    <span className="badge-hot">🔥 HOT</span>
+                  </div>
+                  <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.4' }}>{p.title}</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span className="pub-d" style={{ background: 'var(--red-dim)', color: 'var(--red)', border: '1px solid var(--red-brd)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>D-30</span>
+                </div>
               </div>
-              <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.4' }}>2026 부산 공공데이터 활용 창업 경진대회</p>
+              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px' }}>{p.host} 주최 · {p.reward || '팀 빌딩'} · {p.teamSizeMin}~{p.teamSizeMax}인 팀</p>
+              
+              {bestMatch && (
+                <>
+                  <div className="divider" style={{ margin: '12px 0' }}></div>
+                  <p className="slabel">알고리즘 추천 팀원</p>
+                  <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                      <div className="av" style={{ width: '30px', height: '30px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '11px', fontWeight:'800' }}>{bestMatch.name.charAt(0)}</div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '600' }}>{bestMatch.name}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>{bestMatch.major} · {bestMatch.totalScore}점</div>
+                      </div>
+                    </div>
+                    <span className="match-sc" style={{ fontSize: '15px', fontWeight: '800', color: 'var(--ac)' }}>{bestMatch.totalScore}점</span>
+                  </div>
+                </>
+              )}
+              <button className="btn-prim" style={{ width: '100%', marginTop: '14px', padding: '12px', fontSize: '13px' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>⚡ 이 공고로 매칭 시작</button>
             </div>
-            <span className="pub-d" style={{ background: 'var(--red-dim)', color: 'var(--red)', border: '1px solid var(--red-brd)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>D-3</span>
-          </div>
-          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '8px' }}>
-            <span className="tag" style={{ fontSize: '10px' }}>#데이터분석</span><span className="tag" style={{ fontSize: '10px' }}>#개발</span><span className="tag" style={{ fontSize: '10px' }}>#창업</span>
-          </div>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px' }}>행정안전부 주최 · 총상금 5,000만원 · 3~5인 팀</p>
-          <div className="divider" style={{ margin: '12px 0' }}></div>
-          <p className="slabel">알고리즘 추천 팀원</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-            <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--brd)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}><div className="av" style={{ width: '30px', height: '30px', background: 'var(--blue-dim)', color: 'var(--blue)', fontSize: '11px' }}>김</div><div><div style={{ fontSize: '13px', fontWeight: '600' }}>김지원</div><div style={{ fontSize: '10px', color: 'var(--tx3)' }}>백엔드 · Python</div></div></div>
-              <span className="match-sc" style={{ fontSize: '15px', fontWeight: '800', color: 'var(--ac)' }}>94점</span>
-            </div>
-          </div>
-          <button className="btn-prim" style={{ width: '100%', marginTop: '14px', padding: '12px', fontSize: '13px' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>⚡ 이 공고로 매칭 시작</button>
-        </div>
+          ))
+        )}
 
         <div className="s1-minipill" style={{ background: 'rgba(200,242,38,.06)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '11px 14px' }}>
-          <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--ac)', marginBottom: '3px' }}>● 매일 오전 6시 자동 업데이트</p>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)' }}>data.go.kr API 연동 중 · 오늘 12건 수집됨</p>
+          <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--ac)', marginBottom: '3px' }}>● 1:1 알고리즘 매칭 가동 중</p>
+          <p style={{ fontSize: '11px', color: 'var(--tx3)' }}>나와 기술 스택이 겹치는 후보가 즉시 노출됩니다.</p>
         </div>
       </div>
     </div>

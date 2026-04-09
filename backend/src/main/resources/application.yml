@@ -4,28 +4,27 @@ spring:
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    # Docker Compose 환경: 서비스명 'db' 사용
-    url: jdbc:mariadb://db:3306/hyperlocal_db
-    username: gongmatch_user
-    password: password123
+    # Railway 환경 변수 사용, 없을 시 로컬 도커 주소 기본값 사용
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://db:3306/hyperlocal_db}
+    username: ${SPRING_DATASOURCE_USERNAME:gongmatch_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:password123}
 
   jpa:
     hibernate:
-      # 서버 실행 시 엔티티 구조에 맞춰 테이블을 자동으로 생성/수정
       ddl-auto: update
-    show-sql: true
+    show-sql: false # 운영 시에는 꺼두는 것이 깔끔함
     properties:
       hibernate:
-        format_sql: true
-        highlight_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
 
-# JWT 설정 (서버 재시작해도 토큰이 유효하도록 고정 키 사용)
+# JWT 설정 (Railway 환경 변수에서 비밀키 로드 권장)
 jwt:
-  secret: Z29uZ21hdGNoLWh5cGVybG9jYWwtcHJvamVjdC1zZWNyZXQta2V5LTIwMjUtc3ByaW5nLWJvb3Q=
-  expiration: 86400000  # 24시간 (밀리초)
+  secret: ${JWT_SECRET:Z29uZ21hdGNoLWh5cGVybG9jYWwtcHJvamVjdC1zZWNyZXQta2V5LTIwMjUtc3ByaW5nLWJvb3Q=}
+  expiration: 86400000 
 
-# 보안 설정 디버깅용 로그
+# 로그 레벨 (운영 환경에 적합하도록 조정)
 logging:
   level:
-    org.springframework.security: DEBUG
-    com.example.demo.config: DEBUG
+    root: INFO
+    org.springframework.security: INFO
+    com.example.demo: DEBUG

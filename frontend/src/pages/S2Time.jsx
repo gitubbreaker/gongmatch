@@ -1,27 +1,87 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../App';
+import api from '../api'; // 공통 API 인스턴스 임포트
 
 const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 const TIMES = ['09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'];
 
+// 요일 변환 맵핑
+const DAY_MAP = {
+  '월': 'MONDAY', '화': 'TUESDAY', '수': 'WEDNESDAY', '목': 'THURSDAY',
+  '금': 'FRIDAY', '토': 'SATURDAY', '일': 'SUNDAY'
+};
+const REVERSE_DAY_MAP = Object.fromEntries(Object.entries(DAY_MAP).map(([k, v]) => [v, k]));
+
 function S2Time() {
   const navigate = useNavigate();
   const [sel, setSel] = useState({});
+  const [loading, setLoading] = useState(true);
   const isDragging = useRef(false);
 
   useEffect(() => {
+    // 1. 초기 그리드 비우기
     const initialSel = {};
     DAYS.forEach(d => TIMES.forEach(t => initialSel[d+t] = false));
-    [['토',['14','15','16']],['수',['14','15']],['금',['10','11']]].forEach(([d,ts]) => {
-      ts.forEach(t => initialSel[d+t] = true);
-    });
     setSel(initialSel);
+
+    // 2. 서버에서 기존 데이터 불러오기
+    fetchSavedTimes();
 
     const handleMouseUp = () => { isDragging.current = false; };
     document.addEventListener('mouseup', handleMouseUp);
     return () => document.removeEventListener('mouseup', handleMouseUp);
   }, []);
+
+  const fetchSavedTimes = async () => {
+    try {
+      const response = await api.get('/api/available-time/me');
+      if (response.data && response.data.length > 0) {
+        const newSel = {};
+        DAYS.forEach(d => TIMES.forEach(t => newSel[d+t] = false));
+        
+        response.data.forEach(slot => {
+          const day = REVERSE_DAY_MAP[slot.dayOfWeek];
+          // startTime에서 앞의 두 자리(시간)만 추출 (예: "09:00" -> "09")
+          const hour = slot.startTime.split(':')[0];
+          if (day && hour) {
+            newSel[day + hour] = true;
+          }
+        });
+        setSel(newSel);
+      }
+    } catch (error) {
+      console.error('가용시간 로딩 실패:', error);
+      // 로그인 안 된 경우 등 예외 처리는 필요할 수 있음
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      // sel 상태를 백엔드 형식으로 변환
+      const timeSlots = [];
+      Object.entries(sel).forEach(([key, isSelected]) => {
+        if (isSelected) {
+          const day = key.substring(0, 1);
+          const hour = key.substring(1);
+          timeSlots.push({
+            dayOfWeek: DAY_MAP[day],
+            startTime: `${hour}:00`,
+            endTime: `${String(parseInt(hour) + 1).padStart(2, '0')}:00`
+          });
+        }
+      });
+
+      await api.put('/api/available-time/me', { times: timeSlots });
+      showToast('가용 시간이 저장되었어요 ✓');
+      navigate('/tags');
+    } catch (error) {
+      console.error('가용시간 저장 실패:', error);
+      showToast('저장에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
 
   const handleMouseDown = (day, t) => {
     isDragging.current = true;
@@ -57,6 +117,17 @@ function S2Time() {
   });
   const totalHours = Object.values(byDay).reduce((s, ts) => s + ts.length, 0);
   const score = Math.min(50, Math.round((totalHours / 10) * 50));
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', 
+        background: 'var(--bg)', color: 'var(--tx2)', fontSize: '15px'
+      }}>
+        가용 시간을 불러오는 중...
+      </div>
+    );
+  }
 
   return (
     <section className="screen on">
@@ -142,12 +213,12 @@ function S2Time() {
           </div>
 
           <div className="card" style={{padding:'14px', fontSize:'12px', color:'var(--tx2)', lineHeight:'1.7'}}>
-            선택 데이터는 <span style={{color:'var(--ac)', fontWeight:'600'}}>REST API</span>로 전송되어 매칭 알고리즘 점수 산출에 사용됩니다.<br/>(POST /api/available-time)
+            선택 데이터는 <span style={{color:'var(--ac)', fontWeight:'600'}}>REST API</span>로 전송되어 매칭 알고리즘 점수 산출에 사용됩니다.<br/>(PUT /api/available-time/me)
           </div>
 
           <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
             <button className="btn-ghost" style={{padding:'12px'}} onClick={() => navigate('/')}>← 이전 단계</button>
-            <button className="btn-prim" style={{padding:'13px', fontSize:'14px'}} onClick={() => { showToast('가용 시간이 저장되었어요 ✓'); navigate('/tags'); }}>저장 후 다음 단계 →</button>
+            <button className="btn-prim" style={{padding:'13px', fontSize:'14px'}} onClick={handleSave}>저장 후 다음 단계 →</button>
           </div>
         </div>
       </div>
