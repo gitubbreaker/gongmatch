@@ -45,7 +45,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // React 개발서버(3000, 5173), Docker 내부 통신 모두 허용
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
@@ -60,27 +59,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF 비활성화 (REST API이므로)
                 .csrf(csrf -> csrf.disable())
-                // CORS 설정 적용
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // 세션 사용 안 함 (JWT 기반)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 요청별 인증/인가 규칙
                 .authorizeHttpRequests(auth -> auth
-                        // 회원가입, 로그인은 인증 없이 허용
+                        // 공개 API 엔드포인트
                         .requestMatchers(HttpMethod.POST, "/api/students/signup", "/api/students/register", "/api/students/login").permitAll()
-                        // 에러 페이지 허용
-                        .requestMatchers("/error").permitAll()
-                        // 프로젝트 조회, 태그 조회는 인증 없이 허용
+                        .requestMatchers(HttpMethod.GET, "/api/students/seed-test").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/projects", "/api/projects/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tags").permitAll()
-                        // OPTIONS 요청(CORS preflight) 전부 허용
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // 나머지는 인증 필요
+                        // 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
-                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 삽입
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         log.info("✅ SecurityFilterChain 빈이 생성되었습니다.");

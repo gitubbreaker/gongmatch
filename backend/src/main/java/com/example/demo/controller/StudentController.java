@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Student;
 import com.example.demo.service.StudentService;
+import com.example.demo.config.DataLoader;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 public class StudentController {
 
     private final StudentService studentService;
+    private final DataLoader dataLoader;
 
     @PostMapping("/signup")
     public ResponseEntity<Student> signup(@RequestBody Student student) {
@@ -31,10 +33,6 @@ public class StudentController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 내 프로필 정보 조회
-     * GET /api/students/me
-     */
     @GetMapping("/me")
     public ResponseEntity<Student> getMyInfo(Authentication authentication) {
         String loginId = authentication.getName();
@@ -43,10 +41,6 @@ public class StudentController {
         return ResponseEntity.ok(student);
     }
 
-    /**
-     * 내 프로필 기본 정보 수정 (자기소개 등)
-     * PATCH /api/students/me
-     */
     @PatchMapping("/me")
     public ResponseEntity<Student> updateMyInfo(
             Authentication authentication,
@@ -63,9 +57,19 @@ public class StudentController {
     }
 
     /**
-     * 알고리즘 기반 추천 후보 목록 조회
-     * GET /api/students/recommendations
+     * [테스트용] 수동 데이터 생성 API
+     * GET /api/students/seed-test
      */
+    @GetMapping("/seed-test")
+    public ResponseEntity<String> seedTestData() {
+        try {
+            dataLoader.run();
+            return ResponseEntity.ok("✅ 샘플 데이터 생성이 완료되었습니다!");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("❌ 에러 발생: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/recommendations")
     public ResponseEntity<List<StudentService.RecommendationResponse>> getRecommendations(
             Authentication authentication) {
@@ -83,9 +87,9 @@ public class StudentController {
     @Getter
     @AllArgsConstructor
     public static class LoginResponse {
-        private String token;   // JWT 토큰
-        private String name;    // 사용자 이름 (Header 아바타 표시용)
-        private String loginId; // 아이디 (Header 드롭다운 표시용)
+        private String token;
+        private String name;
+        private String loginId;
     }
 
     @Getter @Setter
