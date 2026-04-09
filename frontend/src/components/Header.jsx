@@ -122,7 +122,7 @@ function Header() {
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--ac)', flexShrink: '0', marginTop: '5px' }}></div>
                           <div style={{flex: 1, overflow: 'hidden'}}>
                             <div style={{ fontSize: '13px', color: 'var(--tx)', lineHeight: '1.4', marginBottom:'4px' }}>
-                              <b style={{ color: 'var(--ac)', fontSize:'14px' }}>{req.senderName}</b>님이 팀원 요청을 보냈습니다.
+                              <b style={{ color: 'var(--ac)', fontSize:'14px' }}>{req.sender?.name || '익명'}</b>님이 팀원 요청을 보냈습니다.
                             </div>
                             <div style={{ fontSize: '11px', color: 'var(--tx3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', background:'rgba(0,0,0,0.2)', padding:'6px 8px', borderRadius:'6px' }}>
                               "{req.message || '안녕하세요! 꼭 같이 팀하고 싶습니다.'}"
