@@ -16,6 +16,7 @@ spring:
     properties:
       hibernate:
         format_sql: false
+        dialect: org.hibernate.dialect.MySQLDialect
 
 # JWT 설정 (Railway 환경 변수에서 비밀키 로드 권장)
 jwt:
