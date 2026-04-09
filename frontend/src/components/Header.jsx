@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from '../App';
+import api from '../api';
 
 function Header() {
   const navigate = useNavigate();
   const location = useLocation(); // 페이지 이동을 감지하기 위함
   const [openDrop, setOpenDrop] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
   const dropRef = useRef(null);
 
   // 페이지(경로)가 바뀔 때마다 로그인 상태 확인
@@ -22,6 +24,29 @@ function Header() {
       setCurrentUser(null);
     }
   }, [location]);
+
+  // 로그인 상태일 때 백엔드에서 받은 요청(알림) 주기적으로 조회
+  useEffect(() => {
+    if (currentUser) {
+      const fetchNotifications = async () => {
+        try {
+          const res = await api.get('/api/team-requests/received');
+          // 아직 응답하지 않은 대기 중(PENDING)인 요청만 필터링
+          const pendingRequests = res.data.filter(req => req.status === 'PENDING');
+          setNotifications(pendingRequests);
+        } catch (e) {
+          console.error('알림 로딩 실패', e);
+        }
+      };
+      
+      fetchNotifications();
+      // 30초마다 자동 새로고침하여 실시간성 부여
+      const intervalId = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(intervalId);
+    } else {
+      setNotifications([]);
+    }
+  }, [currentUser, location]); // location 변경(페이지 이동) 시에도 즉시 새로고침
 
   // 바깥 클릭 시 드롭다운 닫기
   useEffect(() => {
@@ -74,18 +99,39 @@ function Header() {
             <div className="notif-wrap" style={{ position: 'relative', marginLeft: '10px' }}>
               <div className="notif-icon" onClick={() => toggleDrop('notif')} style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', fontSize: '16px' }}>
                 🔔
-                <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '16px', height: '16px', background: 'var(--red)', borderRadius: '50%', fontSize: '9px', fontWeight: '700', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>3</div>
+                {notifications.length > 0 && (
+                  <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '18px', height: '18px', background: 'var(--red)', borderRadius: '50%', fontSize: '10px', fontWeight: '700', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>
+                    {notifications.length}
+                  </div>
+                )}
               </div>
               {openDrop === 'notif' && (
-                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: '0', width: '300px', background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '12px', padding: '14px', zIndex: '300' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--tx3)', marginBottom: '8px', padding: '0 4px' }}>알림</div>
-                  <div style={{ display: 'flex', gap: '10px', padding: '10px', borderRadius: '8px', cursor: 'pointer' }} onClick={() => { navigate('/accept'); setOpenDrop(null); }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--ac)', flexShrink: '0', marginTop: '4px' }}></div>
-                    <div>
-                      <div style={{ fontSize: '12px', color: 'var(--tx)', lineHeight: '1.5' }}><b style={{ color: 'var(--ac)' }}>김지원</b>님이 팀원 요청을 수락했어요.</div>
-                      <div style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '3px' }}>방금 전</div>
-                    </div>
+                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: '0', width: '320px', background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '12px', padding: '14px', zIndex: '300', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', padding: '0 4px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--tx)' }}>알림 <b style={{color:'var(--red)'}}>{notifications.length}</b>건</span>
                   </div>
+                  
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--tx3)', fontSize: '13px' }}>
+                      새로운 도착한 알림이 없습니다.
+                    </div>
+                  ) : (
+                    <div style={{maxHeight:'320px', overflowY:'auto', display:'flex', flexDirection:'column', gap:'8px'}}>
+                      {notifications.map(req => (
+                        <div key={req.id} style={{ display: 'flex', gap: '12px', padding: '14px', background:'var(--card)', borderRadius: '10px', cursor: 'pointer', border:'1px solid var(--brd)' }} onClick={() => { navigate('/accept', { state: { request: req } }); setOpenDrop(null); }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--ac)', flexShrink: '0', marginTop: '5px' }}></div>
+                          <div style={{flex: 1, overflow: 'hidden'}}>
+                            <div style={{ fontSize: '13px', color: 'var(--tx)', lineHeight: '1.4', marginBottom:'4px' }}>
+                              <b style={{ color: 'var(--ac)', fontSize:'14px' }}>{req.senderName}</b>님이 팀원 요청을 보냈습니다.
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--tx3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', background:'rgba(0,0,0,0.2)', padding:'6px 8px', borderRadius:'6px' }}>
+                              "{req.message || '안녕하세요! 꼭 같이 팀하고 싶습니다.'}"
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
