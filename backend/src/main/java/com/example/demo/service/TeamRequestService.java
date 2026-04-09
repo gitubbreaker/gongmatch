@@ -51,6 +51,16 @@ public class TeamRequestService {
     }
 
     /**
+     * 내가 보낸 팀원 요청 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<TeamRequest> getSentRequests(String loginId) {
+        Student me = studentRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        return teamRequestRepository.findBySender(me);
+    }
+
+    /**
      * 요청 수락/거절 (상태 업데이트)
      */
     @Transactional

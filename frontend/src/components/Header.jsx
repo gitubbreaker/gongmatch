@@ -30,10 +30,23 @@ function Header() {
     if (currentUser) {
       const fetchNotifications = async () => {
         try {
-          const res = await api.get('/api/team-requests/received');
-          // 아직 응답하지 않은 대기 중(PENDING)인 요청만 필터링
-          const pendingRequests = res.data.filter(req => req.status === 'PENDING');
-          setNotifications(pendingRequests);
+          const [receivedRes, sentRes] = await Promise.all([
+            api.get('/api/team-requests/received'),
+            api.get('/api/team-requests/sent')
+          ]);
+          
+          const pendingReceived = receivedRes.data
+            .filter(req => req.status === 'PENDING')
+            .map(req => ({ ...req, notifType: 'RECEIVED' }));
+            
+          const acceptedSent = sentRes.data
+            .filter(req => req.status === 'ACCEPTED')
+            .map(req => ({ ...req, notifType: 'ACCEPTED_SENT' }));
+            
+          // 최신순 정렬
+          const combined = [...pendingReceived, ...acceptedSent].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          
+          setNotifications(combined);
         } catch (e) {
           console.error('알림 로딩 실패', e);
         }
@@ -121,12 +134,25 @@ function Header() {
                         <div key={req.id} style={{ display: 'flex', gap: '12px', padding: '14px', background:'var(--card)', borderRadius: '10px', cursor: 'pointer', border:'1px solid var(--brd)' }} onClick={() => { navigate('/accept', { state: { request: req } }); setOpenDrop(null); }}>
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--ac)', flexShrink: '0', marginTop: '5px' }}></div>
                           <div style={{flex: 1, overflow: 'hidden'}}>
-                            <div style={{ fontSize: '13px', color: 'var(--tx)', lineHeight: '1.4', marginBottom:'4px' }}>
-                              <b style={{ color: 'var(--ac)', fontSize:'14px' }}>{req.sender?.name || '익명'}</b>님이 팀원 요청을 보냈습니다.
-                            </div>
-                            <div style={{ fontSize: '11px', color: 'var(--tx3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', background:'rgba(0,0,0,0.2)', padding:'6px 8px', borderRadius:'6px' }}>
-                              "{req.message || '안녕하세요! 꼭 같이 팀하고 싶습니다.'}"
-                            </div>
+                            {req.notifType === 'RECEIVED' ? (
+                              <>
+                                <div style={{ fontSize: '13px', color: 'var(--tx)', lineHeight: '1.4', marginBottom:'4px' }}>
+                                  <b style={{ color: 'var(--ac)', fontSize:'14px' }}>{req.sender?.name || '익명'}</b>님이 팀원 요청을 보냈습니다.
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--tx3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', background:'rgba(0,0,0,0.2)', padding:'6px 8px', borderRadius:'6px' }}>
+                                  "{req.message || '안녕하세요! 꼭 같이 팀하고 싶습니다.'}"
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div style={{ fontSize: '13px', color: 'var(--tx)', lineHeight: '1.4', marginBottom:'4px' }}>
+                                  🎉 <b style={{ color: 'var(--green)', fontSize:'14px' }}>{req.receiver?.name || '익명'}</b>님이 내 요청을 수락했습니다!
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>
+                                  지금 바로 연동된 연락처를 확인해 보세요.
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))}

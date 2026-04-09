@@ -44,6 +44,16 @@ public class TeamRequestController {
     }
 
     /**
+     * 보낸 요청 목록 조회
+     * GET /api/team-requests/sent
+     */
+    @GetMapping("/sent")
+    public ResponseEntity<List<TeamRequest>> getSentRequests(Authentication authentication) {
+        String loginId = authentication.getName();
+        return ResponseEntity.ok(teamRequestService.getSentRequests(loginId));
+    }
+
+    /**
      * 요청 상태 업데이트 (수락/거절)
      * PATCH /api/team-requests/{id}/status
      * Body: { "status": "ACCEPTED" }
