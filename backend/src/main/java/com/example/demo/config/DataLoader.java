@@ -31,21 +31,25 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (studentRepository.count() > 0) {
+        // 이미 샘플 아이디(suhyun@test.com)가 있으면 중복 생성 방지
+        if (studentRepository.findByLoginId("suhyun@test.com").isPresent()) {
+            System.out.println("✅ 이미 샘플 데이터가 존재합니다.");
             return;
         }
 
         System.out.println("🌱 샘플 데이터를 생성하는 중...");
 
         // 1. 공모전 데이터
-        createProject("2026 부산 공공데이터 활용 창업 경진대회", "행정안전부", "총상금 5,000만원", 3, 5, "창업");
-        createProject("서울 스마트시티 앱 서비스 공모전", "서울시", "서울시장상 수여", 2, 4, "IT/서비스");
+        if (publicProjectRepository.count() == 0) {
+            createProject("2026 부산 공공데이터 활용 창업 경진대회", "행정안전부", "총상금 5,000만원", 3, 5, "창업");
+            createProject("서울 스마트시티 앱 서비스 공모전", "서울시", "서울시장상 수여", 2, 4, "IT/서비스");
+        }
 
         // 2. 샘플 학생들
         createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "디자이너", 
             "사용자 경험을 중요하게 생각하는 디자이너입니다.",
             Arrays.asList(createTagReq("분야", "디자인"), createTagReq("기술스택", "Figma")),
-            Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 14, 18)));
+            Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 14, 18), createTimeReq(DayOfWeek.WEDNESDAY, 14, 18)));
 
         createSampleStudent("minjun@test.com", "박민준", "통계학과", 3, "데이터분석", 
             "데이터 크롤링 및 시각화에 자신 있습니다.",
