@@ -23,6 +23,7 @@ function S3Tags() {
   const [chosen, setChosen] = useState(new Set());
   const [intro, setIntro] = useState('');
   const [loading, setLoading] = useState(true);
+  const [timeScore, setTimeScore] = useState(0); // 가용시간 실제 점수 상태 추가
 
   useEffect(() => {
     fetchInitialData();
@@ -45,6 +46,14 @@ function S3Tags() {
         savedTags.add(tagName);
       });
       setChosen(savedTags);
+
+      // 3. 내 가용시간 불러와서 점수 계산
+      const timeRes = await api.get('/api/available-time/me');
+      if (timeRes.data && timeRes.data.length > 0) {
+        const totalHours = timeRes.data.length;
+        const calculatedScore = Math.min(50, Math.round((totalHours / 10) * 50));
+        setTimeScore(calculatedScore);
+      }
     } catch (error) {
       console.error('데이터 로딩 실패:', error);
       // showToast('기존 프로필 정보를 불러올 수 없습니다.');
@@ -179,11 +188,11 @@ function S3Tags() {
                 <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>관심사 점수</div>
               </div>
               <div className="sbox" style={{background:'var(--card)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
-                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--tx2)', lineHeight:'1'}}>50</div>
+                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--tx2)', lineHeight:'1'}}>{timeScore}</div>
                 <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>가용시간 점수</div>
               </div>
               <div className="sbox" style={{background:'var(--ac-dim)', borderColor:'var(--ac-brd)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
-                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{50 + tagScore}</div>
+                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{timeScore + tagScore}</div>
                 <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>예상 총점</div>
               </div>
             </div>
