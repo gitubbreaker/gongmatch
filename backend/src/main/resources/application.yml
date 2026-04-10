@@ -1,6 +1,8 @@
 spring:
   application:
     name: demo
+server:
+  port: ${PORT:8080} # Railway 등의 환경변수 PORT 연동
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
