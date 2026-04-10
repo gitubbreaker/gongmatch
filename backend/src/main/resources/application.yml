@@ -15,13 +15,12 @@ server:
     hibernate:
       ddl-auto: update
     show-sql: false
-    database: mysql # DB 종류 명시
-    database-platform: org.hibernate.dialect.MySQLDialect # Dialect 강제 지정
+    database: mysql
+    database-platform: org.hibernate.dialect.MariaDBDialect # MariaDB 전용 Dialect 사용
     properties:
       hibernate:
         format_sql: false
-        # MariaDB/MySQL 호환성을 위해 Dialect 재확인
-        dialect: org.hibernate.dialect.MySQLDialect 
+        dialect: org.hibernate.dialect.MariaDBDialect 
 
 # JWT 설정 (Railway 환경 변수에서 비밀키 로드 권장)
 jwt:
