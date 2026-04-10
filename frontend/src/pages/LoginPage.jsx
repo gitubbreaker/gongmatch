@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../api';
 import { showToast } from '../App';
 
 const LoginContainer = styled.div`
@@ -59,7 +59,7 @@ function LoginPage() {
     }
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/students/login`, {
+      const response = await api.post('/api/students/login', {
         loginId: id,
         password: pw
       });

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../api';
 import { showToast } from '../App';
 
 const Container = styled.div`
@@ -45,8 +45,7 @@ function SignupPage() {
     }
 
     try {
-      // 서버로 회원가입 데이터 전송
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/students/signup`, {
+      const response = await api.post('/api/students/signup', {
         name: formData.name,
         loginId: formData.id,
         password: formData.pw,

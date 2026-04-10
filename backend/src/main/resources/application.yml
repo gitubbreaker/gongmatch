@@ -4,19 +4,22 @@ spring:
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    # Railway 환경 변수 사용, 없을 시 로컬 도커 주소 기본값 사용
-    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://db:3306/hyperlocal_db}
+    # 환경 변수 사용, 없을 시 로컬 머신의 로컬 DB 우선 사용 (도커에서는 docker-compose.yml에서 오버라이드)
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/hyperlocal_db}
     username: ${SPRING_DATASOURCE_USERNAME:gongmatch_user}
     password: ${SPRING_DATASOURCE_PASSWORD:password123}
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false # 운영 시에는 꺼두는 것이 깔끔함
+    show-sql: false
+    database: mysql # DB 종류 명시
+    database-platform: org.hibernate.dialect.MySQLDialect # Dialect 강제 지정
     properties:
       hibernate:
         format_sql: false
-        dialect: org.hibernate.dialect.MySQLDialect
+        # MariaDB/MySQL 호환성을 위해 Dialect 재확인
+        dialect: org.hibernate.dialect.MySQLDialect 
 
 # JWT 설정 (Railway 환경 변수에서 비밀키 로드 권장)
 jwt:
