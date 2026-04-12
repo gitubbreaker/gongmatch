@@ -4,10 +4,10 @@ import { showToast } from '../App';
 import api from '../api'; // 공통 API 인스턴스
 
 const TDEFS = {
-  field: ['#공모전', '#스터디', '#창업', '#봉사활동', '#데이터분석', '#앱개발', '#디자인', '#소셜임팩트'],
-  tech: ['#Python', '#Django', '#React', '#Java', '#Spring', '#Figma', '#R', '#Docker', '#MySQL', '#Swift', '#TypeScript'],
-  region: ['#부산', '#경남', '#온라인', '#전국', '#서울', '#경기'],
-  act: ['#공기업', '#스타트업', '#대기업', '#해커톤', '#연구']
+  field: ['#공모전', '#스터디', '#AI', '#금융IT', '#이커머스', '#빅데이터', '#핀테크', '#교육', '#콘텐츠', '#소셜임팩트'],
+  tech: ['#Python', '#Java', '#Spring', '#React', '#Next.js', '#Node.js', '#Javascript', '#TypeScript', '#Swift', '#MySQL', '#Docker', '#Figma'],
+  region: ['#전국', '#서울', '#경기', '#부산', '#경남', '#온라인'],
+  act: ['#스타트업', '#해커톤', '#공기업', '#대기업', '#연구', '#취업준비']
 };
 
 // 백엔드 카테고리 맵핑
