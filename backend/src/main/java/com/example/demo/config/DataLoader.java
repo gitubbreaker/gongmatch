@@ -45,21 +45,36 @@ public class DataLoader implements CommandLineRunner {
             createProject("서울 스마트시티 앱 서비스 공모전", "서울시", "서울시장상 수여", 2, 4, "IT/서비스");
         }
 
-        // 2. 샘플 학생들
-        createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "디자이너", 
-            "사용자 경험을 중요하게 생각하는 디자이너입니다.",
-            Arrays.asList(createTagReq("DOMAIN", "디자인"), createTagReq("TECH", "Figma")),
+        // 2. 샘플 학생들 (정예 IT 팀원들 소환)
+        createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "UI/UX 디자이너", 
+            "사용자 경험을 최우선으로 생각하는 디자이너입니다. Figma 숙련도가 높습니다.",
+            Arrays.asList(createTagReq("DOMAIN", "디자인"), createTagReq("TECH", "Figma"), createTagReq("ROLE", "디자이너")),
             Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 14, 18), createTimeReq(DayOfWeek.WEDNESDAY, 14, 18)));
 
-        createSampleStudent("minjun@test.com", "박민준", "통계학과", 3, "데이터분석", 
-            "데이터 크롤링 및 시각화에 자신 있습니다.",
-            Arrays.asList(createTagReq("DOMAIN", "데이터분석"), createTagReq("TECH", "Python")),
+        createSampleStudent("minjun@test.com", "박민준", "통계학과", 3, "데이터 분석가", 
+            "Python을 활용한 데이터 크롤링 및 EDA에 자신 있습니다. 공공데이터 활용 경험 다수.",
+            Arrays.asList(createTagReq("DOMAIN", "데이터분석"), createTagReq("TECH", "Python"), createTagReq("ROLE", "데이터분석")),
             Arrays.asList(createTimeReq(DayOfWeek.SATURDAY, 10, 18)));
 
-        createSampleStudent("gaeun@test.com", "정가은", "컴퓨터공학과", 2, "프론트엔드", 
-            "React와 Spring 기반 개발을 공부 중입니다.",
-            Arrays.asList(createTagReq("DOMAIN", "앱개발"), createTagReq("TECH", "React")),
+        createSampleStudent("gaeun@test.com", "정가은", "컴퓨터공학과", 2, "프론트엔드 개발자", 
+            "React와 Tailwind CSS를 주로 사용합니다. 깔끔한 UI 구현을 좋아해요.",
+            Arrays.asList(createTagReq("DOMAIN", "앱개발"), createTagReq("TECH", "React"), createTagReq("ROLE", "프론트엔드")),
             Arrays.asList(createTimeReq(DayOfWeek.FRIDAY, 18, 22)));
+
+        createSampleStudent("jiho@test.com", "최지호", "정보보안학과", 4, "백엔드 개발자", 
+            "Spring Boot와 JPA 기반의 안정적인 서버 구축을 지향합니다.",
+            Arrays.asList(createTagReq("DOMAIN", "금융IT"), createTagReq("TECH", "Spring"), createTagReq("ROLE", "백엔드")),
+            Arrays.asList(createTimeReq(DayOfWeek.TUESDAY, 10, 15), createTimeReq(DayOfWeek.THURSDAY, 10, 15)));
+
+        createSampleStudent("hyuna@test.com", "김현아", "경영학과", 3, "기획·PM", 
+            "비즈니스 모델 분석과 일정 관리에 능숙합니다. 해커톤 수상 경력 2회.",
+            Arrays.asList(createTagReq("DOMAIN", "이커머스"), createTagReq("TECH", "Notion"), createTagReq("ROLE", "PM")),
+            Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 10, 14), createTimeReq(DayOfWeek.FRIDAY, 10, 14)));
+
+        createSampleStudent("seungwoo@test.com", "윤승우", "소프트웨어학과", 3, "풀스택 개발자", 
+            "프론트부터 백엔드까지 전체 시스템 아키텍처 설계가 가능합니다.",
+            Arrays.asList(createTagReq("DOMAIN", "AI분야"), createTagReq("TECH", "Next.js"), createTagReq("ROLE", "백엔드")),
+            Arrays.asList(createTimeReq(DayOfWeek.SATURDAY, 13, 19), createTimeReq(DayOfWeek.SUNDAY, 13, 19)));
 
         System.out.println("✅ 샘플 데이터 생성 완료!");
     }
