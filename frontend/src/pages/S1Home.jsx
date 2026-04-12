@@ -136,21 +136,39 @@ function S1Home() {
                 </div>
                 <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.host} · {p.teamLimit || '인원 미정'}</p>
                 
-                {bestMatch && (
-                  <>
-                    <div className="divider" style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.05)' }}></div>
-                    <p className="slabel" style={{ marginBottom: '8px' }}>알고리즘 추천 팀원</p>
-                    <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                {/* 추천 팀원 섹션: 로그인 시 데이터 노출, 비로그인 시 블러 처리 */}
+                <div className="divider" style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.05)' }}></div>
+                <p className="slabel" style={{ marginBottom: '8px' }}>알고리즘 추천 팀원</p>
+                
+                {bestMatch ? (
+                  <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="av" style={{ width: '32px', height: '32px', background: 'var(--ac)', color: '#000', fontSize: '12px', fontWeight:'900', borderRadius: '50%' }}>{bestMatch.name.charAt(0)}</div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--tx1)' }}>{bestMatch.name}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>{bestMatch.major} · 적합도 {bestMatch.totalScore}%</div>
+                      </div>
+                    </div>
+                    <span className="match-sc" style={{ fontSize: '14px', fontWeight: '900', color: 'var(--ac)' }}>{bestMatch.totalScore}점</span>
+                  </div>
+                ) : (
+                  <div style={{ position: 'relative' }}>
+                    {/* 가짜 데이터 + 블러 처리 */}
+                    <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', filter: 'blur(5px)', opacity: 0.6, pointerEvents: 'none' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="av" style={{ width: '32px', height: '32px', background: 'var(--ac)', color: '#000', fontSize: '12px', fontWeight:'900', borderRadius: '50%' }}>{bestMatch.name.charAt(0)}</div>
+                        <div className="av" style={{ width: '32px', height: '32px', background: '#333', borderRadius: '50%' }}></div>
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--tx1)' }}>{bestMatch.name}</div>
-                          <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>{bestMatch.major} · 적합도 {bestMatch.totalScore}%</div>
+                          <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--tx1)' }}>비공개 회원</div>
+                          <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>로그인 후 전공 확인</div>
                         </div>
                       </div>
-                      <span className="match-sc" style={{ fontSize: '14px', fontWeight: '900', color: 'var(--ac)' }}>{bestMatch.totalScore}점</span>
+                      <span className="match-sc" style={{ fontSize: '14px', fontWeight: '900', color: 'var(--ac)' }}>??점</span>
                     </div>
-                  </>
+                    {/* 로그인 유도 버튼Overlay */}
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button onClick={(e) => { e.stopPropagation(); navigate('/login'); }} className="btn-prim" style={{ padding: '6px 14px', fontSize: '11px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>👤 로그인 후 확인</button>
+                    </div>
+                  </div>
                 )}
                 <button className="btn-prim" style={{ width: '100%', marginTop: '14px', padding: '12px', fontSize: '13px', borderRadius: '10px' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>⚡ 이 공고로 매칭 시작</button>
               </div>
