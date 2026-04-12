@@ -39,20 +39,21 @@ public class PublicDataScheduler {
 
     private static final List<String> INCLUDE_KEYWORDS = List.of(
         "대학생", "청년", "동아리", "팀", "챌린지", "경진대회", "공모전", 
-        "아이디어", "해커톤", "아이디어톤", "교육", "훈련", "SW", "IT", "AI", "빅데이터"
+        "아이디어", "해커톤", "아이디어톤", "교육", "훈련", "SW", "IT", "AI", "빅데이터",
+        "서포터즈", "대외활동", "멘토링", "인턴", "스타트업"
     );
 
     private static final List<String> EXCLUDE_KEYWORDS = List.of(
-        "대출", "융자", "지원금", "금융지원", "바우처", "비면회", "비축", "시설", "중장년"
+        "대출", "융자", "지원금", "금융지원", "바우처", "비면회", "비축", "시설", "중장년", "소상공인"
     );
 
     @Scheduled(cron = "0 0 0 * * *")
     public void fetchKStartupData() {
-        log.info("K-Startup 공공데이터 수집 시작 (Raw String + Header Bypass)...");
+        log.info("K-Startup 공공데이터 수집 시작 (수집량 500건 확대)...");
 
         try {
-            // [최종 병기] 자바의 자동 인코딩을 완전히 무력화하고 브라우저 주소창과 똑같은 문자열을 그대로 사용합니다.
-            String finalUrl = apiUrl + "?ServiceKey=" + serviceKey + "&dataType=xml&numOfRows=100";
+            // 수집 범위를 100개에서 500개로 확대
+            String finalUrl = apiUrl + "?ServiceKey=" + serviceKey + "&dataType=xml&numOfRows=500";
             URI uri = new URI(finalUrl);
 
             log.info("최종 요청 URI: {}", uri);
