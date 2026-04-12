@@ -104,43 +104,58 @@ function S1Home() {
         {projects.length === 0 ? (
           <div className="card" style={{padding:'30px', textAlign:'center', color:'var(--tx3)', fontSize:'12px'}}>불러올 공고가 없습니다.</div>
         ) : (
-          projects.map(p => (
-            <div key={p.id} className="pubcard" onClick={() => p.detailUrl && window.open(p.detailUrl, '_blank')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>🏆 {p.category || '공모전'}</span>
-                    <span className="badge-hot">LIVE</span>
-                  </div>
-                  <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.4' }}>{p.title}</p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span className="pub-d" style={{ background: 'var(--ac-dim)', color: 'var(--ac)', border: '1px solid var(--ac-brd)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>
-                    {p.endDate ? `~${p.endDate}` : 'D-Day'}
-                  </span>
-                </div>
-              </div>
-              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px' }}>{p.host} 주최 · {p.teamLimit || '팀 빌딩'} · 실시간 공고</p>
-              
-              {bestMatch && (
-                <>
-                  <div className="divider" style={{ margin: '12px 0' }}></div>
-                  <p className="slabel">알고리즘 추천 팀원</p>
-                  <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                      <div className="av" style={{ width: '30px', height: '30px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '11px', fontWeight:'800' }}>{bestMatch.name.charAt(0)}</div>
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: '600' }}>{bestMatch.name}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>{bestMatch.major} · {bestMatch.totalScore}점</div>
-                      </div>
+          projects.map(p => {
+            // D-Day 계산 로직 추가
+            const getDDay = (dateStr) => {
+              if (!dateStr) return '상시';
+              const target = new Date(dateStr);
+              const now = new Date();
+              now.setHours(0,0,0,0);
+              const diffTime = target - now;
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              if (diffDays === 0) return 'D-Day';
+              if (diffDays < 0) return '마감';
+              return `D-${diffDays}`;
+            };
+
+            return (
+              <div key={p.id} className="pubcard" onClick={() => p.detailUrl && window.open(p.detailUrl, '_blank')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer', transition: 'transform 0.2s', position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <div style={{ flex: 1, paddingRight: '45px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--tx3)', fontWeight: '600' }}>#{p.category || '기타'}</span>
+                      <span className="badge-hot" style={{ fontSize: '9px', padding: '1px 5px' }}>LIVE</span>
                     </div>
-                    <span className="match-sc" style={{ fontSize: '15px', fontWeight: '800', color: 'var(--ac)' }}>{bestMatch.totalScore}점</span>
+                    <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.4', color: 'var(--tx1)', letterSpacing: '-0.3px' }}>{p.title}</p>
                   </div>
-                </>
-              )}
-              <button className="btn-prim" style={{ width: '100%', marginTop: '14px', padding: '12px', fontSize: '13px' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>⚡ 이 공고로 매칭 시작</button>
-            </div>
-          ))
+                  <div style={{ position: 'absolute', top: '18px', right: '18px' }}>
+                    <span className="pub-d" style={{ background: 'rgba(164, 255, 68, 0.1)', color: 'var(--ac)', border: '1px solid rgba(164, 255, 68, 0.3)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: '900', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+                      {getDDay(p.endDate)}
+                    </span>
+                  </div>
+                </div>
+                <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.host} · {p.teamLimit || '인원 미정'}</p>
+                
+                {bestMatch && (
+                  <>
+                    <div className="divider" style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.05)' }}></div>
+                    <p className="slabel" style={{ marginBottom: '8px' }}>알고리즘 추천 팀원</p>
+                    <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="av" style={{ width: '32px', height: '32px', background: 'var(--ac)', color: '#000', fontSize: '12px', fontWeight:'900', borderRadius: '50%' }}>{bestMatch.name.charAt(0)}</div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--tx1)' }}>{bestMatch.name}</div>
+                          <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>{bestMatch.major} · 적합도 {bestMatch.totalScore}%</div>
+                        </div>
+                      </div>
+                      <span className="match-sc" style={{ fontSize: '14px', fontWeight: '900', color: 'var(--ac)' }}>{bestMatch.totalScore}점</span>
+                    </div>
+                  </>
+                )}
+                <button className="btn-prim" style={{ width: '100%', marginTop: '14px', padding: '12px', fontSize: '13px', borderRadius: '10px' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>⚡ 이 공고로 매칭 시작</button>
+              </div>
+            );
+          })
         )}
 
         <div className="s1-minipill" style={{ background: 'rgba(200,242,38,.06)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '11px 14px' }}>
