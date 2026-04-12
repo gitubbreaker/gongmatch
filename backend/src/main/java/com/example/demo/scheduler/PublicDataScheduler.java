@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -46,6 +48,12 @@ public class PublicDataScheduler {
     private static final List<String> EXCLUDE_KEYWORDS = List.of(
         "대출", "융자", "지원금", "금융지원", "바우처", "비면회", "비축", "시설", "중장년", "소상공인"
     );
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        log.info("애플리케이션 시작 시 데이터 자동 수집 실행...");
+        fetchKStartupData();
+    }
 
     @Scheduled(cron = "0 0 0 * * *")
     public void fetchKStartupData() {
