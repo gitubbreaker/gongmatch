@@ -163,6 +163,7 @@ const EmptyState = styled.div`
 function ProjectListPage() {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isStudentOnly, setIsStudentOnly] = useState(false); // 대학생 필터 상태
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -183,11 +184,42 @@ function ProjectListPage() {
     if (url) window.open(url, '_blank');
   };
 
+  // 대학생 맞춤 필터링 로직
+  const filteredProjects = isStudentOnly 
+    ? projects.filter(p => (p.title + p.category).includes('대학생') || (p.title + p.category).includes('해커톤') || (p.title + p.category).includes('공모전'))
+    : projects;
+
   return (
     <Container>
       <HeaderSection>
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
         <Subtitle>대학생 여러분을 위한 최신 IT 프로젝트 및 대외활동 정보를 실시간으로 수집합니다.</Subtitle>
+        
+        {/* 대학생 전용 필터 UI */}
+        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
+          <button 
+            onClick={() => setIsStudentOnly(!isStudentOnly)}
+            style={{ 
+              background: isStudentOnly ? 'var(--ac-dim)' : 'var(--card)',
+              border: '1px solid',
+              borderColor: isStudentOnly ? 'var(--ac-brd)' : 'var(--brd2)',
+              color: isStudentOnly ? 'var(--ac)' : 'var(--tx3)',
+              padding: '10px 24px',
+              borderRadius: '30px',
+              fontSize: '13px',
+              fontWeight: '800',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            }}
+          >
+            {isStudentOnly ? '✨ 대학생 맞춤 추천 적용 중' : '🎓 대학생 추천 항목만 보기'}
+            <div style={{ width: '30px', height: '16px', background: isStudentOnly ? 'var(--ac)' : 'var(--tx4)', borderRadius: '20px', position: 'relative', transition: 'background 0.3s' }}>
+              <div style={{ width: '12px', height: '12px', background: '#000', borderRadius: '50%', position: 'absolute', top: '2px', left: isStudentOnly ? '16px' : '2px', transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}></div>
+            </div>
+          </button>
+        </div>
       </HeaderSection>
 
       {isLoading ? (
@@ -200,42 +232,47 @@ function ProjectListPage() {
             </ProjectCard>
           ))}
         </Grid>
-      ) : projects.length === 0 ? (
+      ) : filteredProjects.length === 0 ? (
         <EmptyState>
-          <h3>수집된 공고가 없습니다.</h3>
-          <p>관리자에게 공고 수집을 요청하거나 나중에 다시 확인해 주세요.</p>
+          <h3>해당하는 공고가 없습니다.</h3>
+          <p>필터를 해제하거나 나중에 다시 확인해 주세요.</p>
         </EmptyState>
       ) : (
-        <Grid>
-          {projects.map(project => (
-            <ProjectCard key={project.id} onClick={() => handleApply(project.detailUrl)}>
-              <CategoryTag>{project.category || 'IT / 해커톤'}</CategoryTag>
-              <ProjectTitle>{project.title}</ProjectTitle>
-              
-              <InfoRow>
-                <Label>주관</Label>
-                <span>{project.host}</span>
-              </InfoRow>
-              
-              <InfoRow>
-                <Label>마감일</Label>
-                <span style={{ color: 'var(--orange)', fontWeight: '700' }}>
-                  {project.endDate || '상시모집'}
-                </span>
-              </InfoRow>
+        <>
+          <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '16px', textAlign: 'center' }}>
+            총 <b>{filteredProjects.length}건</b>의 {isStudentOnly ? '대학생 맞춤 ' : ''}공고가 검색되었습니다.
+          </p>
+          <Grid>
+            {filteredProjects.map(project => (
+              <ProjectCard key={project.id} onClick={() => handleApply(project.detailUrl)}>
+                <CategoryTag>{project.category || 'IT / 해커톤'}</CategoryTag>
+                <ProjectTitle>{project.title}</ProjectTitle>
+                
+                <InfoRow>
+                  <Label>주관</Label>
+                  <span>{project.host}</span>
+                </InfoRow>
+                
+                <InfoRow>
+                  <Label>마감일</Label>
+                  <span style={{ color: 'var(--orange)', fontWeight: '700' }}>
+                    {project.endDate || '상시모집'}
+                  </span>
+                </InfoRow>
 
-              <Footer>
-                <DateBadge>수집일: {new Date(project.createdAt).toLocaleDateString()}</DateBadge>
-                <MoreBtn>
-                  상세보기 
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </MoreBtn>
-              </Footer>
-            </ProjectCard>
-          ))}
-        </Grid>
+                <Footer>
+                  <DateBadge>수집일: {new Date(project.createdAt).toLocaleDateString()}</DateBadge>
+                  <MoreBtn>
+                    상세보기 
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </MoreBtn>
+                </Footer>
+              </ProjectCard>
+            ))}
+          </Grid>
+        </>
       )}
     </Container>
   );

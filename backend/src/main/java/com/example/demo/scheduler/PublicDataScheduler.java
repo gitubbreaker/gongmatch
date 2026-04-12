@@ -37,7 +37,14 @@ public class PublicDataScheduler {
     @Value("${external-api.public-data.service-key}")
     private String serviceKey;
 
-    private static final List<String> FILTER_KEYWORDS = List.of("ICT", "AI", "데이터", "소프트웨어", "개발", "해커톤");
+    private static final List<String> INCLUDE_KEYWORDS = List.of(
+        "대학생", "청년", "동아리", "팀", "챌린지", "경진대회", "공모전", 
+        "아이디어", "해커톤", "아이디어톤", "교육", "훈련", "SW", "IT", "AI", "빅데이터"
+    );
+
+    private static final List<String> EXCLUDE_KEYWORDS = List.of(
+        "대출", "융자", "지원금", "금융지원", "바우처", "비면회", "비축", "시설", "중장년"
+    );
 
     @Scheduled(cron = "0 0 0 * * *")
     public void fetchKStartupData() {
@@ -120,7 +127,7 @@ public class PublicDataScheduler {
             if (isTargetProject(title, content)) {
                 results.add(Project.builder()
                         .title(title).host(host).endDate(parseDate(endDateStr))
-                        .detailUrl(detailUrl).category("IT/창업").build());
+                        .detailUrl(detailUrl).category("IT/해커톤").build());
             }
         }
         return results;
@@ -128,7 +135,13 @@ public class PublicDataScheduler {
 
     private boolean isTargetProject(String title, String content) {
         String combined = (title + " " + content).toUpperCase();
-        return FILTER_KEYWORDS.stream().anyMatch(combined::contains);
+        
+        // 블랙리스트 키워드가 하나라도 있으면 탈락
+        boolean hasExclude = EXCLUDE_KEYWORDS.stream().anyMatch(combined::contains);
+        if (hasExclude) return false;
+
+        // 화이트리스트 키워드가 하나라도 있어야 통과
+        return INCLUDE_KEYWORDS.stream().anyMatch(combined::contains);
     }
 
     private java.time.LocalDate parseDate(String dateStr) {
