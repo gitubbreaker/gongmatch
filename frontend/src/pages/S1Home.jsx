@@ -13,10 +13,13 @@ function S1Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // 마운트 시점에 토큰 존재 여부를 바로 확인하여 깜빡임 방지
+    // 마운트 시점에 토큰과 사용자 정보 존재 여부를 모두 확인
     const token = localStorage.getItem('gongmatch_token');
-    setIsLoggedIn(!!token);
-    fetchHomeData(!!token);
+    const user = localStorage.getItem('gongmatch_currentUser');
+    const hasAccess = !!token && !!user && user !== "null";
+    
+    setIsLoggedIn(hasAccess);
+    fetchHomeData(hasAccess);
   }, []);
 
   const fetchHomeData = async (hasToken) => {

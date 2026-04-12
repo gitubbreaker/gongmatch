@@ -78,6 +78,7 @@ function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem('gongmatch_currentUser');
+    localStorage.removeItem('gongmatch_token');
     setCurrentUser(null);
     setOpenDrop(null);
     showToast('로그아웃 되었습니다.');
