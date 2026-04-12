@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.Student;
 import com.example.demo.entity.StudentTag;
 import com.example.demo.entity.Tag;
+import com.example.demo.entity.TagCategory;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.StudentTagRepository;
 import com.example.demo.repository.TagRepository;
@@ -36,7 +37,8 @@ public class TagService {
      */
     @Transactional(readOnly = true)
     public List<Tag> getTagsByCategory(String category) {
-        return tagRepository.findByCategory(category);
+        TagCategory tagCategory = TagCategory.valueOf(category.toUpperCase());
+        return tagRepository.findByCategory(tagCategory);
     }
 
     /**
@@ -72,11 +74,12 @@ public class TagService {
 
         // 새로운 태그 매핑 생성
         List<Tag> resultTags = tagRequests.stream().map(req -> {
+            TagCategory tagCategory = TagCategory.valueOf(req.getCategory().toUpperCase());
             // 동일한 category+name 조합의 태그가 있으면 재사용, 없으면 새로 생성
-            Tag tag = tagRepository.findByCategoryAndName(req.getCategory(), req.getName())
+            Tag tag = tagRepository.findByCategoryAndName(tagCategory, req.getName())
                     .orElseGet(() -> {
                         Tag newTag = new Tag();
-                        newTag.setCategory(req.getCategory());
+                        newTag.setCategory(tagCategory);
                         newTag.setName(req.getName());
                         return tagRepository.save(newTag);
                     });

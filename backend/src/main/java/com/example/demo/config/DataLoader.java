@@ -48,17 +48,17 @@ public class DataLoader implements CommandLineRunner {
         // 2. 샘플 학생들
         createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "디자이너", 
             "사용자 경험을 중요하게 생각하는 디자이너입니다.",
-            Arrays.asList(createTagReq("분야", "디자인"), createTagReq("기술스택", "Figma")),
+            Arrays.asList(createTagReq("DOMAIN", "디자인"), createTagReq("TECH", "Figma")),
             Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 14, 18), createTimeReq(DayOfWeek.WEDNESDAY, 14, 18)));
 
         createSampleStudent("minjun@test.com", "박민준", "통계학과", 3, "데이터분석", 
             "데이터 크롤링 및 시각화에 자신 있습니다.",
-            Arrays.asList(createTagReq("분야", "데이터분석"), createTagReq("기술스택", "Python")),
+            Arrays.asList(createTagReq("DOMAIN", "데이터분석"), createTagReq("TECH", "Python")),
             Arrays.asList(createTimeReq(DayOfWeek.SATURDAY, 10, 18)));
 
         createSampleStudent("gaeun@test.com", "정가은", "컴퓨터공학과", 2, "프론트엔드", 
             "React와 Spring 기반 개발을 공부 중입니다.",
-            Arrays.asList(createTagReq("분야", "앱개발"), createTagReq("기술스택", "React")),
+            Arrays.asList(createTagReq("DOMAIN", "앱개발"), createTagReq("TECH", "React")),
             Arrays.asList(createTimeReq(DayOfWeek.FRIDAY, 18, 22)));
 
         System.out.println("✅ 샘플 데이터 생성 완료!");

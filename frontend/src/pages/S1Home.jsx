@@ -105,20 +105,22 @@ function S1Home() {
           <div className="card" style={{padding:'30px', textAlign:'center', color:'var(--tx3)', fontSize:'12px'}}>불러올 공고가 없습니다.</div>
         ) : (
           projects.map(p => (
-            <div key={p.projectId} className="pubcard" onClick={() => navigate('/candidates')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer' }}>
+            <div key={p.id} className="pubcard" onClick={() => p.detailUrl && window.open(p.detailUrl, '_blank')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer', transition: 'transform 0.2s' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
                     <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>🏆 {p.category || '공모전'}</span>
-                    <span className="badge-hot">🔥 HOT</span>
+                    <span className="badge-hot">LIVE</span>
                   </div>
                   <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.4' }}>{p.title}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span className="pub-d" style={{ background: 'var(--red-dim)', color: 'var(--red)', border: '1px solid var(--red-brd)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>D-30</span>
+                  <span className="pub-d" style={{ background: 'var(--ac-dim)', color: 'var(--ac)', border: '1px solid var(--ac-brd)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>
+                    {p.endDate ? `~${p.endDate}` : 'D-Day'}
+                  </span>
                 </div>
               </div>
-              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px' }}>{p.host} 주최 · {p.reward || '팀 빌딩'} · {p.teamSizeMin}~{p.teamSizeMax}인 팀</p>
+              <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px' }}>{p.host} 주최 · {p.teamLimit || '팀 빌딩'} · 실시간 공고</p>
               
               {bestMatch && (
                 <>

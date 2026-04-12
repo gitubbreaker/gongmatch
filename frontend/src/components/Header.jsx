@@ -93,6 +93,7 @@ function Header() {
         <div className="navlinks">
           <a onClick={() => navigate('/board')}>프로젝트 찾기</a>
           <a onClick={() => navigate('/candidates')}>팀원 찾기</a>
+          <a onClick={() => navigate('/announcements')} className={location.pathname === '/announcements' ? 'on' : ''}>공모사업 연동</a>
           <a>커뮤니티</a>
           <a>공지사항</a>
         </div>

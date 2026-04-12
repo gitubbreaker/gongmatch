@@ -12,8 +12,8 @@ import S6Profile from './pages/S6Profile';
 import S7Accept from './pages/S7Accept';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import S8Summary from './pages/S8Summary';
 import S9Write from './pages/S9Write';
+import ProjectListPage from './pages/ProjectListPage';
 import PrivateRoute from './components/PrivateRoute';
 
 const GlobalStyle = createGlobalStyle`
@@ -135,6 +135,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/summary" element={<S8Summary />} />
           <Route path="/write" element={<S9Write />} />
+          <Route path="/announcements" element={<ProjectListPage />} />
 
           {/* 로그인 필요 라우트 */}
           <Route path="/time" element={<PrivateRoute><S2Time /></PrivateRoute>} />

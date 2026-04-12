@@ -16,9 +16,15 @@ public class Tag {
     @Column(name = "tag_id")
     private Long tagId;
 
-    @Column(length = 50, nullable = false)
-    private String category; // 분야, 기술스택, 지역, 관심활동
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private TagCategory category; // ROLE, TECH, DOMAIN
 
     @Column(length = 50, nullable = false)
-    private String name; // Spring, 데이터분석 등
+    private String name; // 프론트엔드, Spring Boot, AI 등
+
+    public Tag(TagCategory category, String name) {
+        this.category = category;
+        this.name = name;
+    }
 }
