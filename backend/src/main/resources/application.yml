@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mariadb://127.0.0.1:3306/railway?useUnicode=true&characterEncoding=UTF-8
-    username: root
-    password: dangwon1391!!
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://127.0.0.1:3306/railway?useUnicode=true&characterEncoding=UTF-8}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:dangwon1391!!}
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     hibernate:
