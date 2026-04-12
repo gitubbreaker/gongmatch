@@ -41,8 +41,6 @@ function S4Board() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '800' }}>실시간 팀원 모집 보드</h3>
-er', gap: '16px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '800' }}>지역 프로젝트 보드</h3>
             <button className="btn-prim btn-sm" onClick={() => navigate('/write')} style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '14px' }}>+</span> 새 프로젝트 등록
             </button>
