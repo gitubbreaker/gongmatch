@@ -37,7 +37,7 @@ public class TagService {
      */
     @Transactional(readOnly = true)
     public List<Tag> getTagsByCategory(String category) {
-        TagCategory tagCategory = TagCategory.valueOf(category.toUpperCase());
+        TagCategory tagCategory = TagCategory.fromKorean(category);
         return tagRepository.findByCategory(tagCategory);
     }
 
@@ -74,7 +74,7 @@ public class TagService {
 
         // 새로운 태그 매핑 생성
         List<Tag> resultTags = tagRequests.stream().map(req -> {
-            TagCategory tagCategory = TagCategory.valueOf(req.getCategory().toUpperCase());
+            TagCategory tagCategory = TagCategory.fromKorean(req.getCategory());
             // 동일한 category+name 조합의 태그가 있으면 재사용, 없으면 새로 생성
             Tag tag = tagRepository.findByCategoryAndName(tagCategory, req.getName())
                     .orElseGet(() -> {
