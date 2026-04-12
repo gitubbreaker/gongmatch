@@ -90,12 +90,15 @@ public class StudentService {
 
         for (Student other : others) {
             List<AvailableTime> otherTimes = availableTimeRepository.findByStudent(other);
-            Set<String> otherTagNames = studentTagRepository.findByStudent(other).stream()
+            List<StudentTag> otherStudentTags = studentTagRepository.findByStudent(other);
+            Set<String> otherTagNames = (otherStudentTags == null) ? Set.of() : otherStudentTags.stream()
+                    .filter(st -> st.getTag() != null)
                     .map(st -> st.getTag().getName())
                     .collect(Collectors.toSet());
 
             // 1. 관심사 점수 (0-50점) - 겹치는 태그 1개당 10점, 최대 50점
-            long commonTagsContent = myTagNames.stream().filter(otherTagNames::contains).count();
+            long commonTagsContent = (myTagNames == null || otherTagNames == null) ? 0 : 
+                    myTagNames.stream().filter(otherTagNames::contains).count();
             int tagScore = (int) Math.min(50, commonTagsContent * 10);
 
             // 2. 가용시간 점수 (0-50점) - 겹치는 총 시간(h)당 10점, 최대 50점

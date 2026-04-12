@@ -31,13 +31,7 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // 이미 샘플 아이디(suhyun@test.com)가 있으면 중복 생성 방지
-        if (studentRepository.findByLoginId("suhyun@test.com").isPresent()) {
-            System.out.println("✅ 이미 샘플 데이터가 존재합니다.");
-            return;
-        }
-
-        System.out.println("🌱 샘플 데이터를 생성하는 중...");
+        System.out.println("🌱 샘플 데이터를 점검 및 생성하는 중...");
 
         // 1. 공모전 데이터
         if (publicProjectRepository.count() == 0) {
@@ -93,17 +87,27 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void createSampleStudent(String id, String name, String major, int grade, String role, String intro, List<TagRequest> tags, List<TimeSlotRequest> times) {
-        Student s = new Student();
-        s.setLoginId(id);
-        s.setPassword("1234");
-        s.setName(name);
-        s.setMajor(major);
-        s.setGrade(grade);
-        s.setIntroduction(intro);
-        s.setRole(role);
-        studentService.register(s);
-        tagService.updateMyTags(id, tags);
-        availableTimeService.updateMyTimes(id, times);
+        try {
+            Student s = studentRepository.findByLoginId(id).orElseGet(() -> {
+                Student newStudent = new Student();
+                newStudent.setLoginId(id);
+                newStudent.setPassword("1234");
+                newStudent.setName(name);
+                return newStudent;
+            });
+
+            s.setName(name);
+            s.setMajor(major);
+            s.setGrade(grade);
+            s.setIntroduction(intro);
+            s.setRole(role);
+            studentRepository.save(s);
+            
+            tagService.updateMyTags(id, tags);
+            availableTimeService.updateMyTimes(id, times);
+        } catch (Exception e) {
+            System.err.println("❌ 샘플 데이터 생성 실패 (" + id + "): " + e.getMessage());
+        }
     }
 
     private TagRequest createTagReq(String cat, String name) {
