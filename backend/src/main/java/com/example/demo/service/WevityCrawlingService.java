@@ -25,7 +25,7 @@ public class WevityCrawlingService {
 
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
-    private static final String WEVITY_URL = "https://www.wevity.com/?c=find&s=1&gbn=viewok&cidx=21";
+    private static final String WEVITY_URL = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gp=1";
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
@@ -35,7 +35,7 @@ public class WevityCrawlingService {
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
     public void crawlWevityProjects() {
-        log.info("위비티 IT/SW 공모전 크롤링 파이프라인 가동...");
+        log.info("위비티 IT/SW 공모전 크롤링 파이프라인 가동 (URL: cidx=20)...");
 
         try {
             // 1. 위비티 접속 (5초 타임아웃, 브라우저 User-Agent 설정)
@@ -45,39 +45,40 @@ public class WevityCrawlingService {
                     .get();
 
             // 2. 공모전 리스트 아이템 추출 
-            // 위비티는 ul.list 내의 li 구조를 가짐
-            Elements items = doc.select("ul.list li");
+            // 위비티는 ul.list 내의 > li 구조를 가짐
+            Elements items = doc.select("ul.list > li");
 
             int newCount = 0;
             for (Element item : items) {
                 try {
-                    // 제목과 링크 추출
-                    Element titleTag = item.selectFirst(".tit a");
+                    // 제목과 링크 추출 (div.tit > a)
+                    Element titleTag = item.selectFirst("div.tit > a");
                     if (titleTag == null) continue;
 
-                    String title = titleTag.text();
+                    String title = titleTag.text().replace("SPECIAL", "").trim(); // SPECIAL 태그 제외
                     String detailPath = titleTag.attr("href");
                     String fullDetailUrl = detailPath.startsWith("http") ? detailPath : BASE_URL + detailPath;
 
-                    // 주최 기관 추출
-                    String host = item.select(".organ").text();
+                    // 주최 기관 추출 (div.organ)
+                    String host = item.select("div.organ").text().trim();
 
-                    // 마감일 추출 및 날짜 변환
-                    String dateRaw = item.select(".date").text(); // 예: "2024.04.14", "D-3" 등
-                    LocalDate endDate = parseEndDate(dateRaw);
+                    // 마감일 추출 (div.day 또는 .date)
+                    String dayText = item.select("div.day").text(); // "D-47", "접수중" 등
+                    // 실제 날짜가 숨겨져 있을 수 있으므로 더 깊게 탐색
+                    LocalDate endDate = parseEndDate(dayText);
 
                     // 3. 중복 방지 로직 (detailUrl 기준)
                     if (projectRepository.existsByDetailUrl(fullDetailUrl)) {
-                        continue; // 이미 존재하면 건너뜀
+                        continue;
                     }
 
-                    // 4. DB 저장 (Project 엔티티 변환)
+                    // 4. DB 저장
                     Project project = Project.builder()
                             .title(title)
                             .host(host)
                             .detailUrl(fullDetailUrl)
-                            .endDate(endDate)
-                            .category("IT/해커톤") // 위비티 수집 데이터는 IT 기반
+                            .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1)) // 날짜 파싱 안될 시 우선 한달 후로 설정
+                            .category("IT/해커톤")
                             .build();
 
                     projectRepository.save(project);
