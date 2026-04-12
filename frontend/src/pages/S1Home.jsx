@@ -62,10 +62,10 @@ function S1Home() {
           🏆 2026 프로젝트 시즌 오픈
         </div>
         <h1 className="s1-h1" style={{ fontSize: '58px', fontWeight: '900', lineHeight: '1.06', letterSpacing: '-2.5px', color: 'var(--tx)', marginBottom: '4px' }}>
-          프로젝트·스터디 팀원 찾기<br /><span className="hi" style={{ color: 'var(--ac)' }}>공매치로 간편하게</span>
+          공모전·해커톤 팀 매칭<br /><span className="hi" style={{ color: 'var(--ac)' }}>공매치로 가장 빠르게</span>
         </h1>
         <p className="s1-sub" style={{ fontSize: '15px', lineHeight: '1.85', color: 'var(--tx2)', margin: '22px 0 34px' }}>
-          공공데이터 기반으로 매일 최신 프로젝트 공고를 자동 업데이트하고,<br />가용 시간 + 해시태그 알고리즘으로 딱 맞는 팀원을 연결해드려요.
+          매일 업데이트되는 전국 대외활동 및 공모전 공고를 기반으로,<br />나와 딱 맞는 개발·기획·디자인 파트너를 알고리즘으로 찾아보세요.
         </p>
 
         <div className="s1-btns" style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
@@ -76,7 +76,7 @@ function S1Home() {
         <div className="s1-search" style={{ display: 'flex', background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '11px', overflow: 'hidden', marginBottom: '14px' }}>
           <input
             type="text"
-            placeholder="관심 해시태그 검색  —  예) #데이터분석  #공모전  #창업"
+            placeholder="관심 해시태그 검색  —  예) #해커톤  #공모전  #UI/UX"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -84,9 +84,9 @@ function S1Home() {
           />
           <button className="btn-prim" style={{ borderRadius: '0', padding: '0 24px', fontSize: '13px' }} onClick={handleSearch}>검색</button>
         </div>
-
+ 
         <div className="s1-chips" style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
-          {['#공모전', '#데이터분석', '#창업', '#Python', '#부산', '#스터디', '#Django'].map((tag) => (
+          {['#해커톤', '#UI/UX', '#기획', '#Python', '#React', '#스터디', '#공모전'].map((tag) => (
             <span
               key={tag}
               className={`chip ${selectedChip === tag ? 'on' : ''}`}

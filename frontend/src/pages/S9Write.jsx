@@ -28,7 +28,7 @@ function S9Write() {
           <input
             className="field"
             type="text"
-            placeholder="예: 공공데이터 활용 창업 경진대회 팀원 구합니다"
+            placeholder="예: 경기 지역 데이터 활용 해커톤 함께하실 분 구합니다"
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
@@ -39,7 +39,7 @@ function S9Write() {
           <textarea
             className="field"
             style={{ minHeight: '200px' }}
-            placeholder="프로젝트 목표, 필요한 역할, 진행 방식 등을 자유롭게 적어주십시오."
+            placeholder="공모전 주제, 지원 분야, 현재 팀 상황, 선호하는 파트너의 성향 등을 적어주세요."
             value={content}
             onChange={e => setContent(e.target.value)}
           />

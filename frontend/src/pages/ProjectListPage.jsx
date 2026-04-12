@@ -186,8 +186,8 @@ function ProjectListPage() {
   return (
     <Container>
       <HeaderSection>
-        <Title>실시간 <span>창업 공모사업</span> 연동</Title>
-        <Subtitle>K-Startup 공공데이터 API를 통해 수집된 최신 IT/창업 공고입니다.</Subtitle>
+        <Title>실시간 <span>공모전 & 해커톤</span></Title>
+        <Subtitle>대학생 여러분을 위한 최신 IT 프로젝트 및 대외활동 정보를 실시간으로 수집합니다.</Subtitle>
       </HeaderSection>
 
       {isLoading ? (
@@ -209,7 +209,7 @@ function ProjectListPage() {
         <Grid>
           {projects.map(project => (
             <ProjectCard key={project.id} onClick={() => handleApply(project.detailUrl)}>
-              <CategoryTag>{project.category || 'IT / 창업'}</CategoryTag>
+              <CategoryTag>{project.category || 'IT / 해커톤'}</CategoryTag>
               <ProjectTitle>{project.title}</ProjectTitle>
               
               <InfoRow>
