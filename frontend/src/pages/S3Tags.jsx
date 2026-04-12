@@ -181,7 +181,10 @@ function S3Tags() {
           </div>
 
           <div className="card2">
-            <p className="slabel">매칭 점수 미리보기</p>
+            <div style={{display:'flex', alignItems:'center', gap:'6px', marginBottom: '10px'}}>
+              <p className="slabel" style={{marginBottom:0}}>매칭 점수 미리보기</p>
+              <div className="tooltip-icon" title="태그 10개(50점) + 가용시간 15h(50점) = 총 100점 만점으로 계산됩니다." style={{cursor:'help', fontSize:'12px', color:'var(--tx3)', background:'rgba(255,255,255,0.05)', width:'16px', height:'16px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--brd2)'}}>?</div>
+            </div>
             <div className="sprev" style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
               <div className="sbox" style={{background:'var(--card)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
                 <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{tagScore}</div>

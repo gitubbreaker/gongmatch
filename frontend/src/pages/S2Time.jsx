@@ -203,14 +203,24 @@ function S2Time() {
             </div>
           </div>
 
-          <div className="card" style={{padding:'14px'}}>
-            <p className="slabel">가용시간 점수 예측</p>
-            <div style={{display:'flex', alignItems:'baseline', gap:'4px', marginBottom:'6px'}}>
+          <div className="card" style={{padding:'14px', position: 'relative'}}>
+            <div style={{display:'flex', alignItems:'center', gap:'6px', marginBottom: '4px'}}>
+              <p className="slabel" style={{marginBottom:0}}>가용시간 점수 예측</p>
+              <div className="tooltip-icon" title="주 15시간 이상 설정 시 활동성 만점(50점)이 부여됩니다." style={{cursor:'help', fontSize:'12px', color:'var(--tx3)', background:'rgba(255,255,255,0.05)', width:'16px', height:'16px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--brd2)'}}>?</div>
+            </div>
+            <div style={{display:'flex', alignItems:'baseline', gap:'4px', marginBottom:'8px'}}>
               <span style={{fontSize:'32px', fontWeight:'900', color:'var(--ac)'}}>{score}</span>
               <span style={{fontSize:'13px', color:'var(--tx3)'}}>/ 50점</span>
             </div>
-            <div className="bar-track" style={{height:'7px'}}><div className="bar-fill" style={{width: `${(score/50)*100}%`}}></div></div>
-            <p style={{fontSize:'11px', color:'var(--tx3)', marginTop:'8px'}}>주 15시간 이상 선택 시 만점에 가까워요</p>
+            <div className="bar-track" style={{height:'8px', position: 'relative'}}>
+              <div className="bar-fill" style={{width: `${(score/50)*100}%`, transition: 'width 0.3s ease'}}></div>
+              {/* 만점 가이드 마커 */}
+              <div style={{position: 'absolute', right: '0', top: '-4px', bottom: '-4px', width: '2px', background: 'var(--ac)', opacity: 0.5}} title="만점 기준(15h)"></div>
+            </div>
+            <div style={{display:'flex', justifyContent:'space-between', marginTop:'8px'}}>
+              <p style={{fontSize:'11px', color:'var(--tx3)'}}>현재: <b>{totalHours}시간</b></p>
+              <p style={{fontSize:'11px', color:'var(--ac)', fontWeight:'600'}}>목표: 15시간</p>
+            </div>
           </div>
 
           <div className="card" style={{padding:'14px', fontSize:'12px', color:'var(--tx2)', lineHeight:'1.7'}}>
