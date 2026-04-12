@@ -50,8 +50,13 @@ public class TagService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         List<StudentTag> studentTags = studentTagRepository.findByStudent(student);
+        // 지연 로딩 방지를 위해 태그 정보를 미리 로드함
         return studentTags.stream()
-                .map(StudentTag::getTag)
+                .map(st -> {
+                    Tag tag = st.getTag();
+                    if (tag != null) tag.getName(); // 강제 초기화
+                    return tag;
+                })
                 .collect(Collectors.toList());
     }
 
