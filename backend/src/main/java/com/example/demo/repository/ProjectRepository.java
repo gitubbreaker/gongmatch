@@ -9,5 +9,6 @@ import java.util.Optional;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     Optional<Project> findByTitleAndHost(String title, String host);
+    boolean existsByDetailUrl(String detailUrl);
     java.util.List<Project> findAllByOrderByIdDesc();
 }
