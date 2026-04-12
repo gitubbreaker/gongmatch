@@ -10,18 +10,21 @@ function S1Home() {
   const [projects, setProjects] = useState([]);
   const [bestMatch, setBestMatch] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    fetchHomeData();
+    // 마운트 시점에 토큰 존재 여부를 바로 확인하여 깜빡임 방지
+    const token = localStorage.getItem('gongmatch_token');
+    setIsLoggedIn(!!token);
+    fetchHomeData(!!token);
   }, []);
 
-  const fetchHomeData = async () => {
+  const fetchHomeData = async (hasToken) => {
     try {
       const projRes = await api.get('/api/projects');
       setProjects(projRes.data.slice(0, 3));
 
-      const token = localStorage.getItem('gongmatch_token');
-      if (token) {
+      if (hasToken) {
         const recoRes = await api.get('/api/students/recommendations');
         if (recoRes.data && recoRes.data.length > 0) {
           setBestMatch(recoRes.data[0]);
@@ -29,6 +32,10 @@ function S1Home() {
       }
     } catch (error) {
       console.error('홈 데이터 로딩 실패:', error);
+      if (error.response && error.response.status === 401) {
+        setIsLoggedIn(false);
+        localStorage.removeItem('gongmatch_token');
+      }
     } finally {
       setLoading(false);
     }
@@ -140,7 +147,7 @@ function S1Home() {
                 <div className="divider" style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.05)' }}></div>
                 <p className="slabel" style={{ marginBottom: '8px' }}>알고리즘 추천 팀원</p>
                 
-                {bestMatch ? (
+                {isLoggedIn && bestMatch ? (
                   <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div className="av" style={{ width: '32px', height: '32px', background: 'var(--ac)', color: '#000', fontSize: '12px', fontWeight:'900', borderRadius: '50%' }}>{bestMatch.name.charAt(0)}</div>
@@ -165,9 +172,11 @@ function S1Home() {
                       <span className="match-sc" style={{ fontSize: '14px', fontWeight: '900', color: 'var(--ac)' }}>??점</span>
                     </div>
                     {/* 로그인 유도 버튼Overlay */}
-                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <button onClick={(e) => { e.stopPropagation(); navigate('/login'); }} className="btn-prim" style={{ padding: '6px 14px', fontSize: '11px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>👤 로그인 후 확인</button>
-                    </div>
+                    {!isLoggedIn && (
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <button onClick={(e) => { e.stopPropagation(); navigate('/login'); }} className="btn-prim" style={{ padding: '6px 14px', fontSize: '11px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>👤 로그인 후 확인</button>
+                      </div>
+                    )}
                   </div>
                 )}
                 <button className="btn-prim" style={{ width: '100%', marginTop: '14px', padding: '12px', fontSize: '13px', borderRadius: '10px' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>⚡ 이 공고로 매칭 시작</button>
