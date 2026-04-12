@@ -117,7 +117,7 @@ function S2Time() {
     if (ts.length) byDay[d] = ts;
   });
   const totalHours = Object.values(byDay).reduce((s, ts) => s + ts.length, 0);
-  const score = Math.min(50, Math.round((totalHours / 10) * 50));
+  const score = Math.min(50, Math.round((totalHours / 15) * 50));
 
   if (loading) {
     return (
@@ -210,7 +210,7 @@ function S2Time() {
               <span style={{fontSize:'13px', color:'var(--tx3)'}}>/ 50점</span>
             </div>
             <div className="bar-track" style={{height:'7px'}}><div className="bar-fill" style={{width: `${(score/50)*100}%`}}></div></div>
-            <p style={{fontSize:'11px', color:'var(--tx3)', marginTop:'8px'}}>주 10시간 이상 선택 시 만점에 가까워요</p>
+            <p style={{fontSize:'11px', color:'var(--tx3)', marginTop:'8px'}}>주 15시간 이상 선택 시 만점에 가까워요</p>
           </div>
 
           <div className="card" style={{padding:'14px', fontSize:'12px', color:'var(--tx2)', lineHeight:'1.7'}}>

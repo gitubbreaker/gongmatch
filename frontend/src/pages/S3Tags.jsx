@@ -51,7 +51,7 @@ function S3Tags() {
       const timeRes = await api.get('/api/available-time/me');
       if (timeRes.data && timeRes.data.length > 0) {
         const totalHours = timeRes.data.length;
-        const calculatedScore = Math.min(50, Math.round((totalHours / 10) * 50));
+        const calculatedScore = Math.min(50, Math.round((totalHours / 15) * 50));
         setTimeScore(calculatedScore);
       }
     } catch (error) {
