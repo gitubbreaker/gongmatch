@@ -12,6 +12,7 @@ import S6Profile from './pages/S6Profile';
 import S7Accept from './pages/S7Accept';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import S8Summary from './pages/S8Summary';
 import S9Write from './pages/S9Write';
 import ProjectListPage from './pages/ProjectListPage';
 import PrivateRoute from './components/PrivateRoute';
