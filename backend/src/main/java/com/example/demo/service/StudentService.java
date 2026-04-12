@@ -126,13 +126,18 @@ public class StudentService {
     }
 
     private String getOverlapSummary(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
+        if (myTimes == null || otherTimes == null) return "가용 시간이 등록되지 않음";
         List<String> days = new ArrayList<>();
         int totalOverlap = 0;
         for (AvailableTime mt : myTimes) {
             for (AvailableTime ot : otherTimes) {
-                if (mt.getDayOfWeek() == ot.getDayOfWeek()) {
+                if (mt.getDayOfWeek() == ot.getDayOfWeek() && 
+                    mt.getStartTime() != null && mt.getEndTime() != null && 
+                    ot.getStartTime() != null && ot.getEndTime() != null) {
+                    
                     LocalTime start = mt.getStartTime().isAfter(ot.getStartTime()) ? mt.getStartTime() : ot.getStartTime();
                     LocalTime end = mt.getEndTime().isBefore(ot.getEndTime()) ? mt.getEndTime() : ot.getEndTime();
+                    
                     if (start.isBefore(end)) {
                         totalOverlap += (end.getHour() - start.getHour());
                         String dayName = switch (mt.getDayOfWeek()) {
@@ -149,10 +154,14 @@ public class StudentService {
     }
 
     private int calculateOverlapHours(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
+        if (myTimes == null || otherTimes == null) return 0;
         int total = 0;
         for (AvailableTime mt : myTimes) {
             for (AvailableTime ot : otherTimes) {
-                if (mt.getDayOfWeek() == ot.getDayOfWeek()) {
+                if (mt.getDayOfWeek() == ot.getDayOfWeek() && 
+                    mt.getStartTime() != null && mt.getEndTime() != null && 
+                    ot.getStartTime() != null && ot.getEndTime() != null) {
+                    
                     LocalTime start = mt.getStartTime().isAfter(ot.getStartTime()) ? mt.getStartTime() : ot.getStartTime();
                     LocalTime end = mt.getEndTime().isBefore(ot.getEndTime()) ? mt.getEndTime() : ot.getEndTime();
                     
