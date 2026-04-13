@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 @Service
@@ -24,10 +25,11 @@ public class WevityCrawlingService implements InitializingBean {
 
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
+    private final Random random = new Random();
 
     private boolean isCrawling = false;
     private java.time.LocalDateTime lastStartTime;
-    private String currentProgress = "이미 연동 완료됨";
+    private String currentProgress = "안정화 수집 중...";
 
     public boolean isCrawling() { return isCrawling; }
     public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
@@ -35,39 +37,14 @@ public class WevityCrawlingService implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        // [버전 무관 복구] 스프링 버전에 상관없이 실행되는 안전한 초기화 방식
-        log.info("아까 성공했던 고품질 데이터셋 복원 중 (안전 모드)...");
-        List<Project> projects = new ArrayList<>();
-        
-        projects.add(Project.builder()
-            .title("제2회 원주권 스타트업 커뮤니티 데이 참가자 모집")
-            .host("상지대학교 창업지원단")
-            .detailUrl("https://www.wevity.com/1")
-            .posterImageUrl("https://www.wevity.com/upload/contest/202604130001.jpg")
-            .endDate(LocalDate.parse("2026-04-21"))
-            .category("IT / 해커톤").officialUrl("https://www.sangji.ac.kr").build());
-
-        projects.add(Project.builder()
-            .title("2026년 The GS Challenge. FUTURE RETAIL 4 오픈이노베이션")
-            .host("서울창조경제혁신센터")
-            .detailUrl("https://www.wevity.com/2")
-            .posterImageUrl("https://www.wevity.com/upload/contest/202604130002.jpg")
-            .endDate(LocalDate.parse("2026-04-14"))
-            .category("IT / 해커톤").officialUrl("https://ccei.creativekorea.or.kr").build());
-
-        projects.add(Project.builder()
-            .title("[관악 드림-온 아카데미] 메이커스페이스 원데이클래스")
-            .host("(주)오픈놀")
-            .detailUrl("https://www.wevity.com/3")
-            .posterImageUrl("https://www.wevity.com/upload/contest/202604130003.jpg")
-            .endDate(LocalDate.parse("2026-04-20"))
-            .category("IT / 해커톤").officialUrl("https://openknowl.com").build());
-
-        for (Project p : projects) {
-            if (projectRepository.findByDetailUrl(p.getDetailUrl()).isEmpty()) {
-                projectRepository.save(p);
-            }
-        }
+        log.info("초기 고품질 데이터 연동 및 동기화 시작...");
+        // 초기 기동 시 기본 데이터 보강 로직
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000); // 앱 기동 후 안정화 대기
+                crawlWevityProjects();
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     @Scheduled(cron = "0 0 1 * * *")
@@ -75,38 +52,82 @@ public class WevityCrawlingService implements InitializingBean {
     public void crawlWevityProjects() {
         this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
-        log.info("백그라운드 최신 데이터 동기화 시작...");
+        log.info("위비티 정밀 이미지 및 공식 링크 수집 가동...");
         
+        String targetUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20";
         try {
-            Document doc = Jsoup.connect(BASE_URL + "/?c=find&s=1&gub=1&cidx=20")
-                    .timeout(10000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+            Document doc = Jsoup.connect(targetUrl)
+                    .timeout(15000)
+                    .userAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1")
                     .get();
 
             Elements items = doc.select(".list-area li, ul.list li");
             for (Element item : items) {
                 try {
-                    Element a = item.selectFirst("a");
+                    Element a = item.selectFirst(".tit a, a");
                     if (a == null) continue;
+                    
                     String title = a.text().trim();
                     String detailUrl = a.attr("href").startsWith("http") ? a.attr("href") : BASE_URL + a.attr("href");
                     
-                    if (projectRepository.findByDetailUrl(detailUrl).isEmpty()) {
-                        projectRepository.save(Project.builder()
-                            .title(title).host(item.select(".organ").text().trim())
-                            .detailUrl(detailUrl)
-                            .endDate(LocalDate.now().plusDays(30))
-                            .category("IT / 대외활동").build());
-                    }
-                } catch (Exception ignored) {}
+                    Project project = projectRepository.findByDetailUrl(detailUrl)
+                            .orElse(Project.builder().detailUrl(detailUrl).build());
+
+                    // 상세 정보(이미지, 링크) 정밀 수집
+                    DetailInfo detail = crawlDetailInfo(detailUrl);
+                    
+                    project.setTitle(title);
+                    project.setHost(item.select(".organ").text().trim());
+                    project.setEndDate(LocalDate.now().plusDays(20)); // 기본값
+                    project.setCategory((title.contains("해커톤") || title.contains("개발")) ? "IT/해커톤(추천)" : "IT/대외활동");
+                    
+                    if (detail.getPosterImageUrl() != null) project.setPosterImageUrl(detail.getPosterImageUrl());
+                    if (detail.getOfficialUrl() != null) project.setOfficialUrl(detail.getOfficialUrl());
+
+                    projectRepository.save(project);
+                } catch (Exception e) {
+                    log.error("항목 수집 중 에러: {}", e.getMessage());
+                }
             }
         } catch (Exception e) {
-            log.warn("실시간 수집 대기 중: {}", e.getMessage());
+            log.error("위비티 수집 실패: {}", e.getMessage());
         }
         this.isCrawling = false;
+        log.info("데이터 정밀 동기화 완료");
     }
 
+    private DetailInfo crawlDetailInfo(String detailUrl) {
+        String poster = null, official = null;
+        try {
+            Thread.sleep(500 + random.nextInt(500)); // 지연 시간
+            Document doc = Jsoup.connect(detailUrl)
+                    .timeout(10000)
+                    .userAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1")
+                    .referrer(BASE_URL)
+                    .get();
+
+            Element img = doc.selectFirst(".thumb img, .view-img img, .img-area img, .thumb-area img");
+            if (img != null) {
+                String src = img.attr("src");
+                poster = src.startsWith("/") ? BASE_URL + src : src;
+            }
+            
+            Elements links = doc.select(".cd-info-list a[href^=http], .cd-info a[href^=http], a.btn[href^=http]");
+            for (Element a : links) {
+                String href = a.attr("href");
+                if (!href.contains("wevity.com")) { 
+                    official = href; 
+                    break; 
+                }
+            }
+        } catch (Exception ignored) {}
+        return new DetailInfo(poster, official);
+    }
+
+    @lombok.Getter @lombok.AllArgsConstructor
+    private static class DetailInfo { String posterImageUrl, officialUrl; }
+
     public void cleanupJunkProjects() {
-        // [비활성화]
+        // [삭제 방지]
     }
 }
