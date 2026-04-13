@@ -35,87 +35,74 @@ public class WevityCrawlingService {
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
     public void crawlWevityProjects() {
-        log.info("위비티 IT/SW 공모전 크롤링 파이프라인 가동 (URL: cidx=20)...");
+        log.info("위비티 IT/SW 공모전 다중 페이지 크롤링 시작 (1~5페이지)...");
 
-        try {
-            // 1. 위비티 접속 (5초 타임아웃, 브라우저 User-Agent 설정)
-            Document doc = Jsoup.connect(WEVITY_URL)
-                    .timeout(5000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                    .get();
+        int totalNewCount = 0;
+        for (int page = 1; page <= 5; page++) {
+            String pageUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gp=" + page;
+            try {
+                Document doc = Jsoup.connect(pageUrl)
+                        .timeout(5000)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                        .get();
 
-            // 2. 공모전 리스트 아이템 추출 
-            // 위비티는 ul.list 내의 > li 구조를 가짐
-            Elements items = doc.select("ul.list > li");
+                Elements items = doc.select("ul.list > li");
+                int pageCount = 0;
 
-            int newCount = 0;
-            for (Element item : items) {
-                try {
-                    // 제목과 링크 추출 (div.tit > a)
-                    Element titleTag = item.selectFirst("div.tit > a");
-                    if (titleTag == null) continue;
+                for (Element item : items) {
+                    try {
+                        Element titleTag = item.selectFirst("div.tit > a");
+                        if (titleTag == null) continue;
 
-                    String title = titleTag.text().replace("SPECIAL", "").trim(); // SPECIAL 태그 제외
-                    String detailPath = titleTag.attr("href");
-                    String fullDetailUrl = detailPath.startsWith("http") ? detailPath : BASE_URL + detailPath;
+                        String title = titleTag.text().replace("SPECIAL", "").trim();
+                        String detailPath = titleTag.attr("href");
+                        String fullDetailUrl = detailPath.startsWith("http") ? detailPath : BASE_URL + detailPath;
+                        String host = item.select("div.organ").text().trim();
+                        String dayText = item.select("div.day").text();
+                        LocalDate endDate = parseEndDate(dayText);
 
-                    // 주최 기관 추출 (div.organ)
-                    String host = item.select("div.organ").text().trim();
+                        DetailInfo detail = crawlDetailInfo(fullDetailUrl);
 
-                    // 마감일 추출 (div.day 또는 .date)
-                    String dayText = item.select("div.day").text(); // "D-47", "접수중" 등
-                    // 실제 날짜가 숨겨져 있을 수 있으므로 더 깊게 탐색
-                    LocalDate endDate = parseEndDate(dayText);
-
-                    // 3. 상세 정보 추출 (포스터 이미지 & 공식 홈페이지)
-                    DetailInfo detail = crawlDetailInfo(fullDetailUrl);
-
-                    // 4. 중복 방지 및 업데이트 로직
-                    Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
-                    
-                    if (existingProject != null) {
-                        // 이미 존재하는데 정보가 부족한 경우 업데이트
-                        boolean updated = false;
-                        if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
-                            existingProject.setPosterImageUrl(detail.getPosterImageUrl());
-                            updated = true;
-                        }
-                        if (existingProject.getOfficialUrl() == null && detail.getOfficialUrl() != null) {
-                            existingProject.setOfficialUrl(detail.getOfficialUrl());
-                            updated = true;
-                        }
+                        Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
                         
-                        if (updated) {
-                            projectRepository.save(existingProject);
-                            log.info("기존 공고 상세 정보 업데이트 완료: {}", title);
+                        if (existingProject != null) {
+                            boolean updated = false;
+                            if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
+                                existingProject.setPosterImageUrl(detail.getPosterImageUrl());
+                                updated = true;
+                            }
+                            if (existingProject.getOfficialUrl() == null && detail.getOfficialUrl() != null) {
+                                existingProject.setOfficialUrl(detail.getOfficialUrl());
+                                updated = true;
+                            }
+                            if (updated) {
+                                projectRepository.save(existingProject);
+                            }
+                            continue;
                         }
-                        continue;
+
+                        Project project = Project.builder()
+                                .title(title).host(host).detailUrl(fullDetailUrl)
+                                .posterImageUrl(detail.getPosterImageUrl())
+                                .officialUrl(detail.getOfficialUrl())
+                                .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1))
+                                .category("IT/해커톤").build();
+
+                        projectRepository.save(project);
+                        pageCount++;
+                        totalNewCount++;
+
+                    } catch (Exception e) {
+                        log.error("위비티 개별 항목 파싱 중 오류 발생 (페이지 {}): {}", page, e.getMessage());
                     }
-
-                    // 5. DB 저장 (신규)
-                    Project project = Project.builder()
-                            .title(title)
-                            .host(host)
-                            .detailUrl(fullDetailUrl)
-                            .posterImageUrl(detail.getPosterImageUrl())
-                            .officialUrl(detail.getOfficialUrl())
-                            .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1))
-                            .category("IT/해커톤")
-                            .build();
-
-                    projectRepository.save(project);
-                    newCount++;
-
-                } catch (Exception e) {
-                    log.error("위비티 개별 항목 파싱 중 오류 발생 (건너뜀): {}", e.getMessage());
                 }
+                log.info("페이지 {} 수집 완료: {}건 추가됨.", page, pageCount);
+
+            } catch (Exception e) {
+                log.error("페이지 {} 접속 실패: {}", page, e.getMessage());
             }
-
-            log.info("위비티 크롤링 완료. 신규 공고 {}건 저장됨.", newCount);
-
-        } catch (Exception e) {
-            log.error("위비티 서버 연결 오류 및 전체 크롤링 실패: {}", e.getMessage());
         }
+        log.info("위비티 전체 크롤링 완료. 총 {}건 신규 저장됨.", totalNewCount);
     }
 
     /**
