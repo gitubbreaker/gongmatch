@@ -37,12 +37,21 @@ public class WevityCrawlingService implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("위비티 고성능 지능형 수집 엔진 초기화...");
+        log.info("위비티 엔진: 모든 부적절 데이터를 강제 초기화 후 정밀 수집을 시작합니다.");
         new Thread(() -> {
             try {
-                // 시작하자마자 기존 부적절 데이터 정리
-                Thread.sleep(2000);
-                cleanupJunkProjects();
+                // 1. 기존 위비티 수집 데이터를 무조건 한 번 비웁니다 (데이터 정합성 보장)
+                Thread.sleep(5000);
+                long deletedCount = 0;
+                java.util.List<Project> projects = projectRepository.findAll();
+                for (Project p : projects) {
+                    if (p.getDetailUrl() != null && p.getDetailUrl().contains("wevity.com")) {
+                        projectRepository.delete(p);
+                        deletedCount++;
+                    }
+                }
+                log.info("위비티 데이터 청소 완료 (총 {}개 삭제). 신규 엔진 가동...", deletedCount);
+                
                 Thread.sleep(1000);
                 crawlWevityProjects();
             } catch (Exception ignored) {}
@@ -55,9 +64,9 @@ public class WevityCrawlingService implements InitializingBean {
         if (isCrawling) return;
         this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
-        this.currentProgress = "IT 공모전 집중 수집 중...";
+        this.currentProgress = "IT 데이터 정밀 분석 및 수집 중...";
         
-        log.info("위비티 IT 공모전(cidx=20) 정밀 수집 및 상세 데이터 분석 시작...");
+        log.info("위비티 IT 공모전(cidx=20) 정밀 수집 프로세스 시작...");
         
         int categoryIdx = 20;
         String targetUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=" + categoryIdx;
@@ -65,7 +74,7 @@ public class WevityCrawlingService implements InitializingBean {
         try {
             Document doc = Jsoup.connect(targetUrl)
                     .timeout(30000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
                     .get();
 
             Elements items = doc.select(".list-area > ul > li, ul.list > li");
@@ -82,7 +91,7 @@ public class WevityCrawlingService implements InitializingBean {
                     this.currentProgress = String.format("분석 중: %s (%d/%d)", 
                         title.length() > 10 ? title.substring(0, 10) + "..." : title, processed, totalItems);
 
-                    // 1. IT 키워드 필터링 (제목 중심)
+                    // 1. 엄격한 IT 키워드 1차 검증
                     if (!isRelevantToIT(title)) {
                         continue;
                     }
@@ -91,12 +100,12 @@ public class WevityCrawlingService implements InitializingBean {
                     
                     Document detailDoc = Jsoup.connect(detailUrl)
                             .timeout(15000)
-                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0")
                             .get();
                     
                     Elements infoLis = detailDoc.select(".cd-info-list li");
                     
-                    // 2. 상세 페이지 분야 필드 재검증
+                    // 2. 상세 분야 재검증 (공작기계 등 비-IT 원천 차단)
                     String field = "";
                     for (Element li : infoLis) {
                         if (li.select(".tit").text().contains("분야")) {
@@ -105,11 +114,11 @@ public class WevityCrawlingService implements InitializingBean {
                         }
                     }
                     if (!field.isEmpty() && !isRelevantToIT(field) && !isRelevantToIT(title)) {
-                        log.info("비-IT 성격 공고 제외: {} ({})", title, field);
+                        log.info("비-IT 성격 공고 제외(상세): {} - {}", title, field);
                         continue;
                     }
 
-                    // 3. 마감 기한 파싱 (정규식 사용으로 정확도 향상)
+                    // 3. 정규식을 이용한 마감일 정밀 파싱
                     String dateRange = "";
                     for (Element li : infoLis) {
                         if (li.select(".tit").text().contains("접수기간")) {
@@ -120,28 +129,27 @@ public class WevityCrawlingService implements InitializingBean {
                     
                     LocalDate endDate = parseEndDate(dateRange);
                     if (endDate != null && endDate.isBefore(LocalDate.now())) {
-                        log.info("이미 마감된 공고 제외: {}", title);
                         continue;
                     }
 
-                    // 4. 고품질 포스터 이미지 수집 (div.thumb img 우선)
+                    // 4. 고해상도 포스터 수집 최적화
                     String posterUrl = null;
-                    Element posterImg = detailDoc.selectFirst("div.thumb img, .img img, .win-view .img img");
+                    Element posterImg = detailDoc.selectFirst("div.thumb img, .img img, .win-view .img img, .cd-area .img img");
                     if (posterImg != null) {
-                        String src = posterImg.attr("src");
+                        String src = posterImg.hasAttr("data-src") ? posterImg.attr("data-src") : posterImg.attr("src");
                         if (!src.isEmpty()) {
                             posterUrl = src.startsWith("http") ? src : (src.startsWith("//") ? "https:" + src : BASE_URL + src);
                         }
                     }
 
-                    // 5. 실제 공식 홈페이지 링크 추출 (위비티 내부 링크 필터링)
+                    // 5. 실질적인 공식 홈페이지 링크 수집
                     String officialUrl = null;
                     for (Element li : infoLis) {
                         if (li.select(".tit").text().contains("홈페이지")) {
                             Element link = li.selectFirst("a");
                             if (link != null) {
                                 String href = link.attr("href").trim();
-                                if (!href.isEmpty() && !href.contains("wevity.com") && !href.startsWith("javascript")) {
+                                if (!href.isEmpty() && !href.contains("wevity.com") && !href.startsWith("javascript") && !href.equals("#")) {
                                     officialUrl = href;
                                 }
                             }
@@ -149,6 +157,7 @@ public class WevityCrawlingService implements InitializingBean {
                         }
                     }
 
+                    // 6. 시상 규모 등 기타 정보
                     String prize = "";
                     for (Element li : infoLis) {
                         if (li.select(".tit").text().contains("시상규모")) {
@@ -162,6 +171,7 @@ public class WevityCrawlingService implements InitializingBean {
 
                     project.setTitle(title);
                     project.setHost(item.select(".organ").text().trim());
+                    // 파싱된 날짜가 없을 때만 기본값(2주 뒤) 부여
                     project.setEndDate(endDate != null ? endDate : LocalDate.now().plusWeeks(2));
                     project.setCategory("IT/해커톤");
                     if (posterUrl != null) project.setPosterImageUrl(posterUrl);
@@ -169,68 +179,70 @@ public class WevityCrawlingService implements InitializingBean {
                     if (!prize.isEmpty()) project.setPrize(prize);
 
                     projectRepository.save(project);
+                    log.info("저장 성공: {}", title);
                     
-                    Thread.sleep(600 + random.nextInt(400));
+                    Thread.sleep(700 + random.nextInt(500));
                     
                 } catch (Exception e) {
-                    log.warn("아이템 처리 오류: {}", e.getMessage());
+                    log.warn("개별 아이템 수집 중 오류: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            log.error("위비티 크롤링 에러: {}", e.getMessage());
+            log.error("위비티 크롤링 치명적 오류: {}", e.getMessage());
         } finally {
-            cleanupJunkProjects(); // 수집 후 한 번 더 정리
+            cleanupJunkProjects(); // 완료 후 자투리 데이터 정리
             this.isCrawling = false;
             this.currentProgress = "데이터 동기화 완료";
-            log.info("위비티 정밀 크롤링 완료");
+            log.info("위비티 수집 세션 종료");
         }
     }
 
     private boolean isRelevantToIT(String text) {
         if (text == null) return false;
         String t = text.toLowerCase();
-        // IT 전문 키워드 (해커톤, 개발, SW 등 직접적인 IT 역량이 강조되는 경우만 수집)
+        // 비-IT 항목 유입을 막기 위해 키워드 풀을 더욱 엄격하게 정제
         return t.contains("해커톤") || t.contains("개발") || t.contains("sw") || 
                t.contains("소프트웨어") || t.contains("it") || t.contains("웹") || 
                t.contains("모바일") || t.contains("앱") || t.contains("인공지능") || 
                t.contains("ai") || t.contains("데이터") || t.contains("알고리즘") || 
                t.contains("클라우드") || t.contains("코딩") || t.contains("프로그래밍") || 
                t.contains("컴퓨터") || t.contains("보안") || t.contains("ict") || t.contains("코드") ||
-               t.contains("빅데이터") || t.contains("시스템") || t.contains("블록체인");
+               t.contains("빅데이터") || t.contains("iot") || t.contains("시스템") || t.contains("네트워크") ||
+               t.contains("리눅스") || t.contains("서버") || t.contains("블록체인");
     }
 
     private LocalDate parseEndDate(String dateRange) {
         if (dateRange == null || dateRange.isEmpty()) return null;
         try {
-            // 정규식을 사용하여 마감일 추출 (yyyy-MM-dd 또는 yyyy.MM.dd)
-            String lastPart = dateRange.contains("~") ? dateRange.split("~")[1].trim() : dateRange.trim();
-            Matcher m = Pattern.compile("\\d{4}[-.]\\d{2}[-.]\\d{2}").matcher(lastPart);
+            // 정규식을 활용하여 yyyy-MM-dd 또는 yyyy.MM.dd 패턴의 날짜 중 마지막(마감일)을 찾습니다.
+            String target = dateRange.contains("~") ? dateRange.split("~")[1].trim() : dateRange.trim();
+            Matcher m = Pattern.compile("\\d{4}[-.]\\d{2}[-.]\\d{2}").matcher(target);
             if (m.find()) {
                 return LocalDate.parse(m.group().replace(".", "-"));
             }
         } catch (Exception e) {
-            log.debug("마감일 파싱 실패 ({}): {}", dateRange, e.getMessage());
+            log.debug("마감일 파싱 에러 ({}): {}", dateRange, e.getMessage());
         }
         return null;
     }
 
     public void cleanupJunkProjects() {
-        log.info("부적절하거나 마감된 데이터 자동 정리 중...");
+        log.info("위비티 불필요 데이터 청소 중...");
         try {
             projectRepository.findAll().forEach(p -> {
                 if (p.getDetailUrl() != null && p.getDetailUrl().contains("wevity.com")) {
-                    // IT와 무관하거나 마감일이 지난 경우 삭제
-                    boolean irrelevant = !isRelevantToIT(p.getTitle()) && !isRelevantToIT(p.getCategory());
-                    boolean expired = p.getEndDate() != null && p.getEndDate().isBefore(LocalDate.now());
+                    // 엄격한 키워드 필터링을 다시 적용하여 삭제 대상 판별
+                    boolean isBadTitle = !isRelevantToIT(p.getTitle());
+                    boolean isBadCategory = !p.getCategory().contains("IT/해커톤"); // "있어서 안될" 예전 카테고리
+                    boolean isExpired = p.getEndDate() != null && p.getEndDate().isBefore(LocalDate.now());
                     
-                    if (irrelevant || expired) {
+                    if (isBadTitle || isBadCategory || isExpired) {
                         projectRepository.delete(p);
-                        log.info("정제 대상 데이터 삭제: {}", p.getTitle());
                     }
                 }
             });
         } catch (Exception e) {
-            log.error("데이터 정리 중 오류: {}", e.getMessage());
+            log.error("청소 중 오류: {}", e.getMessage());
         }
     }
 }
