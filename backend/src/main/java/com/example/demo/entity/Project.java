@@ -1,8 +1,12 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * IT/공모전 프로젝트 정보를 담는 Entity
@@ -31,6 +35,7 @@ public class Project {
     private String teamLimit;      // 참가 인원 제한 (예: 3~5인)
 
     @Column(name = "end_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endDate;      // 모집 마감일
 
     @Builder.Default
@@ -47,6 +52,7 @@ public class Project {
     @Column(length = 1000)
     private String officialUrl;    // 공식 홈페이지 링크
 
-    @Builder.Default
-    private LocalDate createdAt = LocalDate.now();
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
 }

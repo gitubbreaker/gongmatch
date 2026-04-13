@@ -268,8 +268,12 @@ function ProjectDetail() {
             })}>
               🔥 이 공모전 팀원 구하기
             </PrimaryBtn>
-            <SecondaryBtn onClick={() => window.open(project.officialUrl || project.detailUrl, '_blank')}>
-              🔗 공식 홈페이지 가기
+            <SecondaryBtn onClick={() => {
+              const url = project.officialUrl || project.detailUrl;
+              if (url) window.open(url, '_blank');
+              else alert('링크를 찾을 수 없습니다.');
+            }}>
+              {project.officialUrl ? '🌐 공식 홈페이지 가기' : '🔗 원본 공고 바로가기'}
             </SecondaryBtn>
           </ActionGroup>
         </InfoSection>

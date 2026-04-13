@@ -194,7 +194,24 @@ function ProjectListPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isStudentOnly, setIsStudentOnly] = useState(false); // 대학생 필터 상태
+  const [isStudentOnly, setIsStudentOnly] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(600); // 10분 (600초)
+  const [showBanner, setShowBanner] = useState(true);
+
+  // 타이머 로직
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}분 ${s < 10 ? '0' : ''}${s}초`;
+  };
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -223,23 +240,39 @@ function ProjectListPage() {
   return (
     <Container>
       {/* 시스템 최적화 실시간 상황판 */}
-      <div style={{ 
-        background: 'rgba(100, 108, 255, 0.1)', 
-        border: '1px solid var(--ac-brd)', 
-        borderRadius: '12px', 
-        padding: '16px 24px', 
-        marginBottom: '32px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        backdropFilter: 'blur(10px)'
-      }}>
-         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '10px', height: '10px', background: 'var(--ac)', borderRadius: '50%', boxShadow: '0 0 10px var(--ac)' }}></div>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--tx)' }}>🚀 시스템 딥-크롤러 엔진 고도화 및 DB 최적화 진행 중 (남은 시간: 약 10분)</span>
-         </div>
-         <div style={{ fontSize: '12px', color: 'var(--tx3)', fontWeight: '600' }}>새로고침 시 모든 결과가 반영됩니다</div>
-      </div>
+      {showBanner && (
+        <div style={{ 
+          background: 'rgba(100, 108, 255, 0.1)', 
+          border: '1px solid var(--ac-brd)', 
+          borderRadius: '12px', 
+          padding: '16px 24px', 
+          marginBottom: '32px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          backdropFilter: 'blur(10px)',
+          position: 'relative'
+        }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                width: '10px', height: '10px', 
+                background: timeLeft > 0 ? 'var(--ac)' : 'var(--green)', 
+                borderRadius: '50%', 
+                boxShadow: `0 0 10px ${timeLeft > 0 ? 'var(--ac)' : 'var(--green)'}`,
+                animation: timeLeft > 0 ? 'pulse 2s infinite' : 'none'
+              }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--tx)' }}>
+                {timeLeft > 0 
+                  ? `🚀 시스템 딥-크롤러 엔진 고도화 및 DB 최적화 진행 중 (남은 시간: 약 ${formatTime(timeLeft)})`
+                  : '✅ 시스템 최적화 및 최신 데이터 동기화 완료'}
+              </span>
+           </div>
+           <button 
+             onClick={() => setShowBanner(false)}
+             style={{ background: 'transparent', border: 'none', color: 'var(--tx3)', cursor: 'pointer', fontSize: '18px' }}
+           >×</button>
+        </div>
+      )}
 
       <HeaderSection>
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
@@ -314,7 +347,9 @@ function ProjectListPage() {
                 </InfoRow>
 
                 <Footer>
-                  <DateBadge>수집일: {new Date(project.createdAt).toLocaleDateString()}</DateBadge>
+                  <DateBadge>
+                    수집일: {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '최근 수집됨'}
+                  </DateBadge>
                   <MoreBtn>
                     상세보기 
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">

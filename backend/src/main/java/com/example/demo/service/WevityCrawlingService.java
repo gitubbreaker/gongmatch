@@ -117,42 +117,67 @@ public class WevityCrawlingService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
-            // 1. 포스터 이미지 추출 (더 넓은 탐색 범위)
-            Elements images = detailDoc.select(".thumb img, .view-img img, .img_area img, .img-area img, .view-cont img");
-            for (Element img : images) {
-                String src = img.hasAttr("data-src") ? img.attr("data-src") : 
-                             img.hasAttr("data-original") ? img.attr("data-original") : img.attr("src");
-                
-                if (src != null && src.contains("upload/contest")) {
+            // 1. 포스터 이미지 추출 (더 넓은 탐색 범위 및 우선순위 조정)
+            // 우선순위 1: 상세 페이지의 썸네일 영역
+            Elements thumbImg = detailDoc.select(".thumb img, .view-img img, .cd-box .img_area img");
+            for (Element img : thumbImg) {
+                String src = getImgSrc(img);
+                if (src != null && (src.contains("upload/contest") || src.contains("wevity.com/upload"))) {
                     posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
                     break;
                 }
             }
 
-            // 2. 공식 홈페이지 링크 추출 (Heuristic Keyword Matching)
-            Pattern linkPattern = Pattern.compile("(홈페이지|바로가기|참가신청|링크|접수|원본|참조|사이트)");
-            
-            // 우선순위 1: 정보 리스트(.info, .cd-info-list) 내의 링크
-            Elements infoItems = detailDoc.select(".info li, .cd-info-list li, .cd-box div");
-            for (Element el : infoItems) {
-                if (linkPattern.matcher(el.text()).find()) {
-                    Element a = el.selectFirst("a");
-                    if (a != null) {
-                        String href = a.attr("href");
-                        if (href != null && !href.isEmpty() && !href.startsWith("#")) {
-                            officialUrl = href.startsWith("/") ? BASE_URL + href : href;
-                            break;
+            // 우선순위 2: 본문 내 첫 번째 큰 이미지
+            if (posterImageUrl == null) {
+                Elements bodyImages = detailDoc.select(".view-cont img");
+                for (Element img : bodyImages) {
+                    String src = getImgSrc(img);
+                    if (src != null && !src.contains("icon") && !src.contains("emoticon")) {
+                        posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
+                        break;
+                    }
+                }
+            }
+
+            // 2. 공식 홈페이지 링크 추출 (더 강력한 휴리스틱 및 특정 셀렉터 활용)
+            // 위비티는 보통 .cd-box 내부에 '홈페이지 바로가기' 버튼이 있음
+            Elements visitBtn = detailDoc.select(".cd-box a.btn, .cd-info-list a.btn");
+            for (Element btn : visitBtn) {
+                String text = btn.text();
+                if (text.contains("홈페이지") || text.contains("바로가기") || text.contains("신청") || text.contains("사이트")) {
+                    String href = btn.attr("href");
+                    if (isValidLink(href)) {
+                        officialUrl = resolveUrl(href);
+                        break;
+                    }
+                }
+            }
+
+            // 차선책 1: 정보 리스트 키워드 매칭
+            if (officialUrl == null) {
+                Pattern linkPattern = Pattern.compile("(홈페이지|바로가기|참가신청|링크|접수|원본|참조|사이트)");
+                Elements infoItems = detailDoc.select(".info li, .cd-info-list li, .cd-box div, .view-cont p");
+                for (Element el : infoItems) {
+                    if (linkPattern.matcher(el.text()).find()) {
+                        Element a = el.selectFirst("a");
+                        if (a != null) {
+                            String href = a.attr("href");
+                            if (isValidLink(href)) {
+                                officialUrl = resolveUrl(href);
+                                break;
+                            }
                         }
                     }
                 }
             }
 
-            // 우선순위 2: 본문(.view-cont) 내의 외부 링크
+            // 차선책 2: 본문 내 외부 링크 중 가장 유력한 것
             if (officialUrl == null) {
                 Elements bodyLinks = detailDoc.select(".view-cont a");
                 for (Element a : bodyLinks) {
                     String href = a.attr("href");
-                    if (href != null && href.startsWith("http") && !href.contains("wevity.com")) {
+                    if (href != null && href.startsWith("http") && !href.contains("wevity.com") && !href.contains("facebook") && !href.contains("twitter")) {
                         officialUrl = href;
                         break;
                     }
@@ -162,6 +187,22 @@ public class WevityCrawlingService {
             log.warn("상세 페이지 크롤링 실패 ({}): {}", detailUrl, e.getMessage());
         }
         return new DetailInfo(posterImageUrl, officialUrl);
+    }
+
+    private String getImgSrc(Element img) {
+        if (img == null) return null;
+        if (img.hasAttr("data-src")) return img.attr("data-src");
+        if (img.hasAttr("data-original")) return img.attr("data-original");
+        return img.attr("src");
+    }
+
+    private boolean isValidLink(String href) {
+        return href != null && !href.isEmpty() && !href.startsWith("#") && !href.startsWith("javascript");
+    }
+
+    private String resolveUrl(String href) {
+        if (href.startsWith("http")) return href;
+        return BASE_URL + (href.startsWith("/") ? "" : "/") + href;
     }
 
     @lombok.Getter
