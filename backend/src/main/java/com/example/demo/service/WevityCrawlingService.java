@@ -42,35 +42,27 @@ public class WevityCrawlingService {
     public void crawlWevityProjects() {
         this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
-        log.info("위비티 IT/SW 수집 시작 (전면 우회 모드)...");
+        log.info("위비티 데이터 강제 연동 및 사진 복구 시작...");
 
         String[] modes = {"soon", "ing", "start"};
-        int totalNewCount = 0;
+        int updatedCount = 0;
+        int newCount = 0;
 
         for (String mode : modes) {
             for (int page = 1; page <= 5; page++) {
-                this.currentProgress = String.format("%s 탭 %d/5페이지 수집 중...", mode, page);
+                this.currentProgress = String.format("%s 탭 %d/5페이지 정밀 연동 중...", mode, page);
                 String pageUrl = String.format("https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list&mode=%s&gp=%d", mode, page);
                 try {
-                    // [핵심 해결] 랜덤 지연으로 차단 우회
-                    Thread.sleep(2000 + random.nextInt(2000)); 
+                    Thread.sleep(1500 + random.nextInt(1500)); 
                     
-                    Connection.Response response = Jsoup.connect(pageUrl)
+                    Document doc = Jsoup.connect(pageUrl)
                             .timeout(15000)
-                            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
-                            .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
-                            .referrer(BASE_URL)
                             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                            .execute();
+                            .header("Referer", BASE_URL)
+                            .get();
 
-                    Document doc = response.parse();
                     Elements items = doc.select(".list-area > ul > li");
                     if (items.isEmpty()) items = doc.select("ul.list > li");
-
-                    if (items.isEmpty()) {
-                        log.warn("아이템을 찾을 수 없음 (차단 가능성): {}", pageUrl);
-                        continue;
-                    }
 
                     for (Element item : items) {
                         try {
@@ -83,54 +75,59 @@ public class WevityCrawlingService {
                             String host = item.select(".organ").text().trim();
                             LocalDate endDate = parseEndDate(item.select(".day").text());
                             
-                            // [핵심 해결] 과거 연도 삭제 로직 제거 (마감일로만 판단)
                             if (endDate == null || endDate.isBefore(LocalDate.now())) continue;
 
-                            DetailInfo detail = crawlDetailInfo(fullDetailUrl);
-                            String category = (title.contains("해커톤") || title.contains("개발") || title.contains("챌린지")) ? "IT/해커톤(추천)" : "IT/대외활동";
-
                             Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
-                            if (existingProject != null) {
-                                // 기존 데이터 보존 및 정보 보강
-                                existingProject.setCategory(category);
-                                if (detail.getPosterImageUrl() != null) existingProject.setPosterImageUrl(detail.getPosterImageUrl());
-                                if (detail.getOfficialUrl() != null) existingProject.setOfficialUrl(detail.getOfficialUrl());
-                                projectRepository.save(existingProject);
-                                continue;
+                            
+                            // [강제 연동] 사진이나 공식 링크가 없으면 무조건 상세 페이지 접속하여 보강
+                            DetailInfo detail = null;
+                            if (existingProject == null || existingProject.getPosterImageUrl() == null || existingProject.getOfficialUrl() == null || existingProject.getOfficialUrl().contains("wevity.com")) {
+                                detail = crawlDetailInfo(fullDetailUrl);
                             }
 
-                            Project project = Project.builder()
-                                    .title(title).host(host).detailUrl(fullDetailUrl)
-                                    .posterImageUrl(detail.getPosterImageUrl())
-                                    .officialUrl(detail.getOfficialUrl())
-                                    .endDate(endDate).category(category).build();
+                            String category = (title.contains("해커톤") || title.contains("개발") || title.contains("챌린지")) ? "IT/해커톤(추천)" : "IT/대외활동";
 
-                            projectRepository.save(project);
-                            totalNewCount++;
+                            if (existingProject != null) {
+                                boolean needsUpdate = false;
+                                if (detail != null) {
+                                    if (detail.getPosterImageUrl() != null) { existingProject.setPosterImageUrl(detail.getPosterImageUrl()); needsUpdate = true; }
+                                    if (detail.getOfficialUrl() != null) { existingProject.setOfficialUrl(detail.getOfficialUrl()); needsUpdate = true; }
+                                }
+                                if (!category.equals(existingProject.getCategory())) { existingProject.setCategory(category); needsUpdate = true; }
+                                
+                                if (needsUpdate) {
+                                    projectRepository.save(existingProject);
+                                    updatedCount++;
+                                }
+                            } else {
+                                Project project = Project.builder()
+                                        .title(title).host(host).detailUrl(fullDetailUrl)
+                                        .posterImageUrl(detail != null ? detail.getPosterImageUrl() : null)
+                                        .officialUrl(detail != null ? detail.getOfficialUrl() : null)
+                                        .endDate(endDate).category(category).build();
+                                projectRepository.save(project);
+                                newCount++;
+                            }
                         } catch (Exception e) {
-                            log.error("항목 에러: {}", e.getMessage());
+                            log.error("항목 처리 중 에러: {}", e.getMessage());
                         }
                     }
                 } catch (Exception e) {
-                    log.error("접속 실패: {}", e.getMessage());
+                    log.error("리스트 페이지 접속 실패: {}", e.getMessage());
                 }
             }
         }
-        // [핵심 해결] 제목 기반 강제 삭제 중단
-        projectRepository.deleteByEndDateBefore(LocalDate.now());
-        
         this.isCrawling = false;
-        this.currentProgress = "완료 (" + totalNewCount + "건)";
-        log.info("수집 완료. 신규: {}건", totalNewCount);
+        this.currentProgress = "완료 (신규 " + newCount + " / 보강 " + updatedCount + ")";
+        log.info("강제 연동 완료. 신규: {}, 보강: {}", newCount, updatedCount);
     }
 
     private DetailInfo crawlDetailInfo(String detailUrl) {
         String poster = null, official = null;
         try {
-            // 상세 페이지도 랜덤 지연
-            Thread.sleep(500 + random.nextInt(500));
+            Thread.sleep(800 + random.nextInt(700));
             Document doc = Jsoup.connect(detailUrl)
-                    .timeout(5000)
+                    .timeout(8000)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
@@ -140,16 +137,16 @@ public class WevityCrawlingService {
                 poster = src.startsWith("/") ? BASE_URL + src : src;
             }
             
-            Elements links = doc.select(".cd-info-list a[href^=http], .cd-info a[href^=http]");
+            Elements links = doc.select(".cd-info-list a[href^=http], .cd-info a[href^=http], .view-cont a[href^=http]");
             for (Element a : links) {
                 String href = a.attr("href");
-                if (!href.contains("wevity.com")) { 
+                if (!href.contains("wevity.com") && !href.contains("facebook") && !href.contains("twitter") && !href.contains("youtube") && !href.contains("instagram")) { 
                     official = href; 
                     break; 
                 }
             }
         } catch (Exception e) {
-            log.warn("상세 페이지 분석 실패: {}", e.getMessage());
+            log.warn("상세 페이지 분석 실패 ({}): {}", detailUrl, e.getMessage());
         }
         return new DetailInfo(poster, official);
     }
@@ -166,8 +163,7 @@ public class WevityCrawlingService {
 
     @Transactional
     public void cleanupJunkProjects() {
-        // [핵심 해결] 제목 기반 연도 삭제 제거 -> 마감일 기준으로만 정리
-        log.info("유효하지 않은 만료 데이터만 정리 중...");
+        // [강제 보존] 현재 유효한 공고는 절대 지우지 않음. 오직 마감일 지난 것만 정리
         projectRepository.deleteByEndDateBefore(LocalDate.now());
     }
 }
