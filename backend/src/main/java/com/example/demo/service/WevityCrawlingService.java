@@ -103,30 +103,31 @@ public class WevityCrawlingService {
                                 continue;
                             }
 
-                            DetailInfo detail = crawlDetailInfo(fullDetailUrl);
+                        DetailInfo detail = crawlDetailInfo(fullDetailUrl);
 
-                            // [우선순위 전략] 해커톤, 소프트웨어, IT 개발 등 핵심 키워드 강조
-                            String category = "IT/대외활동";
-                            if (title.contains("해커톤") || title.contains("개발") || title.contains("경진대회")) {
-                                category = "IT/해커톤(추천)";
-                            }
+                        // [우선순위 전략] 해커톤, 소프트웨어, IT 개발 등 핵심 키워드 강조
+                        String category = "IT/대외활동";
+                        if (title.contains("해커톤") || title.contains("개발") || title.contains("경진대회")) {
+                            category = "IT/해커톤(추천)";
+                        }
 
-                            Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
-                            
-                            if (existingProject != null) {
-                                boolean updated = false;
-                                existingProject.setCategory(category); // 카테고리 갱신
-                                if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
-                                    existingProject.setPosterImageUrl(detail.getPosterImageUrl());
-                                    updated = true;
-                                }
-                                if (existingProject.getOfficialUrl() == null && detail.getOfficialUrl() != null) {
-                                    existingProject.setOfficialUrl(detail.getOfficialUrl());
-                                    updated = true;
-                                }
-                                projectRepository.save(existingProject);
-                                continue;
+                        Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
+                        
+                        if (existingProject != null) {
+                            boolean updated = false;
+                            existingProject.setCategory(category); 
+                            // 사진이나 링크가 없으면 강제로 다시 채움
+                            if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
+                                existingProject.setPosterImageUrl(detail.getPosterImageUrl());
+                                updated = true;
                             }
+                            if (existingProject.getOfficialUrl() == null && detail.getOfficialUrl() != null) {
+                                existingProject.setOfficialUrl(detail.getOfficialUrl());
+                                updated = true;
+                            }
+                            projectRepository.save(existingProject);
+                            continue;
+                        }
 
                             Project project = Project.builder()
                                     .title(title).host(host).detailUrl(fullDetailUrl)
@@ -271,6 +272,10 @@ public class WevityCrawlingService {
                         officialUrl = href;
                         break;
                     }
+                String href = btn.attr("href");
+                if (text.matches(".*(홈페이지|바로가기|신청|사이트|접수|링크).*") && isValidLink(href)) {
+                    officialUrl = resolveUrl(href);
+                    break;
                 }
             }
         } catch (Exception e) {
@@ -287,7 +292,7 @@ public class WevityCrawlingService {
     }
 
     private boolean isValidLink(String href) {
-        return href != null && !href.isEmpty() && !href.startsWith("#") && !href.startsWith("javascript");
+        return href != null && !href.isEmpty() && !href.startsWith("#") && !href.startsWith("javascript") && href.startsWith("http");
     }
 
     private String resolveUrl(String href) {
