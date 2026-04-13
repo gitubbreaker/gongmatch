@@ -11,7 +11,6 @@ import org.jsoup.select.Elements;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +22,12 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-@EnableAsync
 @RequiredArgsConstructor
 public class WevityCrawlingService {
 
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
 
-    // [상태 관리] 실시간 수집 상태 및 시작 시간
     private boolean isCrawling = false;
     private java.time.LocalDateTime lastStartTime;
     private String currentProgress = "준비 중...";
@@ -44,56 +41,59 @@ public class WevityCrawlingService {
     public void crawlWevityProjects() {
         this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
-        log.info("위비티 IT/SW 공모전 탭 별 정밀 수집 시작 (마감임박, 접수중, 접수예정)...");
+        log.info("위비티 IT/SW 공모전 정밀 수집 시작...");
 
         String[] modes = {"soon", "ing", "start"};
         int totalNewCount = 0;
 
         for (String mode : modes) {
-            log.info("위비티 {} 탭 수집 중...", mode);
             for (int page = 1; page <= 5; page++) {
                 this.currentProgress = String.format("%s 탭 %d/5페이지 분석 중...", mode, page);
+                // IT 분야 (cidx=20) URL
                 String pageUrl = String.format("https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list&mode=%s&gp=%d", mode, page);
                 try {
                     Thread.sleep(500); 
-                    
                     Document doc = Jsoup.connect(pageUrl)
                             .timeout(5000)
                             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                             .get();
 
-                    Elements items = doc.select("ul.list > li");
-                    int pageCount = 0;
+                    // [정밀 타겟팅] 리스트 영역 셀렉터 수정
+                    Elements items = doc.select(".list-area > ul > li");
+                    if (items.isEmpty()) {
+                        // 다른 구조일 경우 대비 (ul.list)
+                        items = doc.select("ul.list > li");
+                    }
 
                     for (Element item : items) {
                         try {
-                            Element titleTag = item.selectFirst("div.tit > a");
+                            Element titleTag = item.selectFirst(".tit a");
                             if (titleTag == null) continue;
 
                             String title = titleTag.text().replace("SPECIAL", "").trim();
                             String detailPath = titleTag.attr("href");
                             String fullDetailUrl = detailPath.startsWith("http") ? detailPath : BASE_URL + detailPath;
-                            String host = item.select("div.organ").text().trim();
-                            String dayText = item.select("div.day").text();
+                            String host = item.select(".organ").text().trim();
+                            String dayText = item.select(".day").text();
                             LocalDate endDate = parseEndDate(dayText);
                             
                             if (isPastYearProject(title)) continue;
                             if (endDate == null) continue; 
                             if (endDate.isBefore(LocalDate.now())) continue;
 
+                            // 상세 페이지에서 사진과 원본 링크 추출
                             DetailInfo detail = crawlDetailInfo(fullDetailUrl);
 
-                            // [우선순위 전략] 해커톤, 소프트웨어, IT 개발 등 핵심 키워드 강조
                             String category = "IT/대외활동";
-                            if (title.contains("해커톤") || title.contains("개발") || title.contains("경진대회")) {
+                            if (title.contains("해커톤") || title.contains("개발") || title.contains("경진대회") || title.contains("챌린지")) {
                                 category = "IT/해커톤(추천)";
                             }
 
                             Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
                             
                             if (existingProject != null) {
+                                // 기존 데이터라도 사진이나 링크가 없으면 보충
                                 boolean updated = false;
-                                existingProject.setCategory(category); 
                                 if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
                                     existingProject.setPosterImageUrl(detail.getPosterImageUrl());
                                     updated = true;
@@ -102,7 +102,10 @@ public class WevityCrawlingService {
                                     existingProject.setOfficialUrl(detail.getOfficialUrl());
                                     updated = true;
                                 }
-                                projectRepository.save(existingProject);
+                                if (updated) {
+                                    existingProject.setCategory(category);
+                                    projectRepository.save(existingProject);
+                                }
                                 continue;
                             }
 
@@ -114,7 +117,6 @@ public class WevityCrawlingService {
                                     .category(category).build();
 
                             projectRepository.save(project);
-                            pageCount++;
                             totalNewCount++;
 
                         } catch (Exception e) {
@@ -122,26 +124,26 @@ public class WevityCrawlingService {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("접속 실패: {}", e.getMessage());
+                    log.error("위비티 리스트 페이지 접속 실패: {}", e.getMessage());
                 }
             }
         }
-        cleanupJunkProjects();
         this.isCrawling = false;
         this.currentProgress = "완료";
+        log.info("수집 완료. 신규 데이터: {}건", totalNewCount);
     }
 
     @Transactional
     public void cleanupJunkProjects() {
-        log.info("부정확한 좀비 데이터 선택적 클린업 시작...");
         try {
-            int currentYear = LocalDate.now().getYear();
             projectRepository.deleteByEndDateBefore(LocalDate.now());
+            // 2025년 이하 과거 데이터 제목으로 한 번 더 클린업
+            int currentYear = LocalDate.now().getYear();
             for (int year = 2000; year < currentYear; year++) {
                 projectRepository.deleteByTitleContaining(String.valueOf(year));
             }
         } catch (Exception e) {
-            log.error("클린업 오류: {}", e.getMessage());
+            log.error("클린업 중 오류: {}", e.getMessage());
         }
     }
 
@@ -162,43 +164,38 @@ public class WevityCrawlingService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
-            Elements thumbImg = detailDoc.select(".thumb img, .view-img img, .cd-box .img_area img");
-            for (Element img : thumbImg) {
-                String src = getImgSrc(img);
-                if (src != null && src.contains("upload")) {
-                    posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
+            // [정밀 타겟팅] 사진 위치 수정
+            Element imgTag = detailDoc.selectFirst(".img-area img");
+            if (imgTag != null) {
+                String src = imgTag.attr("src");
+                posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
+            }
+
+            // [정밀 타겟팅] 원본 링크(홈페이지) 위치 수정
+            Elements infoLinks = detailDoc.select(".cd-info a[href^=http]");
+            for (Element a : infoLinks) {
+                String href = a.attr("href");
+                if (!href.contains("wevity.com") && !href.contains("facebook") && !href.contains("twitter") && !href.contains("blog.naver.com")) {
+                    officialUrl = href;
                     break;
                 }
             }
-
-            Elements visitBtn = detailDoc.select(".cd-box a.btn, .cd-info-list a.btn");
-            for (Element btn : visitBtn) {
-                String text = btn.text();
-                String href = btn.attr("href");
-                if (text.matches(".*(홈페이지|바로가기|신청|사이트|접수|링크).*") && isValidLink(href)) {
-                    officialUrl = resolveUrl(href);
-                    break;
+            
+            // 본문 내 링크에서 찾기 (fallback)
+            if (officialUrl == null) {
+                Elements bodyLinks = detailDoc.select(".view-cont a[href^=http]");
+                for (Element a : bodyLinks) {
+                    String href = a.attr("href");
+                    if (!href.contains("wevity.com")) {
+                        officialUrl = href;
+                        break;
+                    }
                 }
             }
         } catch (Exception e) {
-            log.warn("상세 페이지 크롤링 실패: {}", e.getMessage());
+            log.warn("상세 페이지 분석 실패: {}", e.getMessage());
         }
         return new DetailInfo(posterImageUrl, officialUrl);
-    }
-
-    private String getImgSrc(Element img) {
-        if (img == null) return null;
-        if (img.hasAttr("data-src")) return img.attr("data-src");
-        return img.attr("src");
-    }
-
-    private boolean isValidLink(String href) {
-        return href != null && href.startsWith("http");
-    }
-
-    private String resolveUrl(String href) {
-        if (href.startsWith("http")) return href;
-        return BASE_URL + (href.startsWith("/") ? "" : "/") + href;
     }
 
     @lombok.Getter
