@@ -38,16 +38,22 @@ public class WevityCrawlingService {
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
     public void crawlWevityProjects() {
-        log.info("위비티 IT/SW 공모전 다중 페이지 크롤링 시작 (1~5페이지)...");
+        log.info("위비티 IT/SW 공모전 탭 별 정밀 수집 시작 (마감임박, 접수중, 접수예정)...");
 
+        // 수집할 탭 정의 (마감임박, 접수중, 접수예정)
+        String[] modes = {"soon", "ing", "start"};
         int totalNewCount = 0;
-        for (int page = 1; page <= 5; page++) {
-            String pageUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gp=" + page;
-            try {
-                Document doc = Jsoup.connect(pageUrl)
-                        .timeout(5000)
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                        .get();
+
+        for (String mode : modes) {
+            log.info("위비티 {} 탭 수집 중...", mode);
+            // 각 탭 별로 1~2페이지 정도만 수집해도 실시간성이 충분함
+            for (int page = 1; page <= 2; page++) {
+                String pageUrl = String.format("https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list&mode=%s&gp=%d", mode, page);
+                try {
+                    Document doc = Jsoup.connect(pageUrl)
+                            .timeout(5000)
+                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                            .get();
 
                 Elements items = doc.select("ul.list > li");
                 int pageCount = 0;
@@ -113,13 +119,12 @@ public class WevityCrawlingService {
                         totalNewCount++;
 
                     } catch (Exception e) {
-                        log.error("위비티 개별 항목 파싱 중 오류 발생 (페이지 {}): {}", page, e.getMessage());
+                        log.error("위비티 개별 항목 파싱 중 오류 발생 ({} 탭, 페이지 {}): {}", mode, page, e.getMessage());
                     }
                 }
-                log.info("페이지 {} 수집 완료: {}건 추가됨.", page, pageCount);
-
+                log.info("{} 탭 {}페이지 수집 완료: {}건 추가됨.", mode, page, pageCount);
             } catch (Exception e) {
-                log.error("페이지 {} 접속 실패: {}", page, e.getMessage());
+                log.error("{} 탭 {}페이지 접속 실패: {}", mode, page, e.getMessage());
             }
         }
         log.info("위비티 전체 크롤링 완료. 총 {}건 신규 저장됨.", totalNewCount);
