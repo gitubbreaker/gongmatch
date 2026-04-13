@@ -12,6 +12,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -29,8 +30,9 @@ public class WevityCrawlingService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        log.info("애플리케이션 시작 시 위비티 실시간 데이터 수집 실행...");
+        log.info("애플리케이션 시작 시 위비티 실시간 데이터 수집 및 클린업 실행...");
         crawlWevityProjects();
+        cleanupExpiredProjects(); // 수집 후 한 번 더 클린업 확인
     }
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
@@ -60,6 +62,18 @@ public class WevityCrawlingService {
                         String host = item.select("div.organ").text().trim();
                         String dayText = item.select("div.day").text();
                         LocalDate endDate = parseEndDate(dayText);
+                        
+                        // [핵심 수정] 마감일 파싱 실패 시 상시 공고로 간주하지 않고, 서비스 관점에서 불필요/부정확한 정보이므로 스킵
+                        if (endDate == null) {
+                            log.warn("마감일 파싱 실패로 수집 제외: {}", title);
+                            continue; 
+                        }
+
+                        // [핵심 수정] 이미 마감된 공고(과거 날짜)는 수집하지 않음
+                        if (endDate.isBefore(LocalDate.now())) {
+                            log.info("이미 마감된 공고 수집 제외: {} (마감일: {})", title, endDate);
+                            continue;
+                        }
 
                         DetailInfo detail = crawlDetailInfo(fullDetailUrl);
 
@@ -103,6 +117,24 @@ public class WevityCrawlingService {
             }
         }
         log.info("위비티 전체 크롤링 완료. 총 {}건 신규 저장됨.", totalNewCount);
+        
+        // 크롤링 완료 후 기존 데이터 중 마감된 데이터 정리 실행
+        cleanupExpiredProjects();
+    }
+
+    /**
+     * 마감일이 지난 프로젝트나 유효하지 않은 데이터를 DB에서 자동 삭제
+     */
+    @Transactional
+    public void cleanupExpiredProjects() {
+        log.info("만료된 프로젝트 데이터 클린업 시작...");
+        try {
+            // 오늘 날짜 이전의 모든 프로젝트 삭제
+            int deletedCount = projectRepository.deleteByEndDateBefore(LocalDate.now());
+            log.info("클린업 완료: 총 {}건의 만료된 공고가 삭제되었습니다.", deletedCount);
+        } catch (Exception e) {
+            log.error("클린업 과정 중 오류 발생: {}", e.getMessage());
+        }
     }
 
     /**
@@ -222,11 +254,15 @@ public class WevityCrawlingService {
             Matcher matcher = pattern.matcher(dateRaw);
             
             if (matcher.find()) {
-                return LocalDate.parse(matcher.group(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                String dateStr = matcher.group();
+                return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             }
             
-            // 만약 D-Day 형식 등으로 와서 날짜 추출이 안 될 경우, 유연하게 오늘 날짜 기준 혹은 null 처리
-            // 위비티는 보통 목록에 확정 날짜가 적혀 있으므로 기본적인 파싱을 시도함
+            // "D+147" 같은 형식이나 마감 텍스트가 포함된 경우 null 반환하여 제외 처리 유도
+            if (dateRaw.contains("D+") || dateRaw.contains("마감") || dateRaw.contains("종료")) {
+                return null;
+            }
+            
             return null;
         } catch (Exception e) {
             return null;
