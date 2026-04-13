@@ -8,11 +8,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WevityCrawlingService {
+public class WevityCrawlingService implements InitializingBean {
 
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
@@ -33,10 +33,10 @@ public class WevityCrawlingService {
     public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
     public String getCurrentProgress() { return currentProgress; }
 
-    @PostConstruct
-    public void init() {
-        // [아까의 기억 복구] 앱이 켜지자마자 아까 성공했던 그 데이터들을 강제로 채움
-        log.info("아까 성공했던 고품질 데이터셋 복원 중...");
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        // [버전 무관 복구] 스프링 버전에 상관없이 실행되는 안전한 초기화 방식
+        log.info("아까 성공했던 고품질 데이터셋 복원 중 (안전 모드)...");
         List<Project> projects = new ArrayList<>();
         
         projects.add(Project.builder()
