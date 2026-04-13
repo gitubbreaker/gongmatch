@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-@EnableAsync
 @RequiredArgsConstructor
 public class WevityCrawlingService {
 
