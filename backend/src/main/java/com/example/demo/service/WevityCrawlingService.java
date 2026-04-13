@@ -39,13 +39,6 @@ public class WevityCrawlingService {
     public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
     public String getCurrentProgress() { return currentProgress; }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationReady() {
-        log.info("애플리케이션 시작 시 데이터 검증 및 선택적 클린업 실행...");
-        cleanupJunkProjects(); 
-        crawlWevityProjects();
-    }
-
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
     @Async
     public void crawlWevityProjects() {
