@@ -117,32 +117,39 @@ public class WevityCrawlingService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
-            // 포스터 이미지 추출 (우선순위: .thumb img -> .view-img img -> .img_area img)
+            // 포스터 이미지 추출 (우선순위: .thumb img -> .view-img img -> .img_area img -> .img-area img)
             Element imgTag = detailDoc.selectFirst(".thumb img");
             if (imgTag == null) imgTag = detailDoc.selectFirst(".view-img img");
             if (imgTag == null) imgTag = detailDoc.selectFirst(".img_area img");
+            if (imgTag == null) imgTag = detailDoc.selectFirst(".img-area img");
             if (imgTag == null) imgTag = detailDoc.selectFirst(".content-area img[src*=upload/contest]");
+            if (imgTag == null) imgTag = detailDoc.selectFirst(".view-cont img");
 
             if (imgTag != null) {
-                // lazy-loading 대응: data-src 우선 확인, 없으면 src
-                String src = imgTag.hasAttr("data-src") ? imgTag.attr("data-src") : imgTag.attr("src");
+                // lazy-loading 대응: data-src, data-original 우선 확인, 없으면 src
+                String src = null;
+                if (imgTag.hasAttr("data-src")) src = imgTag.attr("data-src");
+                else if (imgTag.hasAttr("data-original")) src = imgTag.attr("data-original");
+                else src = imgTag.attr("src");
+
                 if (src != null && !src.isEmpty()) {
                     posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
                 }
             }
 
-            // 공식 홈페이지 링크 추출
+            // 공식 홈페이지 링크 추출 (키워드 기반 자동화 탐색)
             Elements infoItems = detailDoc.select(".cd-info-list li");
             for (Element li : infoItems) {
-                if (li.text().contains("홈페이지") || li.text().contains("바로가기")) {
+                String text = li.text();
+                // "홈페이지"뿐만 아니라 "참가신청", "바로가기", "링크", "접수사이트" 등 모든 변칙 키워드 대응
+                if (text.matches(".*(홈페이지|바로가기|참가신청|링크|접수|원본|참조).*")) {
                     Element aTag = li.selectFirst("a");
                     if (aTag != null) {
-                        officialUrl = aTag.attr("href");
-                        // 위비티 내부 리다이렉트 링크인 경우 처리 (optional, 보통 바로가기 링크임)
-                        if (officialUrl.startsWith("/")) {
-                            officialUrl = BASE_URL + officialUrl;
+                        String href = aTag.attr("href");
+                        if (href != null && !href.isEmpty() && !href.equals("#")) {
+                            officialUrl = href.startsWith("/") ? BASE_URL + href : href;
+                            break;
                         }
-                        break;
                     }
                 }
             }
