@@ -17,7 +17,7 @@ public class AdminController {
 
     @PostMapping("/refresh-projects")
     public String refreshProjects() {
-        publicDataScheduler.fetchKStartupData();
+        publicDataScheduler.fetchPublicData();
         return "대학생 맞춤형 데이터 수집 및 필터링 완료!";
     }
 
