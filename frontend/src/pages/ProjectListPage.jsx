@@ -277,39 +277,6 @@ function ProjectListPage() {
   return (
     <Container>
       {/* 시스템 최적화 실시간 상황판 */}
-      {showBanner && (
-        <div style={{ 
-          background: 'rgba(100, 108, 255, 0.1)', 
-          border: '1px solid var(--ac-brd)', 
-          borderRadius: '12px', 
-          padding: '16px 24px', 
-          marginBottom: '32px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          backdropFilter: 'blur(10px)',
-          position: 'relative'
-        }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '10px', height: '10px', 
-                background: crawlingStatus.isCrawling ? '#ff4d4d' : '#00e676', 
-                borderRadius: '50%', 
-                boxShadow: `0 0 12px ${crawlingStatus.isCrawling ? '#ff4d4d' : '#00e676'}`,
-                animation: crawlingStatus.isCrawling ? 'pulse 1.5s infinite' : 'none'
-              }}></div>
-              <span style={{ fontSize: '15px', fontWeight: '800', color: '#fff' }}>
-                {crawlingStatus.isCrawling 
-                  ? '🛡️ 시스템 안정화 및 최신 고품질 데이터 정밀 동기화 진행 중...'
-                  : '✨ 시스템 최적화 및 2026년 최신 정밀 데이터 동기화 완료'}
-              </span>
-           </div>
-           <button 
-             onClick={() => setShowBanner(false)}
-             style={{ background: 'transparent', border: 'none', color: 'var(--tx3)', cursor: 'pointer', fontSize: '18px' }}
-           >×</button>
-        </div>
-      )}
 
       <HeaderSection>
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
