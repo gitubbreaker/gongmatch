@@ -29,15 +29,18 @@ public class WevityCrawlingService {
     private final Random random = new Random();
 
     private boolean isCrawling = false;
+    private java.time.LocalDateTime lastStartTime;
     private String currentProgress = "준비 중...";
 
     public boolean isCrawling() { return isCrawling; }
+    public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
     public String getCurrentProgress() { return currentProgress; }
 
     @Scheduled(cron = "0 0 1 * * *")
     @Async
     public void crawlWevityProjects() {
         this.isCrawling = true;
+        this.lastStartTime = java.time.LocalDateTime.now();
         log.info("위비티 데이터 복구 및 수집 최적화 모드 시작...");
 
         String[] urls = {
