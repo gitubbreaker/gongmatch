@@ -201,6 +201,17 @@ function ProjectListPage() {
   const [timeLeft, setTimeLeft] = useState(0); 
   const [showBanner, setShowBanner] = useState(false);
 
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get('/api/projects');
+      setProjects(res.data);
+    } catch (err) {
+      console.error('공고 로드 실패', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 1. 서버의 실제 수집 상태 체크
   const checkStatus = async () => {
     try {
@@ -253,21 +264,6 @@ function ProjectListPage() {
     const s = seconds % 60;
     return `${m}분 ${s < 10 ? '0' : ''}${s}초`;
   };
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await api.get('/api/projects');
-        setProjects(res.data);
-      } catch (err) {
-        console.error('공고 로드 실패', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
- 
-    fetchProjects();
-  }, []);
 
   const handleApply = (id) => {
     navigate(`/projects/${id}`);
