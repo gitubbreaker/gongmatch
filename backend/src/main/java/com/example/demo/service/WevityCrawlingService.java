@@ -101,10 +101,17 @@ public class WevityCrawlingService {
 
                             DetailInfo detail = crawlDetailInfo(fullDetailUrl);
 
+                            // [우선순위 전략] 해커톤, 소프트웨어, IT 개발 등 핵심 키워드 강조
+                            String category = "IT/대외활동";
+                            if (title.contains("해커톤") || title.contains("개발") || title.contains("경진대회")) {
+                                category = "IT/해커톤(추천)";
+                            }
+
                             Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
                             
                             if (existingProject != null) {
                                 boolean updated = false;
+                                existingProject.setCategory(category); // 카테고리 갱신
                                 if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
                                     existingProject.setPosterImageUrl(detail.getPosterImageUrl());
                                     updated = true;
@@ -113,9 +120,7 @@ public class WevityCrawlingService {
                                     existingProject.setOfficialUrl(detail.getOfficialUrl());
                                     updated = true;
                                 }
-                                if (updated) {
-                                    projectRepository.save(existingProject);
-                                }
+                                projectRepository.save(existingProject);
                                 continue;
                             }
 
@@ -123,8 +128,8 @@ public class WevityCrawlingService {
                                     .title(title).host(host).detailUrl(fullDetailUrl)
                                     .posterImageUrl(detail.getPosterImageUrl())
                                     .officialUrl(detail.getOfficialUrl())
-                                    .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1))
-                                    .category("IT/해커톤").build();
+                                    .endDate(endDate)
+                                    .category(category).build();
 
                             projectRepository.save(project);
                             pageCount++;
