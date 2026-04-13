@@ -44,6 +44,9 @@ public class Project {
     @Column(length = 1000)
     private String posterImageUrl; // 포스터 이미지 URL
 
+    @Column(length = 1000)
+    private String officialUrl;    // 공식 홈페이지 링크
+
     @Builder.Default
     private LocalDate createdAt = LocalDate.now();
 }

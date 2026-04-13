@@ -67,18 +67,27 @@ public class WevityCrawlingService {
                     // 실제 날짜가 숨겨져 있을 수 있으므로 더 깊게 탐색
                     LocalDate endDate = parseEndDate(dayText);
 
-                    // 3. 포스터 이미지 추출 (상세 페이지 접속)
-                    String posterImageUrl = crawlPosterImageUrl(fullDetailUrl);
+                    // 3. 상세 정보 추출 (포스터 이미지 & 공식 홈페이지)
+                    DetailInfo detail = crawlDetailInfo(fullDetailUrl);
 
                     // 4. 중복 방지 및 업데이트 로직
                     Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
                     
                     if (existingProject != null) {
-                        // 이미 존재하는데 포스터가 없는 경우에만 업데이트 시도
-                        if (existingProject.getPosterImageUrl() == null && posterImageUrl != null) {
-                            existingProject.setPosterImageUrl(posterImageUrl);
+                        // 이미 존재하는데 정보가 부족한 경우 업데이트
+                        boolean updated = false;
+                        if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
+                            existingProject.setPosterImageUrl(detail.getPosterImageUrl());
+                            updated = true;
+                        }
+                        if (existingProject.getOfficialUrl() == null && detail.getOfficialUrl() != null) {
+                            existingProject.setOfficialUrl(detail.getOfficialUrl());
+                            updated = true;
+                        }
+                        
+                        if (updated) {
                             projectRepository.save(existingProject);
-                            log.info("기존 공고 포스터 업데이트 완료: {}", title);
+                            log.info("기존 공고 상세 정보 업데이트 완료: {}", title);
                         }
                         continue;
                     }
@@ -88,7 +97,8 @@ public class WevityCrawlingService {
                             .title(title)
                             .host(host)
                             .detailUrl(fullDetailUrl)
-                            .posterImageUrl(posterImageUrl)
+                            .posterImageUrl(detail.getPosterImageUrl())
+                            .officialUrl(detail.getOfficialUrl())
                             .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1))
                             .category("IT/해커톤")
                             .build();
@@ -109,15 +119,18 @@ public class WevityCrawlingService {
     }
 
     /**
-     * 상세 페이지에서 포스터 이미지 URL 추출
+     * 상세 페이지에서 추가 정보(포스터, 공식 홈페이지) 추출
      */
-    private String crawlPosterImageUrl(String detailUrl) {
+    private DetailInfo crawlDetailInfo(String detailUrl) {
+        String posterImageUrl = null;
+        String officialUrl = null;
         try {
             Document detailDoc = Jsoup.connect(detailUrl)
                     .timeout(3000)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
+            // 포스터 이미지 추출
             Element imgTag = detailDoc.selectFirst(".thumb img");
             if (imgTag == null) {
                 imgTag = detailDoc.selectFirst(".view-img img");
@@ -125,15 +138,35 @@ public class WevityCrawlingService {
 
             if (imgTag != null) {
                 String src = imgTag.attr("src");
-                if (src.startsWith("/")) {
-                    return BASE_URL + src;
+                posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
+            }
+
+            // 공식 홈페이지 링크 추출
+            Elements infoItems = detailDoc.select(".cd-info-list li");
+            for (Element li : infoItems) {
+                if (li.text().contains("홈페이지") || li.text().contains("바로가기")) {
+                    Element aTag = li.selectFirst("a");
+                    if (aTag != null) {
+                        officialUrl = aTag.attr("href");
+                        // 위비티 내부 리다이렉트 링크인 경우 처리 (optional, 보통 바로가기 링크임)
+                        if (officialUrl.startsWith("/")) {
+                            officialUrl = BASE_URL + officialUrl;
+                        }
+                        break;
+                    }
                 }
-                return src;
             }
         } catch (Exception e) {
-            log.warn("상세 페이지 포스터 이미지 크롤링 실패 ({}): {}", detailUrl, e.getMessage());
+            log.warn("상세 페이지 크롤링 실패 ({}): {}", detailUrl, e.getMessage());
         }
-        return null;
+        return new DetailInfo(posterImageUrl, officialUrl);
+    }
+
+    @lombok.Getter
+    @lombok.AllArgsConstructor
+    private static class DetailInfo {
+        private String posterImageUrl;
+        private String officialUrl;
     }
 
     /**

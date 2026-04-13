@@ -44,16 +44,21 @@ const DetailLayout = styled.div`
 
 const PosterSection = styled.div`
   width: 100%;
+  min-height: 480px;
+  display: flex;
+  align-items: flex-start;
   
   img {
     width: 100%;
+    height: auto;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border: 1px solid var(--brd2);
-    transition: transform 0.3s ease;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    border: 1px solid var(--brd3);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: var(--bg2);
 
     &:hover {
-      transform: scale(1.02);
+      transform: scale(1.03) translateY(-5px);
     }
   }
 `;
@@ -238,8 +243,8 @@ function ProjectDetail() {
             })}>
               🔥 이 공모전 팀원 구하기
             </PrimaryBtn>
-            <SecondaryBtn onClick={() => window.open(project.detailUrl, '_blank')}>
-              🔗 공식 공고 확인하기
+            <SecondaryBtn onClick={() => window.open(project.officialUrl || project.detailUrl, '_blank')}>
+              🔗 공식 홈페이지 가기
             </SecondaryBtn>
           </ActionGroup>
         </InfoSection>
