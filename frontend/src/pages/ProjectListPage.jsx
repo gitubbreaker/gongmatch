@@ -300,7 +300,7 @@ function ProjectListPage() {
               }}></div>
               <span style={{ fontSize: '15px', fontWeight: '800', color: '#fff' }}>
                 {crawlingStatus.isCrawling 
-                  ? `🔥 고성능 딥-크롤러 엔진 가동 중 [${crawlingStatus.currentProgress || '준비 중'}]`
+                  ? '🛡️ 시스템 안정화 및 최신 고품질 데이터 정밀 동기화 진행 중...'
                   : '✨ 시스템 최적화 및 2026년 최신 정밀 데이터 동기화 완료'}
               </span>
            </div>
