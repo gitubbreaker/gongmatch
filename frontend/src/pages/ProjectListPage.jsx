@@ -292,15 +292,15 @@ function ProjectListPage() {
            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ 
                 width: '10px', height: '10px', 
-                background: crawlingStatus.isCrawling ? 'var(--ac)' : 'var(--green)', 
+                background: crawlingStatus.isCrawling ? '#ff4d4d' : '#00e676', 
                 borderRadius: '50%', 
-                boxShadow: `0 0 10px ${crawlingStatus.isCrawling ? 'var(--ac)' : 'var(--green)'}`,
-                animation: crawlingStatus.isCrawling ? 'pulse 2s infinite' : 'none'
+                boxShadow: `0 0 12px ${crawlingStatus.isCrawling ? '#ff4d4d' : '#00e676'}`,
+                animation: crawlingStatus.isCrawling ? 'pulse 1.5s infinite' : 'none'
               }}></div>
-              <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--tx)' }}>
+              <span style={{ fontSize: '14px', fontWeight: '800', color: '#fff' }}>
                 {crawlingStatus.isCrawling 
-                  ? `🚀 시스템 딥-크롤러 엔진 고도화 및 DB 최적화 진행 중 (현재 위비티 ${timeLeft > 0 ? '탭 별 정밀 분석' : '정리'} 중: 약 ${formatTime(timeLeft)})`
-                  : '✅ 시스템 최적화 및 고품질 데이터 동기화 완료'}
+                  ? `🔥 고성능 딥-크롤러 엔진 가동 중 (위비티 분석 단계: 약 ${formatTime(timeLeft)})`
+                  : '✨ 시스템 최적화 및 2026년 최신 정밀 데이터 동기화 완료'}
               </span>
            </div>
            <button 
