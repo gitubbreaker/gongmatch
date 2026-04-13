@@ -32,9 +32,11 @@ public class WevityCrawlingService {
     // [상태 관리] 실시간 수집 상태 및 시작 시간
     private boolean isCrawling = false;
     private java.time.LocalDateTime lastStartTime;
+    private String currentProgress = "준비 중...";
 
     public boolean isCrawling() { return isCrawling; }
     public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
+    public String getCurrentProgress() { return currentProgress; }
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
@@ -57,10 +59,13 @@ public class WevityCrawlingService {
 
         for (String mode : modes) {
             log.info("위비티 {} 탭 수집 중...", mode);
-            // 해커톤 등 누락 방지를 위해 페이지 수 확대 (1~5페이지)
             for (int page = 1; page <= 5; page++) {
+                this.currentProgress = String.format("%s 탭 %d/5페이지 분석 중...", mode, page);
                 String pageUrl = String.format("https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list&mode=%s&gp=%d", mode, page);
                 try {
+                    // [차단 방지] 너무 빠른 요청은 차단될 수 있으므로 약간의 지연 추가
+                    Thread.sleep(500); 
+                    
                     Document doc = Jsoup.connect(pageUrl)
                             .timeout(5000)
                             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
@@ -145,10 +150,12 @@ public class WevityCrawlingService {
             }
         }
         log.info("위비티 전체 크롤링 완료. 총 {}건 신규 저장됨.", totalNewCount);
+        this.currentProgress = "데이터 클린업 및 최종 동기화 중...";
         
         // 크롤링 완료 후 기존 데이터 중 마감된 데이터 정리 실행
         cleanupJunkProjects();
         this.isCrawling = false;
+        this.currentProgress = "완료";
     }
 
     /**

@@ -40,6 +40,7 @@ public class ProjectController {
     public ResponseEntity<?> getCrawlingStatus() {
         return ResponseEntity.ok(java.util.Map.of(
             "isCrawling", wevityCrawlingService.isCrawling(),
+            "currentProgress", wevityCrawlingService.getCurrentProgress(),
             "lastStartTime", wevityCrawlingService.getLastStartTime() != null ? 
                              wevityCrawlingService.getLastStartTime().toString() : null
         ));

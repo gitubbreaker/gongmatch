@@ -213,15 +213,15 @@ function ProjectListPage() {
         const start = new Date(res.data.lastStartTime).getTime();
         const now = new Date().getTime();
         const elapsed = Math.floor((now - start) / 1000);
-        const remaining = Math.max(0, 600 - elapsed);
+        // 수집량이 늘었으므로 기준 시간을 15분(900초)으로 상향
+        const remaining = Math.max(0, 900 - elapsed);
         setTimeLeft(remaining);
       } else {
-        // 이미 수집이 끝난 상태에서 들어오면 배너를 잠시 보여주고 닫음
-        if (showBanner && timeLeft <= 0) {
-           // 상태 유지
-        } else {
-           setShowBanner(false);
+        // 수집이 끝났으면 데이터를 한 번 더 새로고침
+        if (showBanner && crawlingStatus.isCrawling) {
+           fetchProjects();
         }
+        setShowBanner(false);
       }
     } catch (err) {
       console.error('상태 체크 실패', err);
@@ -297,9 +297,9 @@ function ProjectListPage() {
                 boxShadow: `0 0 12px ${crawlingStatus.isCrawling ? '#ff4d4d' : '#00e676'}`,
                 animation: crawlingStatus.isCrawling ? 'pulse 1.5s infinite' : 'none'
               }}></div>
-              <span style={{ fontSize: '14px', fontWeight: '800', color: '#fff' }}>
+              <span style={{ fontSize: '15px', fontWeight: '800', color: '#fff' }}>
                 {crawlingStatus.isCrawling 
-                  ? `🔥 고성능 딥-크롤러 엔진 가동 중 (위비티 분석 단계: 약 ${formatTime(timeLeft)})`
+                  ? `🔥 고성능 딥-크롤러 엔진 가동 중 [${crawlingStatus.currentProgress || '준비 중'}]`
                   : '✨ 시스템 최적화 및 2026년 최신 정밀 데이터 동기화 완료'}
               </span>
            </div>
