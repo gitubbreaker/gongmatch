@@ -106,7 +106,7 @@ public class WevityCrawlingService {
     }
 
     /**
-     * 상세 페이지에서 추가 정보(포스터, 공식 홈페이지) 추출
+     * 상세 페이지에서 추가 정보(포스터, 공식 홈페이지) 추출 (최종 강화 버전)
      */
     private DetailInfo crawlDetailInfo(String detailUrl) {
         String posterImageUrl = null;
@@ -117,39 +117,44 @@ public class WevityCrawlingService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
-            // 포스터 이미지 추출 (우선순위: .thumb img -> .view-img img -> .img_area img -> .img-area img)
-            Element imgTag = detailDoc.selectFirst(".thumb img");
-            if (imgTag == null) imgTag = detailDoc.selectFirst(".view-img img");
-            if (imgTag == null) imgTag = detailDoc.selectFirst(".img_area img");
-            if (imgTag == null) imgTag = detailDoc.selectFirst(".img-area img");
-            if (imgTag == null) imgTag = detailDoc.selectFirst(".content-area img[src*=upload/contest]");
-            if (imgTag == null) imgTag = detailDoc.selectFirst(".view-cont img");
-
-            if (imgTag != null) {
-                // lazy-loading 대응: data-src, data-original 우선 확인, 없으면 src
-                String src = null;
-                if (imgTag.hasAttr("data-src")) src = imgTag.attr("data-src");
-                else if (imgTag.hasAttr("data-original")) src = imgTag.attr("data-original");
-                else src = imgTag.attr("src");
-
-                if (src != null && !src.isEmpty()) {
+            // 1. 포스터 이미지 추출 (더 넓은 탐색 범위)
+            Elements images = detailDoc.select(".thumb img, .view-img img, .img_area img, .img-area img, .view-cont img");
+            for (Element img : images) {
+                String src = img.hasAttr("data-src") ? img.attr("data-src") : 
+                             img.hasAttr("data-original") ? img.attr("data-original") : img.attr("src");
+                
+                if (src != null && src.contains("upload/contest")) {
                     posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
+                    break;
                 }
             }
 
-            // 공식 홈페이지 링크 추출 (키워드 기반 자동화 탐색)
-            Elements infoItems = detailDoc.select(".cd-info-list li");
-            for (Element li : infoItems) {
-                String text = li.text();
-                // "홈페이지"뿐만 아니라 "참가신청", "바로가기", "링크", "접수사이트" 등 모든 변칙 키워드 대응
-                if (text.matches(".*(홈페이지|바로가기|참가신청|링크|접수|원본|참조).*")) {
-                    Element aTag = li.selectFirst("a");
-                    if (aTag != null) {
-                        String href = aTag.attr("href");
-                        if (href != null && !href.isEmpty() && !href.equals("#")) {
+            // 2. 공식 홈페이지 링크 추출 (Heuristic Keyword Matching)
+            Pattern linkPattern = Pattern.compile("(홈페이지|바로가기|참가신청|링크|접수|원본|참조|사이트)");
+            
+            // 우선순위 1: 정보 리스트(.info, .cd-info-list) 내의 링크
+            Elements infoItems = detailDoc.select(".info li, .cd-info-list li, .cd-box div");
+            for (Element el : infoItems) {
+                if (linkPattern.matcher(el.text()).find()) {
+                    Element a = el.selectFirst("a");
+                    if (a != null) {
+                        String href = a.attr("href");
+                        if (href != null && !href.isEmpty() && !href.startsWith("#")) {
                             officialUrl = href.startsWith("/") ? BASE_URL + href : href;
                             break;
                         }
+                    }
+                }
+            }
+
+            // 우선순위 2: 본문(.view-cont) 내의 외부 링크
+            if (officialUrl == null) {
+                Elements bodyLinks = detailDoc.select(".view-cont a");
+                for (Element a : bodyLinks) {
+                    String href = a.attr("href");
+                    if (href != null && href.startsWith("http") && !href.contains("wevity.com")) {
+                        officialUrl = href;
+                        break;
                     }
                 }
             }

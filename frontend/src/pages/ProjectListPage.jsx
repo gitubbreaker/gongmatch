@@ -161,6 +161,35 @@ const EmptyState = styled.div`
   }
 `;
 
+// 사진 부재 시 자동으로 제목을 넣어주는 스마트 포스터 컴포넌트
+const SmartPoster = ({ src, title, category }) => {
+  const [error, setError] = React.useState(!src);
+  
+  if (error) {
+    return (
+      <div style={{ 
+        width: '100%', height: '100%', 
+        background: 'linear-gradient(135deg, var(--bg3) 0%, var(--bg2) 100%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '20px', textAlign: 'center', border: '1px solid var(--brd3)', borderRadius: '12px'
+      }}>
+        <div style={{ fontSize: '11px', color: 'var(--ac)', fontWeight: '800', marginBottom: '8px', opacity: '0.8' }}>{category || 'IT / 해커톤'}</div>
+        <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--tx)', lineHeight: '1.4', wordBreak: 'keep-all' }}>{title}</div>
+        <div style={{ width: '40px', height: '2px', background: 'var(--ac)', marginTop: '16px' }}></div>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={src} 
+      alt={title}
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      onError={() => setError(true)}
+    />
+  );
+};
+
 function ProjectListPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
@@ -178,7 +207,7 @@ function ProjectListPage() {
         setIsLoading(false);
       }
     };
-
+ 
     fetchProjects();
   }, []);
 
@@ -193,6 +222,25 @@ function ProjectListPage() {
 
   return (
     <Container>
+      {/* 시스템 최적화 실시간 상황판 */}
+      <div style={{ 
+        background: 'rgba(100, 108, 255, 0.1)', 
+        border: '1px solid var(--ac-brd)', 
+        borderRadius: '12px', 
+        padding: '16px 24px', 
+        marginBottom: '32px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        backdropFilter: 'blur(10px)'
+      }}>
+         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '10px', height: '10px', background: 'var(--ac)', borderRadius: '50%', boxShadow: '0 0 10px var(--ac)' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--tx)' }}>🚀 시스템 딥-크롤러 엔진 고도화 및 DB 최적화 진행 중 (남은 시간: 약 10분)</span>
+         </div>
+         <div style={{ fontSize: '12px', color: 'var(--tx3)', fontWeight: '600' }}>새로고침 시 모든 결과가 반영됩니다</div>
+      </div>
+
       <HeaderSection>
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
         <Subtitle>대학생 여러분을 위한 최신 IT 프로젝트 및 대외활동 정보를 실시간으로 수집합니다.</Subtitle>
@@ -248,12 +296,7 @@ function ProjectListPage() {
             {filteredProjects.map(project => (
               <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
                 <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '18px', background: 'var(--bg2)', border: '1px solid var(--brd2)' }}>
-                  <img 
-                    src={project.posterImageUrl || 'https://via.placeholder.com/340x180?text=GongMatch'} 
-                    alt={project.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/340x180?text=GongMatch'; }}
-                  />
+                  <SmartPoster src={project.posterImageUrl} title={project.title} category={project.category} />
                 </div>
                 <CategoryTag>{project.category || 'IT / 해커톤'}</CategoryTag>
                 <ProjectTitle>{project.title}</ProjectTitle>

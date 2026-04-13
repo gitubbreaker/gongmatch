@@ -177,6 +177,35 @@ const SecondaryBtn = styled.button`
   }
 `;
 
+// 상세 페이지용 스마트 포스터
+const SmartPoster = ({ src, title, category }) => {
+  const [error, setError] = React.useState(!src);
+  
+  if (error) {
+    return (
+      <div style={{ 
+        width: '100%', minHeight: '480px',
+        background: 'linear-gradient(135deg, var(--bg3) 0%, var(--bg2) 100%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '40px', textAlign: 'center', border: '1px solid var(--brd3)', borderRadius: '16px',
+        boxShadow: '0 15px 35px rgba(0,0,0,0.4)'
+      }}>
+        <div style={{ fontSize: '14px', color: 'var(--ac)', fontWeight: '800', marginBottom: '15px' }}>{category || 'IT / 해커톤'}</div>
+        <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--tx)', lineHeight: '1.4', wordBreak: 'keep-all' }}>{title}</div>
+        <div style={{ width: '60px', height: '3px', background: 'var(--ac)', marginTop: '30px' }}></div>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={src} 
+      alt={title} 
+      onError={() => setError(true)}
+    />
+  );
+};
+
 function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -206,11 +235,7 @@ function ProjectDetail() {
     <Container>
       <DetailLayout>
         <PosterSection>
-          <img 
-            src={project.posterImageUrl || 'https://via.placeholder.com/400x560?text=No+Poster'} 
-            alt={project.title} 
-            onError={(e) => { e.target.src = 'https://via.placeholder.com/400x560?text=No+Poster'; }}
-          />
+          <SmartPoster src={project.posterImageUrl} title={project.title} category={project.category} />
         </PosterSection>
 
         <InfoSection>
