@@ -24,6 +24,9 @@ public class WevityCrawlingService implements InitializingBean {
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
     private final Random random = new Random();
+    private java.time.LocalDateTime lastStartTime;
+
+    public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -39,6 +42,7 @@ public class WevityCrawlingService implements InitializingBean {
     @Scheduled(cron = "0 0 1 * * *")
     @Async
     public void crawlWevityProjects() {
+        this.lastStartTime = java.time.LocalDateTime.now();
         log.info("위비티 리스트 전수 조사 및 대량 이미지 수집 시작...");
         
         // IT/SW(20) 뿐만 아니라 기획(21), 공학(24)까지 대량 확장
