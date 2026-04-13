@@ -130,15 +130,18 @@ public class WevityCrawlingService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
-            // 포스터 이미지 추출
+            // 포스터 이미지 추출 (우선순위: .thumb img -> .view-img img -> .img_area img)
             Element imgTag = detailDoc.selectFirst(".thumb img");
-            if (imgTag == null) {
-                imgTag = detailDoc.selectFirst(".view-img img");
-            }
+            if (imgTag == null) imgTag = detailDoc.selectFirst(".view-img img");
+            if (imgTag == null) imgTag = detailDoc.selectFirst(".img_area img");
+            if (imgTag == null) imgTag = detailDoc.selectFirst(".content-area img[src*=upload/contest]");
 
             if (imgTag != null) {
-                String src = imgTag.attr("src");
-                posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
+                // lazy-loading 대응: data-src 우선 확인, 없으면 src
+                String src = imgTag.hasAttr("data-src") ? imgTag.attr("data-src") : imgTag.attr("src");
+                if (src != null && !src.isEmpty()) {
+                    posterImageUrl = src.startsWith("/") ? BASE_URL + src : src;
+                }
             }
 
             // 공식 홈페이지 링크 추출
