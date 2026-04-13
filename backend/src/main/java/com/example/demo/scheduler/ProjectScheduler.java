@@ -101,13 +101,13 @@ public class ProjectScheduler {
     private boolean isTargetProject(String title) {
         if (title == null) return false;
         String t = title.toLowerCase();
+        // 엄격한 IT 전문 키워드 필터링
         return t.contains("해커톤") || t.contains("개발") || t.contains("sw") || 
                t.contains("소프트웨어") || t.contains("it") || t.contains("웹") || 
                t.contains("모바일") || t.contains("앱") || t.contains("인공지능") || 
                t.contains("ai") || t.contains("데이터") || t.contains("알고리즘") || 
                t.contains("클라우드") || t.contains("코딩") || t.contains("프로그래밍") || 
-               t.contains("컴퓨터") || t.contains("보안") || t.contains("경진대회") ||
-               t.contains("아이디어") || t.contains("창업") || t.contains("전공") ||
-               t.contains("ict") || t.contains("코드");
+               t.contains("컴퓨터") || t.contains("보안") || t.contains("ict") || t.contains("코드") ||
+               t.contains("빅데이터") || t.contains("시스템") || t.contains("블록체인");
     }
 }
