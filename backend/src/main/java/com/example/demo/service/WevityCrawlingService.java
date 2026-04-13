@@ -30,9 +30,10 @@ public class WevityCrawlingService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        log.info("애플리케이션 시작 시 위비티 실시간 데이터 수집 및 클린업 실행...");
+        log.info("애플리케이션 시작 시 데이터 초기화 및 클린 크롤링 실행...");
+        // [긴급 조치] 기존의 오염된 데이터(2025년 자료 등)를 모두 삭제하고 새로 시작
+        purgeAllProjects(); 
         crawlWevityProjects();
-        cleanupExpiredProjects(); // 수집 후 한 번 더 클린업 확인
     }
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
@@ -63,9 +64,14 @@ public class WevityCrawlingService {
                         String dayText = item.select("div.day").text();
                         LocalDate endDate = parseEndDate(dayText);
                         
-                        // [핵심 수정] 마감일 파싱 실패 시 상시 공고로 간주하지 않고, 서비스 관점에서 불필요/부정확한 정보이므로 스킵
+                        // [고도화 전략 1] 제목에 포함된 연도와 현재 시점(2026년) 비교 검증
+                        if (isPastYearProject(title)) {
+                            log.info("과거 연도 프로젝트 수집 제외: {}", title);
+                            continue;
+                        }
+
+                        // [고도화 전략 2] 마감일 파싱 실패 시 상시 공고로 간주하지 않고 즉시 스킵
                         if (endDate == null) {
-                            log.warn("마감일 파싱 실패로 수집 제외: {}", title);
                             continue; 
                         }
 
@@ -120,6 +126,32 @@ public class WevityCrawlingService {
         
         // 크롤링 완료 후 기존 데이터 중 마감된 데이터 정리 실행
         cleanupExpiredProjects();
+    }
+
+    /**
+     * 기존의 모든 프로젝트 데이터를 완전히 삭제 (초기화)
+     */
+    @Transactional
+    public void purgeAllProjects() {
+        log.info("데이터베이스 완전 초기화 중...");
+        projectRepository.deleteAll();
+        log.info("기존 데이터가 모두 삭제되었습니다.");
+    }
+
+    /**
+     * 제목에 과거 연도(2024, 2025 등)가 포함되어 있는지 확인하여 필터링
+     */
+    private boolean isPastYearProject(String title) {
+        int currentYear = LocalDate.now().getYear();
+        // 2000년부터 작년까지의 연도가 제목에 명시되어 있으면 과거 프로젝트로 간주
+        for (int year = 2000; year < currentYear; year++) {
+            if (title.contains(String.valueOf(year))) {
+                // 단, "2025-2026" 처럼 걸쳐있는 경우는 예외로 할 수 있으나 
+                // 위비티 특성상 제목에 "2025 KOSAC" 처럼 박히면 보통 지난 공고임
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
