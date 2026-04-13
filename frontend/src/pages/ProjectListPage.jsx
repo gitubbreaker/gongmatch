@@ -230,8 +230,13 @@ function ProjectListPage() {
 
   useEffect(() => {
     checkStatus();
-    const statusInterval = setInterval(checkStatus, 30000); // 30초마다 상태 갱신
-    return () => clearInterval(statusInterval);
+    fetchProjects(); 
+    const statusInterval = setInterval(checkStatus, 5000); // 5초마다 상태 체크
+    const dataInterval = setInterval(fetchProjects, 10000); // 10초마다 데이터 자동 갱신
+    return () => {
+      clearInterval(statusInterval);
+      clearInterval(dataInterval);
+    };
   }, []);
 
   // 타이머 로직 (로컬 카운트다운)
