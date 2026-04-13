@@ -41,6 +41,9 @@ public class Project {
 
     private String category;       // 카테고리 (기획, 개발, 디자인 등)
 
+    @Column(length = 1000)
+    private String posterImageUrl; // 포스터 이미지 URL
+
     @Builder.Default
     private LocalDate createdAt = LocalDate.now();
 }

@@ -129,7 +129,7 @@ function S1Home() {
             };
 
             return (
-              <div key={p.id} className="pubcard" onClick={() => p.detailUrl && window.open(p.detailUrl, '_blank')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer', transition: 'transform 0.2s', position: 'relative' }}>
+              <div key={p.id} className="pubcard" onClick={() => navigate('/projects/' + p.id)} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer', transition: 'transform 0.2s', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                   <div style={{ flex: 1, paddingRight: '45px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import api from '../api';
 
@@ -161,6 +162,7 @@ const EmptyState = styled.div`
 `;
 
 function ProjectListPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isStudentOnly, setIsStudentOnly] = useState(false); // 대학생 필터 상태
@@ -180,8 +182,8 @@ function ProjectListPage() {
     fetchProjects();
   }, []);
 
-  const handleApply = (url) => {
-    if (url) window.open(url, '_blank');
+  const handleApply = (id) => {
+    navigate(`/projects/${id}`);
   };
 
   // 대학생 맞춤 필터링 로직
@@ -244,7 +246,15 @@ function ProjectListPage() {
           </p>
           <Grid>
             {filteredProjects.map(project => (
-              <ProjectCard key={project.id} onClick={() => handleApply(project.detailUrl)}>
+              <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
+                <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '18px', background: 'var(--bg2)', border: '1px solid var(--brd2)' }}>
+                  <img 
+                    src={project.posterImageUrl || 'https://via.placeholder.com/340x180?text=GongMatch'} 
+                    alt={project.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/340x180?text=GongMatch'; }}
+                  />
+                </div>
                 <CategoryTag>{project.category || 'IT / 해커톤'}</CategoryTag>
                 <ProjectTitle>{project.title}</ProjectTitle>
                 

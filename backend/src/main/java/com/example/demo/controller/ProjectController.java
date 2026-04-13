@@ -1,13 +1,17 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ProjectResponseDto;
 import com.example.demo.entity.Project;
 import com.example.demo.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -17,8 +21,16 @@ public class ProjectController {
     private final ProjectRepository projectRepository;
 
     @GetMapping
-    public List<Project> getAllProjects() {
-        // 최근 수집된 공고가 먼저 나오도록 ID 역순으로 조회합니다.
-        return projectRepository.findAllByOrderByIdDesc();
+    public List<ProjectResponseDto> getAllProjects() {
+        return projectRepository.findAllByOrderByIdDesc().stream()
+                .map(ProjectResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProjectResponseDto> getProjectById(@PathVariable Long id) {
+        return projectRepository.findById(id)
+                .map(project -> ResponseEntity.ok(ProjectResponseDto.from(project)))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

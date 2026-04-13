@@ -67,17 +67,29 @@ public class WevityCrawlingService {
                     // 실제 날짜가 숨겨져 있을 수 있으므로 더 깊게 탐색
                     LocalDate endDate = parseEndDate(dayText);
 
-                    // 3. 중복 방지 로직 (detailUrl 기준)
-                    if (projectRepository.existsByDetailUrl(fullDetailUrl)) {
+                    // 3. 포스터 이미지 추출 (상세 페이지 접속)
+                    String posterImageUrl = crawlPosterImageUrl(fullDetailUrl);
+
+                    // 4. 중복 방지 및 업데이트 로직
+                    Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
+                    
+                    if (existingProject != null) {
+                        // 이미 존재하는데 포스터가 없는 경우에만 업데이트 시도
+                        if (existingProject.getPosterImageUrl() == null && posterImageUrl != null) {
+                            existingProject.setPosterImageUrl(posterImageUrl);
+                            projectRepository.save(existingProject);
+                            log.info("기존 공고 포스터 업데이트 완료: {}", title);
+                        }
                         continue;
                     }
 
-                    // 4. DB 저장
+                    // 5. DB 저장 (신규)
                     Project project = Project.builder()
                             .title(title)
                             .host(host)
                             .detailUrl(fullDetailUrl)
-                            .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1)) // 날짜 파싱 안될 시 우선 한달 후로 설정
+                            .posterImageUrl(posterImageUrl)
+                            .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1))
                             .category("IT/해커톤")
                             .build();
 
@@ -94,6 +106,34 @@ public class WevityCrawlingService {
         } catch (Exception e) {
             log.error("위비티 서버 연결 오류 및 전체 크롤링 실패: {}", e.getMessage());
         }
+    }
+
+    /**
+     * 상세 페이지에서 포스터 이미지 URL 추출
+     */
+    private String crawlPosterImageUrl(String detailUrl) {
+        try {
+            Document detailDoc = Jsoup.connect(detailUrl)
+                    .timeout(3000)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                    .get();
+
+            Element imgTag = detailDoc.selectFirst(".thumb img");
+            if (imgTag == null) {
+                imgTag = detailDoc.selectFirst(".view-img img");
+            }
+
+            if (imgTag != null) {
+                String src = imgTag.attr("src");
+                if (src.startsWith("/")) {
+                    return BASE_URL + src;
+                }
+                return src;
+            }
+        } catch (Exception e) {
+            log.warn("상세 페이지 포스터 이미지 크롤링 실패 ({}): {}", detailUrl, e.getMessage());
+        }
+        return null;
     }
 
     /**

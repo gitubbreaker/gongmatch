@@ -22,6 +22,7 @@ public class ProjectResponseDto {
     private LocalDate endDate;
     private Long viewCount;
     private String detailUrl;
+    private String posterImageUrl;
     private long dDay; // D-Day 계산 결과
 
     /**
@@ -42,6 +43,7 @@ public class ProjectResponseDto {
                 .endDate(project.getEndDate())
                 .viewCount(project.getViewCount())
                 .detailUrl(project.getDetailUrl())
+                .posterImageUrl(project.getPosterImageUrl())
                 .dDay(dDay)
                 .build();
     }
