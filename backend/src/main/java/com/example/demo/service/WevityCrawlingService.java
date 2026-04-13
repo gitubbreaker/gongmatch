@@ -10,6 +10,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
+@EnableAsync
 @RequiredArgsConstructor
 public class WevityCrawlingService {
 
@@ -43,6 +46,7 @@ public class WevityCrawlingService {
     }
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
+    @Async
     public void crawlWevityProjects() {
         this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
@@ -54,8 +58,8 @@ public class WevityCrawlingService {
 
         for (String mode : modes) {
             log.info("위비티 {} 탭 수집 중...", mode);
-            // 각 탭 별로 1~2페이지 정도만 수집해도 실시간성이 충분함
-            for (int page = 1; page <= 2; page++) {
+            // 해커톤 등 누락 방지를 위해 페이지 수 확대 (1~5페이지)
+            for (int page = 1; page <= 5; page++) {
                 String pageUrl = String.format("https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list&mode=%s&gp=%d", mode, page);
                 try {
                     Document doc = Jsoup.connect(pageUrl)
