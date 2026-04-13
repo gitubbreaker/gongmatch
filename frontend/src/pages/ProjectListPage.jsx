@@ -194,7 +194,6 @@ function ProjectListPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isStudentOnly, setIsStudentOnly] = useState(false);
   
   // 리얼타임 수집 상태 관리
   const [crawlingStatus, setCrawlingStatus] = useState({ isCrawling: false, lastStartTime: null });
@@ -270,9 +269,7 @@ function ProjectListPage() {
   };
 
   // 대학생 맞춤 필터링 로직
-  const filteredProjects = isStudentOnly 
-    ? projects.filter(p => (p.title + p.category).includes('대학생') || (p.title + p.category).includes('해커톤') || (p.title + p.category).includes('공모전'))
-    : projects;
+  const filteredProjects = projects;
 
   return (
     <Container>
@@ -281,32 +278,6 @@ function ProjectListPage() {
       <HeaderSection>
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
         <Subtitle>대학생 여러분을 위한 최신 IT 프로젝트 및 대외활동 정보를 실시간으로 수집합니다.</Subtitle>
-        
-        {/* 대학생 전용 필터 UI */}
-        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
-          <button 
-            onClick={() => setIsStudentOnly(!isStudentOnly)}
-            style={{ 
-              background: isStudentOnly ? 'var(--ac-dim)' : 'var(--card)',
-              border: '1px solid',
-              borderColor: isStudentOnly ? 'var(--ac-brd)' : 'var(--brd2)',
-              color: isStudentOnly ? 'var(--ac)' : 'var(--tx3)',
-              padding: '10px 24px',
-              borderRadius: '30px',
-              fontSize: '13px',
-              fontWeight: '800',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-            }}
-          >
-            {isStudentOnly ? '✨ 대학생 맞춤 추천 적용 중' : '🎓 대학생 추천 항목만 보기'}
-            <div style={{ width: '30px', height: '16px', background: isStudentOnly ? 'var(--ac)' : 'var(--tx4)', borderRadius: '20px', position: 'relative', transition: 'background 0.3s' }}>
-              <div style={{ width: '12px', height: '12px', background: '#000', borderRadius: '50%', position: 'absolute', top: '2px', left: isStudentOnly ? '16px' : '2px', transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}></div>
-            </div>
-          </button>
-        </div>
       </HeaderSection>
 
       {isLoading ? (
@@ -326,8 +297,9 @@ function ProjectListPage() {
         </EmptyState>
       ) : (
         <>
-          <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '16px', textAlign: 'center' }}>
-            총 <b>{filteredProjects.length}건</b>의 {isStudentOnly ? '대학생 맞춤 ' : ''}공고가 검색되었습니다.
+          <p style={{ fontSize: '13px', color: 'var(--tx3)', marginBottom: '24px', textAlign: 'center' }}>
+            현재 <b>{filteredProjects.length}건</b>의 IT 프로젝트가 당신을 기다리고 있습니다.
+            <span style={{ marginLeft: '12px', padding: '2px 8px', background: 'var(--ac-dim)', color: 'var(--ac)', borderRadius: '4px', fontSize: '11px', fontWeight: '800' }}>실시간 동기화 완료</span>
           </p>
           <Grid>
             {filteredProjects.map(project => (
