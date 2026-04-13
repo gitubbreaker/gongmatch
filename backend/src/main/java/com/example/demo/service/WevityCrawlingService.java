@@ -14,8 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 @Slf4j
@@ -27,45 +25,12 @@ public class WevityCrawlingService implements InitializingBean {
     private static final String BASE_URL = "https://www.wevity.com";
     private final Random random = new Random();
 
-    private boolean isCrawling = false;
-    private java.time.LocalDateTime lastStartTime;
-    private String currentProgress = "안정화 수집 중...";
-
-    public boolean isCrawling() { return isCrawling; }
-    public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
-    public String getCurrentProgress() { return currentProgress; }
-
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("고품질 데이터 수동 주입 및 동기화 가동...");
-        
-        // [긴급 조치] 실시간 위비티 핫 아이템 강제 주입 (사진 깨짐 방지)
-        List<Project> hotProjects = new ArrayList<>();
-        hotProjects.add(Project.builder()
-            .title("2026 글로벌 피우다프로젝트 (SW개발 경진대회)")
-            .host("과학기술정보통신부")
-            .detailUrl("https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=viewok&gp=1&ix=106194")
-            .posterImageUrl("https://www.wevity.com/upload/contest/20260408103138_76466f27.jpg")
-            .officialUrl("https://www.msit.go.kr")
-            .endDate(LocalDate.now().plusDays(30)).category("IT/해커톤(추천)").build());
-            
-        hotProjects.add(Project.builder()
-            .title("2026년 제3회 범정부 해커톤 [개발자 모집]")
-            .host("행정안전부")
-            .detailUrl("https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=viewok&gp=1&ix=106195")
-            .posterImageUrl("https://www.wevity.com/upload/contest/20260327145221_50967362.jpg")
-            .officialUrl("https://www.mois.go.kr")
-            .endDate(LocalDate.now().plusDays(15)).category("IT/해커톤(추천)").build());
-
-        for (Project p : hotProjects) {
-            if (projectRepository.findByDetailUrl(p.getDetailUrl()).isEmpty()) {
-                projectRepository.save(p);
-            }
-        }
-
+        log.info("긴급 고성능 대량 자동 수집 가동...");
         new Thread(() -> {
             try {
-                Thread.sleep(3000); 
+                Thread.sleep(2000);
                 crawlWevityProjects();
             } catch (Exception ignored) {}
         }).start();
@@ -74,76 +39,63 @@ public class WevityCrawlingService implements InitializingBean {
     @Scheduled(cron = "0 0 1 * * *")
     @Async
     public void crawlWevityProjects() {
-        this.isCrawling = true;
-        this.lastStartTime = java.time.LocalDateTime.now();
-        log.info("위비티 정밀 이미지 및 공식 링크 수집 시작...");
+        log.info("위비티 리스트 전수 조사 및 대량 이미지 수집 시작...");
         
-        String targetUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20";
-        try {
-            Document doc = Jsoup.connect(targetUrl)
-                    .timeout(15000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                    .get();
+        // IT/SW(20) 뿐만 아니라 기획(21), 공학(24)까지 대량 확장
+        int[] categories = {20, 21, 24};
+        
+        for (int cidx : categories) {
+            String targetUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=" + cidx;
+            try {
+                Document doc = Jsoup.connect(targetUrl)
+                        .timeout(15000)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                        .get();
 
-            Elements items = doc.select(".list-area li, ul.list li");
-            for (Element item : items) {
-                try {
-                    Element a = item.selectFirst(".tit a, a");
-                    if (a == null) continue;
-                    
-                    String detailUrl = a.attr("href").startsWith("http") ? a.attr("href") : BASE_URL + a.attr("href");
-                    Project project = projectRepository.findByDetailUrl(detailUrl)
-                            .orElse(Project.builder().detailUrl(detailUrl).build());
+                Elements items = doc.select(".list-area > ul > li, ul.list > li");
+                log.info("카테고리 {}에서 {}개 항목 발견", cidx, items.size());
 
-                    DetailInfo detail = crawlDetailInfo(detailUrl);
-                    
-                    project.setTitle(a.text().trim());
-                    project.setHost(item.select(".organ").text().trim());
-                    project.setEndDate(LocalDate.now().plusDays(20));
-                    project.setCategory("IT/대외활동");
-                    
-                    if (detail.getPosterImageUrl() != null) project.setPosterImageUrl(detail.getPosterImageUrl());
-                    if (detail.getOfficialUrl() != null) project.setOfficialUrl(detail.getOfficialUrl());
+                for (Element item : items) {
+                    try {
+                        Element titleTag = item.selectFirst(".tit a, .tit span a, a");
+                        if (titleTag == null) continue;
+                        
+                        String title = titleTag.text().trim();
+                        String detailUrl = titleTag.attr("href").startsWith("http") ? titleTag.attr("href") : BASE_URL + titleTag.attr("href");
+                        
+                        // [핵심 전략] 리스트 페이지의 썸네일을 직접 가져옴 (상세 페이지 403 차단 우회)
+                        Element thumbImg = item.selectFirst(".thumb img, img");
+                        String posterUrl = null;
+                        if (thumbImg != null) {
+                            String src = thumbImg.attr("src");
+                            if (src.startsWith("//")) posterUrl = "https:" + src;
+                            else if (src.startsWith("/")) posterUrl = BASE_URL + src;
+                            else posterUrl = src;
+                        }
 
-                    projectRepository.save(project);
-                } catch (Exception ignored) {}
-            }
-        } catch (Exception ignored) {}
-        this.isCrawling = false;
-    }
+                        Project project = projectRepository.findByDetailUrl(detailUrl)
+                                .orElse(Project.builder().detailUrl(detailUrl).build());
 
-    private DetailInfo crawlDetailInfo(String detailUrl) {
-        String poster = null, official = null;
-        try {
-            Thread.sleep(300 + random.nextInt(300));
-            Document doc = Jsoup.connect(detailUrl)
-                    .timeout(10000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                    .get();
+                        project.setTitle(title);
+                        project.setHost(item.select(".organ").text().trim());
+                        project.setEndDate(LocalDate.now().plusDays(25));
+                        project.setCategory("IT/추천공모전");
+                        if (posterUrl != null) project.setPosterImageUrl(posterUrl);
+                        
+                        // [상세 페이지는 선택적 방문] 이미지가 이미 리스트에 있으므로 차단 위험 감소
+                        if (project.getOfficialUrl() == null) {
+                            project.setOfficialUrl(detailUrl); // 우선 기본값
+                        }
 
-            Element img = doc.selectFirst(".thumb img, .view-img img, .img-area img, .thumb-area img");
-            if (img != null) {
-                String src = img.attr("src");
-                // [정밀 보정] 이미지 주소 깨짐 방지
-                if (src.startsWith("//")) poster = "https:" + src;
-                else if (src.startsWith("/")) poster = BASE_URL + src;
-                else poster = src;
-            }
-            
-            Elements links = doc.select(".cd-info-list a[href^=http], .cd-info a[href^=http], a.btn[href^=http]");
-            for (Element a : links) {
-                String href = a.attr("href");
-                if (!href.contains("wevity.com") && !href.contains("facebook.com")) { 
-                    official = href; 
-                    break; 
+                        projectRepository.save(project);
+                    } catch (Exception ignored) {}
                 }
+            } catch (Exception e) {
+                log.error("수집 오류 (cidx={}): {}", cidx, e.getMessage());
             }
-        } catch (Exception ignored) {}
-        return new DetailInfo(poster, official);
+        }
+        log.info("대량 데이터 동기화 완료");
     }
-
-    @lombok.Getter @lombok.AllArgsConstructor
-    private static class DetailInfo { String posterImageUrl, officialUrl; }
 
     public void cleanupJunkProjects() { }
 }
