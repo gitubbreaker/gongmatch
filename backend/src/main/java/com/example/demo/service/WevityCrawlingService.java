@@ -26,7 +26,6 @@ public class WevityCrawlingService {
 
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
-    private static final String WEVITY_URL = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gp=1";
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
@@ -55,76 +54,77 @@ public class WevityCrawlingService {
                             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                             .get();
 
-                Elements items = doc.select("ul.list > li");
-                int pageCount = 0;
+                    Elements items = doc.select("ul.list > li");
+                    int pageCount = 0;
 
-                for (Element item : items) {
-                    try {
-                        Element titleTag = item.selectFirst("div.tit > a");
-                        if (titleTag == null) continue;
+                    for (Element item : items) {
+                        try {
+                            Element titleTag = item.selectFirst("div.tit > a");
+                            if (titleTag == null) continue;
 
-                        String title = titleTag.text().replace("SPECIAL", "").trim();
-                        String detailPath = titleTag.attr("href");
-                        String fullDetailUrl = detailPath.startsWith("http") ? detailPath : BASE_URL + detailPath;
-                        String host = item.select("div.organ").text().trim();
-                        String dayText = item.select("div.day").text();
-                        LocalDate endDate = parseEndDate(dayText);
-                        
-                        // [고도화 전략 1] 제목에 포함된 연도와 현재 시점(2026년) 비교 검증
-                        if (isPastYearProject(title)) {
-                            log.info("과거 연도 프로젝트 수집 제외: {}", title);
-                            continue;
-                        }
-
-                        // [고도화 전략 2] 마감일 파싱 실패 시 상시 공고로 간주하지 않고 즉시 스킵
-                        if (endDate == null) {
-                            continue; 
-                        }
-
-                        // [핵심 수정] 이미 마감된 공고(과거 날짜)는 수집하지 않음
-                        if (endDate.isBefore(LocalDate.now())) {
-                            log.info("이미 마감된 공고 수집 제외: {} (마감일: {})", title, endDate);
-                            continue;
-                        }
-
-                        DetailInfo detail = crawlDetailInfo(fullDetailUrl);
-
-                        Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
-                        
-                        if (existingProject != null) {
-                            boolean updated = false;
-                            if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
-                                existingProject.setPosterImageUrl(detail.getPosterImageUrl());
-                                updated = true;
+                            String title = titleTag.text().replace("SPECIAL", "").trim();
+                            String detailPath = titleTag.attr("href");
+                            String fullDetailUrl = detailPath.startsWith("http") ? detailPath : BASE_URL + detailPath;
+                            String host = item.select("div.organ").text().trim();
+                            String dayText = item.select("div.day").text();
+                            LocalDate endDate = parseEndDate(dayText);
+                            
+                            // [고도화 전략 1] 제목에 포함된 연도와 현재 시점(2026년) 비교 검증
+                            if (isPastYearProject(title)) {
+                                log.info("과거 연도 프로젝트 수집 제외: {}", title);
+                                continue;
                             }
-                            if (existingProject.getOfficialUrl() == null && detail.getOfficialUrl() != null) {
-                                existingProject.setOfficialUrl(detail.getOfficialUrl());
-                                updated = true;
+
+                            // [고도화 전략 2] 마감일 파싱 실패 시 상시 공고로 간주하지 않고 즉시 스킵
+                            if (endDate == null) {
+                                continue; 
                             }
-                            if (updated) {
-                                projectRepository.save(existingProject);
+
+                            // [핵심 수정] 이미 마감된 공고(과거 날짜)는 수집하지 않음
+                            if (endDate.isBefore(LocalDate.now())) {
+                                log.info("이미 마감된 공고 수집 제외: {} (마감일: {})", title, endDate);
+                                continue;
                             }
-                            continue;
+
+                            DetailInfo detail = crawlDetailInfo(fullDetailUrl);
+
+                            Project existingProject = projectRepository.findByDetailUrl(fullDetailUrl).orElse(null);
+                            
+                            if (existingProject != null) {
+                                boolean updated = false;
+                                if (existingProject.getPosterImageUrl() == null && detail.getPosterImageUrl() != null) {
+                                    existingProject.setPosterImageUrl(detail.getPosterImageUrl());
+                                    updated = true;
+                                }
+                                if (existingProject.getOfficialUrl() == null && detail.getOfficialUrl() != null) {
+                                    existingProject.setOfficialUrl(detail.getOfficialUrl());
+                                    updated = true;
+                                }
+                                if (updated) {
+                                    projectRepository.save(existingProject);
+                                }
+                                continue;
+                            }
+
+                            Project project = Project.builder()
+                                    .title(title).host(host).detailUrl(fullDetailUrl)
+                                    .posterImageUrl(detail.getPosterImageUrl())
+                                    .officialUrl(detail.getOfficialUrl())
+                                    .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1))
+                                    .category("IT/해커톤").build();
+
+                            projectRepository.save(project);
+                            pageCount++;
+                            totalNewCount++;
+
+                        } catch (Exception e) {
+                            log.error("위비티 개별 항목 파싱 중 오류 발생 ({} 탭, 페이지 {}): {}", mode, page, e.getMessage());
                         }
-
-                        Project project = Project.builder()
-                                .title(title).host(host).detailUrl(fullDetailUrl)
-                                .posterImageUrl(detail.getPosterImageUrl())
-                                .officialUrl(detail.getOfficialUrl())
-                                .endDate(endDate != null ? endDate : LocalDate.now().plusMonths(1))
-                                .category("IT/해커톤").build();
-
-                        projectRepository.save(project);
-                        pageCount++;
-                        totalNewCount++;
-
-                    } catch (Exception e) {
-                        log.error("위비티 개별 항목 파싱 중 오류 발생 ({} 탭, 페이지 {}): {}", mode, page, e.getMessage());
                     }
+                    log.info("{} 탭 {}페이지 수집 완료: {}건 추가됨.", mode, page, pageCount);
+                } catch (Exception e) {
+                    log.error("{} 탭 {}페이지 접속 실패: {}", mode, page, e.getMessage());
                 }
-                log.info("{} 탭 {}페이지 수집 완료: {}건 추가됨.", mode, page, pageCount);
-            } catch (Exception e) {
-                log.error("{} 탭 {}페이지 접속 실패: {}", mode, page, e.getMessage());
             }
         }
         log.info("위비티 전체 크롤링 완료. 총 {}건 신규 저장됨.", totalNewCount);
@@ -148,11 +148,8 @@ public class WevityCrawlingService {
      */
     private boolean isPastYearProject(String title) {
         int currentYear = LocalDate.now().getYear();
-        // 2000년부터 작년까지의 연도가 제목에 명시되어 있으면 과거 프로젝트로 간주
         for (int year = 2000; year < currentYear; year++) {
             if (title.contains(String.valueOf(year))) {
-                // 단, "2025-2026" 처럼 걸쳐있는 경우는 예외로 할 수 있으나 
-                // 위비티 특성상 제목에 "2025 KOSAC" 처럼 박히면 보통 지난 공고임
                 return true;
             }
         }
@@ -166,7 +163,6 @@ public class WevityCrawlingService {
     public void cleanupExpiredProjects() {
         log.info("만료된 프로젝트 데이터 클린업 시작...");
         try {
-            // 오늘 날짜 이전의 모든 프로젝트 삭제
             int deletedCount = projectRepository.deleteByEndDateBefore(LocalDate.now());
             log.info("클린업 완료: 총 {}건의 만료된 공고가 삭제되었습니다.", deletedCount);
         } catch (Exception e) {
@@ -174,9 +170,6 @@ public class WevityCrawlingService {
         }
     }
 
-    /**
-     * 상세 페이지에서 추가 정보(포스터, 공식 홈페이지) 추출 (최종 강화 버전)
-     */
     private DetailInfo crawlDetailInfo(String detailUrl) {
         String posterImageUrl = null;
         String officialUrl = null;
@@ -186,8 +179,6 @@ public class WevityCrawlingService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                     .get();
 
-            // 1. 포스터 이미지 추출 (더 넓은 탐색 범위 및 우선순위 조정)
-            // 우선순위 1: 상세 페이지의 썸네일 영역
             Elements thumbImg = detailDoc.select(".thumb img, .view-img img, .cd-box .img_area img");
             for (Element img : thumbImg) {
                 String src = getImgSrc(img);
@@ -197,7 +188,6 @@ public class WevityCrawlingService {
                 }
             }
 
-            // 우선순위 2: 본문 내 첫 번째 큰 이미지
             if (posterImageUrl == null) {
                 Elements bodyImages = detailDoc.select(".view-cont img");
                 for (Element img : bodyImages) {
@@ -209,8 +199,6 @@ public class WevityCrawlingService {
                 }
             }
 
-            // 2. 공식 홈페이지 링크 추출 (더 강력한 휴리스틱 및 특정 셀렉터 활용)
-            // 위비티는 보통 .cd-box 내부에 '홈페이지 바로가기' 버튼이 있음
             Elements visitBtn = detailDoc.select(".cd-box a.btn, .cd-info-list a.btn");
             for (Element btn : visitBtn) {
                 String text = btn.text();
@@ -223,7 +211,6 @@ public class WevityCrawlingService {
                 }
             }
 
-            // 차선책 1: 정보 리스트 키워드 매칭
             if (officialUrl == null) {
                 Pattern linkPattern = Pattern.compile("(홈페이지|바로가기|참가신청|링크|접수|원본|참조|사이트)");
                 Elements infoItems = detailDoc.select(".info li, .cd-info-list li, .cd-box div, .view-cont p");
@@ -241,7 +228,6 @@ public class WevityCrawlingService {
                 }
             }
 
-            // 차선책 2: 본문 내 외부 링크 중 가장 유력한 것
             if (officialUrl == null) {
                 Elements bodyLinks = detailDoc.select(".view-cont a");
                 for (Element a : bodyLinks) {
@@ -281,25 +267,16 @@ public class WevityCrawlingService {
         private String officialUrl;
     }
 
-    /**
-     * 위비티 마감일 텍스트(예: 2024-04-14)를 LocalDate로 변환
-     */
     private LocalDate parseEndDate(String dateRaw) {
         try {
-            // YYYY-MM-DD 형식이 포함되어 있는지 확인
             Pattern pattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
             Matcher matcher = pattern.matcher(dateRaw);
-            
             if (matcher.find()) {
-                String dateStr = matcher.group();
-                return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                return LocalDate.parse(matcher.group(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             }
-            
-            // "D+147" 같은 형식이나 마감 텍스트가 포함된 경우 null 반환하여 제외 처리 유도
             if (dateRaw.contains("D+") || dateRaw.contains("마감") || dateRaw.contains("종료")) {
                 return null;
             }
-            
             return null;
         } catch (Exception e) {
             return null;
