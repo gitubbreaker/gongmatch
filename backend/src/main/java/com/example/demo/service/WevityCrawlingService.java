@@ -64,130 +64,96 @@ public class WevityCrawlingService implements InitializingBean {
         if (isCrawling) return;
         this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
-        this.currentProgress = "IT 데이터 정밀 분석 및 수집 중...";
         
-        log.info("위비티 IT 공모전(cidx=20) 정밀 수집 프로세스 시작...");
+        log.info("위비티 IT 공모전(cidx=20) 정밀 수집 프로세스 시작 (1~2페이지)...");
         
         int categoryIdx = 20;
-        String targetUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=" + categoryIdx;
-        
-        try {
-            Document doc = Jsoup.connect(targetUrl)
-                    .timeout(30000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-                    .get();
+        // 1페이지부터 2페이지까지 수집 (필요 시 범위를 넓힐 수 있음)
+        for (int page = 1; page <= 2; page++) {
+            String targetUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=" + categoryIdx + "&gp=" + page;
+            
+            try {
+                this.currentProgress = String.format("위비티 %d페이지 분석 중...", page);
+                Document doc = Jsoup.connect(targetUrl)
+                        .timeout(30000)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                        .get();
 
-            Elements items = doc.select(".list-area > ul > li, ul.list > li");
-            int totalItems = items.size();
-            int processed = 0;
+                Elements items = doc.select(".list-area > ul > li, ul.list > li");
+                int totalItems = items.size();
+                int processed = 0;
 
-            for (Element item : items) {
-                processed++;
-                try {
-                    Element titleTag = item.selectFirst(".tit a, .tit span a, a");
-                    if (titleTag == null) continue;
-                    
-                    String title = titleTag.text().trim();
-                    this.currentProgress = String.format("분석 중: %s (%d/%d)", 
-                        title.length() > 10 ? title.substring(0, 10) + "..." : title, processed, totalItems);
+                for (Element item : items) {
+                    processed++;
+                    try {
+                        Element titleTag = item.selectFirst(".tit a, .tit span a, a");
+                        if (titleTag == null) continue;
+                        
+                        String title = titleTag.text().trim();
+                        this.currentProgress = String.format("%d페이지 수집 중: %s (%d/%d)", 
+                            page, title.length() > 10 ? title.substring(0, 10) + "..." : title, processed, totalItems);
 
-                    // 1. 엄격한 IT 키워드 1차 검증
-                    if (!isRelevantToIT(title)) {
-                        continue;
-                    }
-
-                    String detailUrl = titleTag.attr("href").startsWith("http") ? titleTag.attr("href") : BASE_URL + titleTag.attr("href");
-                    
-                    Document detailDoc = Jsoup.connect(detailUrl)
-                            .timeout(15000)
-                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0")
-                            .get();
-                    
-                    Elements infoLis = detailDoc.select(".cd-info-list li");
-                    
-                    // 2. 상세 분야 재검증 (공작기계 등 비-IT 원천 차단)
-                    String field = "";
-                    for (Element li : infoLis) {
-                        if (li.select(".tit").text().contains("분야")) {
-                            field = li.text().replace("분야", "").trim();
-                            break;
+                        // 1. 엄격한 IT 키워드 1차 검증
+                        if (!isRelevantToIT(title)) {
+                            continue;
                         }
-                    }
-                    if (!field.isEmpty() && !isRelevantToIT(field) && !isRelevantToIT(title)) {
-                        log.info("비-IT 성격 공고 제외(상세): {} - {}", title, field);
-                        continue;
-                    }
 
-                    // 3. 정규식을 이용한 마감일 정밀 파싱
-                    String dateRange = "";
-                    for (Element li : infoLis) {
-                        if (li.select(".tit").text().contains("접수기간")) {
-                            dateRange = li.text().replace("접수기간", "").trim();
-                            break;
-                        }
-                    }
-                    
-                    LocalDate endDate = parseEndDate(dateRange);
-                    if (endDate != null && endDate.isBefore(LocalDate.now())) {
-                        continue;
-                    }
-
-                    // 4. 고해상도 포스터 수집 최적화
-                    String posterUrl = null;
-                    Element posterImg = detailDoc.selectFirst("div.thumb img, .img img, .win-view .img img, .cd-area .img img");
-                    if (posterImg != null) {
-                        String src = posterImg.hasAttr("data-src") ? posterImg.attr("data-src") : posterImg.attr("src");
-                        if (!src.isEmpty()) {
-                            posterUrl = src.startsWith("http") ? src : (src.startsWith("//") ? "https:" + src : BASE_URL + src);
-                        }
-                    }
-
-                    // 5. 실질적인 공식 홈페이지 링크 수집
-                    String officialUrl = null;
-                    for (Element li : infoLis) {
-                        if (li.select(".tit").text().contains("홈페이지")) {
-                            Element link = li.selectFirst("a");
-                            if (link != null) {
-                                String href = link.attr("href").trim();
-                                if (!href.isEmpty() && !href.contains("wevity.com") && !href.startsWith("javascript") && !href.equals("#")) {
-                                    officialUrl = href;
-                                }
+                        String detailUrl = titleTag.attr("href").startsWith("http") ? titleTag.attr("href") : BASE_URL + titleTag.attr("href");
+                        
+                        Document detailDoc = Jsoup.connect(detailUrl)
+                                .timeout(15000)
+                                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0")
+                                .get();
+                        
+                        Elements infoLis = detailDoc.select(".cd-info-list li");
+                        
+                        // 2. 상세 분야 재검증
+                        String field = "";
+                        for (Element li : infoLis) {
+                            if (li.select(".tit").text().contains("분야")) {
+                                field = li.text().replace("분야", "").trim();
+                                break;
                             }
-                            break;
                         }
-                    }
-
-                    // 6. 시상 규모 등 기타 정보
-                    String prize = "";
-                    for (Element li : infoLis) {
-                        if (li.select(".tit").text().contains("시상규모")) {
-                            prize = li.text().replace("시상규모", "").trim();
-                            break;
+                        if (!field.isEmpty() && !isRelevantToIT(field) && !isRelevantToIT(title)) {
+                            continue;
                         }
-                    }
 
-                    Project project = projectRepository.findByDetailUrl(detailUrl)
-                            .orElse(Project.builder().detailUrl(detailUrl).build());
+                        // 3. 정규식을 이용한 마감일 정밀 파싱
+                        String dateRange = "";
+                        for (Element li : infoLis) {
+                            if (li.select(".tit").text().contains("접수기간")) {
+                                dateRange = li.text().replace("접수기간", "").trim();
+                                break;
+                            }
+                        }
+                        
+                        LocalDate endDate = parseEndDate(dateRange);
+                        if (endDate != null && endDate.isBefore(LocalDate.now())) {
+                            continue;
+                        }
 
-                    project.setTitle(title);
-                    project.setHost(item.select(".organ").text().trim());
-                    // 파싱된 날짜가 없을 때만 기본값(2주 뒤) 부여
-                    project.setEndDate(endDate != null ? endDate : LocalDate.now().plusWeeks(2));
-                    project.setCategory("IT/해커톤");
-                    if (posterUrl != null) project.setPosterImageUrl(posterUrl);
-                    project.setOfficialUrl(officialUrl != null ? officialUrl : detailUrl);
-                    if (!prize.isEmpty()) project.setPrize(prize);
+                        // 4. 고해상도 포스터 수집
+                        String posterUrl = null;
+                        Element posterImg = detailDoc.selectFirst("div.thumb img, .img img, .win-view .img img, .cd-area .img img");
+                        if (posterImg != null) {
+                            String src = posterImg.hasAttr("data-src") ? posterImg.attr("data-src") : posterImg.attr("src");
+                            if (!src.isEmpty()) {
+                                posterUrl = src.startsWith("http") ? src : (src.startsWith("//") ? "https:" + src : BASE_URL + src);
+                            }
+                        }
 
-                    projectRepository.save(project);
-                    log.info("저장 성공: {}", title);
-                    
-                    Thread.sleep(700 + random.nextInt(500));
-                    
-                } catch (Exception e) {
-                    log.warn("개별 아이템 수집 중 오류: {}", e.getMessage());
-                }
-            }
-        } catch (Exception e) {
+                        // 5. 실질적인 공식 홈페이지 링크 수집
+                        String officialUrl = null;
+                        for (Element li : infoLis) {
+                            if (li.select(".tit").text().contains("홈페이지")) {
+                                Element link = li.selectFirst("a");
+                                if (link != null) {
+                                    String href = link.attr("href").trim();
+                                    if (!href.isEmpty() && !href.contains("wevity.com") && !href.startsWith("javascript") && !href.equals("#")) {
+                                        officialUrl = href;
+                                    }
+                                }
             log.error("위비티 크롤링 치명적 오류: {}", e.getMessage());
         } finally {
             cleanupJunkProjects(); // 완료 후 자투리 데이터 정리
