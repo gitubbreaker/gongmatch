@@ -195,17 +195,53 @@ function ProjectListPage() {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isStudentOnly, setIsStudentOnly] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600); // 10분 (600초)
-  const [showBanner, setShowBanner] = useState(true);
+  
+  // 리얼타임 수집 상태 관리
+  const [crawlingStatus, setCrawlingStatus] = useState({ isCrawling: false, lastStartTime: null });
+  const [timeLeft, setTimeLeft] = useState(0); 
+  const [showBanner, setShowBanner] = useState(false);
 
-  // 타이머 로직
+  // 1. 서버의 실제 수집 상태 체크
+  const checkStatus = async () => {
+    try {
+      const res = await api.get('/api/projects/crawling-status');
+      setCrawlingStatus(res.data);
+      
+      if (res.data.isCrawling && res.data.lastStartTime) {
+        setShowBanner(true);
+        // 서버 시작 시간 기준 남은 시간 계산 (표준 수집 시간 10분 설정)
+        const start = new Date(res.data.lastStartTime).getTime();
+        const now = new Date().getTime();
+        const elapsed = Math.floor((now - start) / 1000);
+        const remaining = Math.max(0, 600 - elapsed);
+        setTimeLeft(remaining);
+      } else {
+        // 이미 수집이 끝난 상태에서 들어오면 배너를 잠시 보여주고 닫음
+        if (showBanner && timeLeft <= 0) {
+           // 상태 유지
+        } else {
+           setShowBanner(false);
+        }
+      }
+    } catch (err) {
+      console.error('상태 체크 실패', err);
+    }
+  };
+
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    checkStatus();
+    const statusInterval = setInterval(checkStatus, 30000); // 30초마다 상태 갱신
+    return () => clearInterval(statusInterval);
+  }, []);
+
+  // 타이머 로직 (로컬 카운트다운)
+  useEffect(() => {
+    if (!crawlingStatus.isCrawling || timeLeft <= 0) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, crawlingStatus.isCrawling]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -256,15 +292,15 @@ function ProjectListPage() {
            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ 
                 width: '10px', height: '10px', 
-                background: timeLeft > 0 ? 'var(--ac)' : 'var(--green)', 
+                background: crawlingStatus.isCrawling ? 'var(--ac)' : 'var(--green)', 
                 borderRadius: '50%', 
-                boxShadow: `0 0 10px ${timeLeft > 0 ? 'var(--ac)' : 'var(--green)'}`,
-                animation: timeLeft > 0 ? 'pulse 2s infinite' : 'none'
+                boxShadow: `0 0 10px ${crawlingStatus.isCrawling ? 'var(--ac)' : 'var(--green)'}`,
+                animation: crawlingStatus.isCrawling ? 'pulse 2s infinite' : 'none'
               }}></div>
               <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--tx)' }}>
-                {timeLeft > 0 
-                  ? `🚀 시스템 딥-크롤러 엔진 고도화 및 DB 최적화 진행 중 (남은 시간: 약 ${formatTime(timeLeft)})`
-                  : '✅ 시스템 최적화 및 최신 데이터 동기화 완료'}
+                {crawlingStatus.isCrawling 
+                  ? `🚀 시스템 딥-크롤러 엔진 고도화 및 DB 최적화 진행 중 (현재 위비티 ${timeLeft > 0 ? '탭 별 정밀 분석' : '정리'} 중: 약 ${formatTime(timeLeft)})`
+                  : '✅ 시스템 최적화 및 고품질 데이터 동기화 완료'}
               </span>
            </div>
            <button 

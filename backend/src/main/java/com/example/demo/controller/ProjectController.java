@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.ProjectResponseDto;
 import com.example.demo.entity.Project;
 import com.example.demo.repository.ProjectRepository;
+import com.example.demo.service.WevityCrawlingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class ProjectController {
 
     private final ProjectRepository projectRepository;
+    private final WevityCrawlingService wevityCrawlingService;
 
     @GetMapping
     public List<ProjectResponseDto> getAllProjects() {
@@ -32,5 +34,14 @@ public class ProjectController {
         return projectRepository.findById(id)
                 .map(project -> ResponseEntity.ok(ProjectResponseDto.from(project)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/crawling-status")
+    public ResponseEntity<?> getCrawlingStatus() {
+        return ResponseEntity.ok(java.util.Map.of(
+            "isCrawling", wevityCrawlingService.isCrawling(),
+            "lastStartTime", wevityCrawlingService.getLastStartTime() != null ? 
+                             wevityCrawlingService.getLastStartTime().toString() : null
+        ));
     }
 }

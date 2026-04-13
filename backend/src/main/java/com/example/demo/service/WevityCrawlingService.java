@@ -27,6 +27,13 @@ public class WevityCrawlingService {
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
 
+    // [상태 관리] 실시간 수집 상태 및 시작 시간
+    private boolean isCrawling = false;
+    private java.time.LocalDateTime lastStartTime;
+
+    public boolean isCrawling() { return isCrawling; }
+    public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
+
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         log.info("애플리케이션 시작 시 데이터 검증 및 선택적 클린업 실행...");
@@ -37,6 +44,8 @@ public class WevityCrawlingService {
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 실행
     public void crawlWevityProjects() {
+        this.isCrawling = true;
+        this.lastStartTime = java.time.LocalDateTime.now();
         log.info("위비티 IT/SW 공모전 탭 별 정밀 수집 시작 (마감임박, 접수중, 접수예정)...");
 
         // 수집할 탭 정의 (마감임박, 접수중, 접수예정)
@@ -130,7 +139,8 @@ public class WevityCrawlingService {
         log.info("위비티 전체 크롤링 완료. 총 {}건 신규 저장됨.", totalNewCount);
         
         // 크롤링 완료 후 기존 데이터 중 마감된 데이터 정리 실행
-        cleanupExpiredProjects();
+        cleanupJunkProjects();
+        this.isCrawling = false;
     }
 
     /**
