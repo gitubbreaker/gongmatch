@@ -16,4 +16,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     
     // 마감일이 특정 날짜 이전인 데이터 삭제
     int deleteByEndDateBefore(LocalDate date);
+    
+    // 제목에 특정 키워드가 포함된 데이터 삭제
+    int deleteByTitleContaining(String keyword);
 }

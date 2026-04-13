@@ -29,9 +29,9 @@ public class WevityCrawlingService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        log.info("애플리케이션 시작 시 데이터 초기화 및 클린 크롤링 실행...");
-        // [긴급 조치] 기존의 오염된 데이터(2025년 자료 등)를 모두 삭제하고 새로 시작
-        purgeAllProjects(); 
+        log.info("애플리케이션 시작 시 데이터 검증 및 선택적 클린업 실행...");
+        // 전체 삭제 대신, 문제가 있는 '좀비 데이터'만 골라서 삭제
+        cleanupJunkProjects(); 
         crawlWevityProjects();
     }
 
@@ -134,13 +134,23 @@ public class WevityCrawlingService {
     }
 
     /**
-     * 기존의 모든 프로젝트 데이터를 완전히 삭제 (초기화)
+     * 제목에 과거 연도가 포함되었거나 이미 마감된 '좀비' 데이터만 선택적으로 삭제
      */
     @Transactional
-    public void purgeAllProjects() {
-        log.info("데이터베이스 완전 초기화 중...");
-        projectRepository.deleteAll();
-        log.info("기존 데이터가 모두 삭제되었습니다.");
+    public void cleanupJunkProjects() {
+        log.info("부정확한 좀비 데이터 선택적 클린업 시작...");
+        int currentYear = LocalDate.now().getYear();
+        int totalDeleted = 0;
+        
+        // 1. 마감일이 오늘 이전인 데이터 삭제
+        totalDeleted += projectRepository.deleteByEndDateBefore(LocalDate.now());
+        
+        // 2. 제목에 2025년 등 과거 연도가 포함된 데이터 삭제 (현재 2026년 기준)
+        for (int year = 2000; year < currentYear; year++) {
+            totalDeleted += projectRepository.deleteByTitleContaining(String.valueOf(year));
+        }
+        
+        log.info("선택적 클린업 완료: 총 {}건의 부적절한 데이터가 제거되었습니다.", totalDeleted);
     }
 
     /**
