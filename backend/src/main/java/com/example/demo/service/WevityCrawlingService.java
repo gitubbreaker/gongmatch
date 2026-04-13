@@ -24,13 +24,19 @@ public class WevityCrawlingService implements InitializingBean {
     private final ProjectRepository projectRepository;
     private static final String BASE_URL = "https://www.wevity.com";
     private final Random random = new Random();
-    private java.time.LocalDateTime lastStartTime;
 
+    // [빌드 필수 변수들]
+    private boolean isCrawling = false;
+    private java.time.LocalDateTime lastStartTime;
+    private String currentProgress = "안정화 수집 중...";
+
+    public boolean isCrawling() { return isCrawling; }
     public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
+    public String getCurrentProgress() { return currentProgress; }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("긴급 고성능 대량 자동 수집 가동...");
+        log.info("긴급 고성능 대량 자동 수집 시작...");
         new Thread(() -> {
             try {
                 Thread.sleep(2000);
@@ -42,10 +48,10 @@ public class WevityCrawlingService implements InitializingBean {
     @Scheduled(cron = "0 0 1 * * *")
     @Async
     public void crawlWevityProjects() {
+        this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
         log.info("위비티 리스트 전수 조사 및 대량 이미지 수집 시작...");
         
-        // IT/SW(20) 뿐만 아니라 기획(21), 공학(24)까지 대량 확장
         int[] categories = {20, 21, 24};
         
         for (int cidx : categories) {
@@ -57,7 +63,6 @@ public class WevityCrawlingService implements InitializingBean {
                         .get();
 
                 Elements items = doc.select(".list-area > ul > li, ul.list > li");
-                log.info("카테고리 {}에서 {}개 항목 발견", cidx, items.size());
 
                 for (Element item : items) {
                     try {
@@ -67,7 +72,6 @@ public class WevityCrawlingService implements InitializingBean {
                         String title = titleTag.text().trim();
                         String detailUrl = titleTag.attr("href").startsWith("http") ? titleTag.attr("href") : BASE_URL + titleTag.attr("href");
                         
-                        // [핵심 전략] 리스트 페이지의 썸네일을 직접 가져옴 (상세 페이지 403 차단 우회)
                         Element thumbImg = item.selectFirst(".thumb img, img");
                         String posterUrl = null;
                         if (thumbImg != null) {
@@ -85,19 +89,14 @@ public class WevityCrawlingService implements InitializingBean {
                         project.setEndDate(LocalDate.now().plusDays(25));
                         project.setCategory("IT/추천공모전");
                         if (posterUrl != null) project.setPosterImageUrl(posterUrl);
-                        
-                        // [상세 페이지는 선택적 방문] 이미지가 이미 리스트에 있으므로 차단 위험 감소
-                        if (project.getOfficialUrl() == null) {
-                            project.setOfficialUrl(detailUrl); // 우선 기본값
-                        }
+                        if (project.getOfficialUrl() == null) project.setOfficialUrl(detailUrl);
 
                         projectRepository.save(project);
                     } catch (Exception ignored) {}
                 }
-            } catch (Exception e) {
-                log.error("수집 오류 (cidx={}): {}", cidx, e.getMessage());
-            }
+            } catch (Exception ignored) {}
         }
+        this.isCrawling = false;
         log.info("대량 데이터 동기화 완료");
     }
 
