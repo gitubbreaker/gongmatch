@@ -43,4 +43,8 @@ public class PublicProject {
 
     @Column(length = 500)
     private String link;
+
+    @org.hibernate.annotations.CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private java.time.LocalDateTime createdAt;
 }

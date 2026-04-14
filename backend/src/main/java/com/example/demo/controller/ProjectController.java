@@ -34,13 +34,13 @@ public class ProjectController {
         // 2. 공공데이터(K-Startup 등) 가져오기
         List<ProjectResponseDto> publicContents = publicProjectRepository.findAll().stream()
                 .map(p -> ProjectResponseDto.builder()
-                        .id(p.getId())
+                        .id(p.getProjectId()) // p.getId() -> p.getProjectId()로 수정
                         .title(p.getTitle())
                         .host(p.getHost())
                         .category(p.getCategory())
                         .detailUrl(p.getLink())
                         .endDate(null)
-                        .createdAt(p.getCreatedAt()) // 추가
+                        .createdAt(p.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
 
