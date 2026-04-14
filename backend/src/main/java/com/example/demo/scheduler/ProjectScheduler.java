@@ -2,6 +2,7 @@ package com.example.demo.scheduler;
 
 import com.example.demo.entity.PublicProject;
 import com.example.demo.repository.PublicProjectRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,6 +24,13 @@ public class ProjectScheduler {
 
     private final PublicProjectRepository publicProjectRepository;
     private final RestTemplate restTemplate;
+
+    @PostConstruct
+    public void init() {
+        log.info("🔥 Initializing Data Sync on Startup...");
+        fetchPublicApiData();
+        fetchGithubJsonData();
+    }
 
     @Value("${external-api.public-data.url}")
     private String publicApiUrl;
