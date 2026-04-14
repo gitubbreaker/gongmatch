@@ -40,6 +40,11 @@ public class DataLoader implements CommandLineRunner {
         }
 
         // 2. 샘플 학생들 (점수 30~40점대 유지하도록 구성)
+        createSampleStudent("sungwon123", "정성원", "IT융합응용공학과", 4, "백엔드 개발자", 
+            "안녕하세요, 백엔드 개발을 공부하고 있는 정성원입니다.",
+            Arrays.asList(createTagReq("TECH", "Spring"), createTagReq("TECH", "Java"), createTagReq("DOMAIN", "금융IT")),
+            Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 18, 20), createTimeReq(DayOfWeek.WEDNESDAY, 18, 20)));
+
         createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "UI/UX 디자이너", 
             "Figma를 활용한 앱/웹 프로토타이핑 전담 가능합니다! 깔끔한 인터페이스 설계를 지향해요.",
             Arrays.asList(createTagReq("TECH", "Figma"), createTagReq("DOMAIN", "디자인"), createTagReq("ROLE", "디자이너"), createTagReq("DOMAIN", "앱개발")),

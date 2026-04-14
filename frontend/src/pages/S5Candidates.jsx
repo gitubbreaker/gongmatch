@@ -49,10 +49,15 @@ function S5Candidates() {
   const applyFilters = () => {
     let list = [...candidates];
     if (filters.role && myRole) {
-      // 내 역할(분야)과 같은 사람 우선 정렬
+      const myRoleTrimmed = myRole.trim();
+      // 내 역할(분야)이 후보자의 역할 텍스트에 포함되어 있거나 그 반대의 경우 우선 정렬
       list = list.sort((a, b) => {
-        const aMatch = a.role === myRole;
-        const bMatch = b.role === myRole;
+        const aRole = a.role || '';
+        const bRole = b.role || '';
+        
+        const aMatch = aRole.includes(myRoleTrimmed) || myRoleTrimmed.includes(aRole);
+        const bMatch = bRole.includes(myRoleTrimmed) || myRoleTrimmed.includes(bRole);
+        
         if (aMatch && !bMatch) return -1;
         if (!aMatch && bMatch) return 1;
         return 0;
