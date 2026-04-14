@@ -12,26 +12,35 @@ function S5Candidates() {
   const [candidates, setCandidates] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ major: false, grade: [] });
+  const [filters, setFilters] = useState({ role: false, grade: [] });
+  const [myRole, setMyRole] = useState('');
   const [reqModal, setReqModal] = useState({ open: false, id: null, name: '', score: 0 });
   const [reqMessage, setReqMessage] = useState('');
 
   useEffect(() => {
-    fetchCandidates();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
     applyFilters();
   }, [filters, candidates]);
 
-  const fetchCandidates = async () => {
+  const fetchInitialData = async () => {
+    setLoading(true);
     try {
+      // 1. 내 정보 가져오기 (내 역할을 알기 위해)
+      const meRes = await api.get('/api/students/me');
+      if (meRes.data.role) {
+        setMyRole(meRes.data.role);
+      }
+
+      // 2. 추천 후보 로딩
       const response = await api.get('/api/students/recommendations');
       setCandidates(response.data);
       setFiltered(response.data);
     } catch (error) {
-      console.error('추천 후보 로딩 실패:', error);
-      showToast('후보 목록을 불러오지 못했습니다.');
+      console.error('초기 데이터 로딩 실패:', error);
+      showToast('정보를 불러오지 못했습니다.');
     } finally {
       setLoading(false);
     }
@@ -39,9 +48,15 @@ function S5Candidates() {
 
   const applyFilters = () => {
     let list = [...candidates];
-    if (filters.major) {
-      // 내 전공과 같은 사람 우선 (간단 구현)
-      list = list.sort((a, b) => (a.major === 'IT응용공학' ? -1 : 1));
+    if (filters.role && myRole) {
+      // 내 역할(분야)과 같은 사람 우선 정렬
+      list = list.sort((a, b) => {
+        const aMatch = a.role === myRole;
+        const bMatch = b.role === myRole;
+        if (aMatch && !bMatch) return -1;
+        if (!aMatch && bMatch) return 1;
+        return 0;
+      });
     }
     if (filters.grade.length > 0) {
       list = list.filter(c => filters.grade.includes(c.grade));
@@ -115,8 +130,8 @@ function S5Candidates() {
           <div>
             <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '16px' }}>SMART FILTER</p>
             <label style={{ display: 'flex', alignItems: 'center', justifyContent:'space-between', padding:'12px 14px', background:'var(--card)', borderRadius:'10px', border:'1px solid var(--brd)', cursor:'pointer' }}>
-              <span style={{fontSize:'13px', fontWeight:'600'}}>내 전공 우선 추천</span>
-              <input type="checkbox" checked={filters.major} onChange={e => setFilters(f => ({...f, major: e.target.checked}))} style={{ accentColor: 'var(--ac)', width:'16px', height:'16px' }} />
+              <span style={{fontSize:'13px', fontWeight:'600'}}>내 분야 우선 추천</span>
+              <input type="checkbox" checked={filters.role} onChange={e => setFilters(f => ({...f, role: e.target.checked}))} style={{ accentColor: 'var(--ac)', width:'16px', height:'16px' }} />
             </label>
           </div>
           
