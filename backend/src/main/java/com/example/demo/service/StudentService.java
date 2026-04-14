@@ -59,7 +59,7 @@ public class StudentService {
     }
 
     @Transactional
-    public Student updateStudentInfo(String loginId, String introduction, String major, Integer grade, String openChatUrl) {
+    public Student updateStudentInfo(String loginId, String introduction, String major, Integer grade, String openChatUrl, String role) {
         Student student = studentRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
@@ -67,6 +67,7 @@ public class StudentService {
         if (major != null) student.setMajor(major);
         if (grade != null) student.setGrade(grade);
         if (openChatUrl != null) student.setOpenChatUrl(openChatUrl);
+        if (role != null) student.setRole(role);
 
         return studentRepository.save(student);
     }

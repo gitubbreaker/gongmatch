@@ -23,7 +23,7 @@ function S5Candidates() {
 
   useEffect(() => {
     applyFilters();
-  }, [filters, candidates]);
+  }, [filters, candidates, myRole]);
 
   const fetchInitialData = async () => {
     setLoading(true);
@@ -49,14 +49,14 @@ function S5Candidates() {
   const applyFilters = () => {
     let list = [...candidates];
     if (filters.role && myRole) {
-      const myRoleTrimmed = myRole.trim();
-      // 내 역할(분야)이 후보자의 역할 텍스트에 포함되어 있거나 그 반대의 경우 우선 정렬
+      const myRoleNormal = (myRole || '').replace(/\s/g, '').toLowerCase();
+      
       list = list.sort((a, b) => {
-        const aRole = a.role || '';
-        const bRole = b.role || '';
+        const aRoleNormal = (a.role || '').replace(/\s/g, '').toLowerCase();
+        const bRoleNormal = (b.role || '').replace(/\s/g, '').toLowerCase();
         
-        const aMatch = aRole.includes(myRoleTrimmed) || myRoleTrimmed.includes(aRole);
-        const bMatch = bRole.includes(myRoleTrimmed) || myRoleTrimmed.includes(bRole);
+        const aMatch = aRoleNormal && myRoleNormal && (aRoleNormal.includes(myRoleNormal) || myRoleNormal.includes(aRoleNormal));
+        const bMatch = bRoleNormal && myRoleNormal && (bRoleNormal.includes(myRoleNormal) || myRoleNormal.includes(bRoleNormal));
         
         if (aMatch && !bMatch) return -1;
         if (!aMatch && bMatch) return 1;
@@ -187,7 +187,13 @@ function S5Candidates() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                     <span style={{ fontSize: '20px', fontWeight: '900' }}>{c.name}</span>
-                    {myRole && c.role && (c.role.includes(myRole.trim()) || myRole.trim().includes(c.role)) && (
+                    {myRole && c.role && (
+                      (() => {
+                        const m = (myRole || '').replace(/\s/g, '').toLowerCase();
+                        const r = (c.role || '').replace(/\s/g, '').toLowerCase();
+                        return m && r && (r.includes(m) || m.includes(r));
+                      })()
+                    ) && (
                       <span style={{ fontSize: '10px', background: 'var(--green-dim)', color: 'var(--green)', padding: '3px 8px', borderRadius: '4px', fontWeight: '800', border: '1px solid var(--green)' }}>
                         ★ 내 분야 일치
                       </span>
