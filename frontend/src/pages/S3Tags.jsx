@@ -10,6 +10,8 @@ const TDEFS = {
   act: ['#기획', '#PM', '#디자이너', '#프론트엔드', '#백엔드', '#데이터분석', '#스타트업', '#해커톤', '#공기업', '#대기업', '#취업준비']
 };
 
+const ROLE_OPTIONS = ['기획·PM', 'UI/UX 디자이너', '프론트엔드 개발자', '백엔드 개발자', '풀스택 개발자', '데이터 분석가'];
+
 // 백엔드 카테고리 맵핑
 const CAT_MAP = {
   field: '분야',
@@ -22,8 +24,9 @@ function S3Tags() {
   const navigate = useNavigate();
   const [chosen, setChosen] = useState(new Set());
   const [intro, setIntro] = useState('');
+  const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
-  const [timeScore, setTimeScore] = useState(0); // 가용시간 실제 점수 상태 추가
+  const [timeScore, setTimeScore] = useState(0); 
 
   useEffect(() => {
     fetchInitialData();
@@ -31,11 +34,10 @@ function S3Tags() {
 
   const fetchInitialData = async () => {
     try {
-      // 1. 내 정보(자기소개) 불러오기
+      // 1. 내 정보(자기소개, 역할) 불러오기
       const studentRes = await api.get('/api/students/me');
-      if (studentRes.data.introduction) {
-        setIntro(studentRes.data.introduction);
-      }
+      if (studentRes.data.introduction) setIntro(studentRes.data.introduction);
+      if (studentRes.data.role) setRole(studentRes.data.role);
 
       // 2. 내 태그 목록 불러오기
       const tagRes = await api.get('/api/tags/me');
@@ -83,8 +85,11 @@ function S3Tags() {
 
       await api.put('/api/tags/me', { tags: tagRequests });
 
-      // 2. 자기소개 정보 저장
-      await api.patch('/api/students/me', { introduction: intro });
+      // 2. 자기소개 및 역할 정보 저장
+      await api.patch('/api/students/me', { 
+        introduction: intro,
+        role: role
+      });
 
       showToast('프로필이 완성되었어요 🎉');
       navigate('/');
@@ -148,9 +153,30 @@ function S3Tags() {
       <div className="s3-wrap" style={{maxWidth:'1040px', margin:'0 auto', padding:'48px 40px', display:'grid', gridTemplateColumns:'1fr 340px', gap:'32px', alignItems:'start'}}>
         <div style={{display:'flex', flexDirection:'column', gap:'16px'}}>
           <div>
-            <h2 style={{fontSize:'22px', fontWeight:'800', marginBottom:'6px'}}>관심사 해시태그 선택</h2>
-            <p style={{fontSize:'13px', color:'var(--tx2)'}}>최대 10개 · 선택한 태그로 매칭 알고리즘 점수(50점)를 산출합니다</p>
+            <h2 style={{fontSize:'22px', fontWeight:'800', marginBottom:'6px'}}>대표 역할 및 관심사 선택</h2>
+            <p style={{fontSize:'13px', color:'var(--tx2)'}}>나를 가장 잘 나타내는 역할 하나와 최대 10개의 태그를 선택해주세요</p>
           </div>
+
+          <div className="card">
+            <p className="slabel" style={{color:'var(--ac)'}}>🎯 나의 대표 역할 (필수)</p>
+            <div style={{display:'flex', flexWrap:'wrap', gap:'8px'}}>
+              {ROLE_OPTIONS.map(opt => (
+                <button
+                  key={opt}
+                  className={`role-btn ${role === opt ? 'on' : ''}`}
+                  onClick={() => setRole(opt)}
+                  style={{
+                    padding:'10px 16px', borderRadius:'10px', border:'1px solid', fontSize:'13px', fontWeight:'700',
+                    background: role === opt ? 'var(--ac)' : 'rgba(255,255,255,0.05)',
+                    borderColor: role === opt ? 'var(--ac)' : 'var(--brd2)',
+                    color: role === opt ? '#000' : 'var(--tx3)',
+                    cursor:'pointer', transition:'all .2s'
+                  }}
+                >{opt}</button>
+              ))}
+            </div>
+          </div>
+
           <div className="card"><p className="slabel">📂 분야</p><div>{renderTags('field')}</div></div>
           <div className="card"><p className="slabel">💻 기술 스택</p><div>{renderTags('tech')}</div></div>
           <div className="card"><p className="slabel">📍 지역</p><div>{renderTags('region')}</div></div>
