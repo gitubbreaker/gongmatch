@@ -64,15 +64,19 @@ function S3Tags() {
 
   const handleComplete = async () => {
     try {
-      // 1. 관심사 태그 저장
+      // 1. 관심사 태그 저장 (중복 제거 로직 추가)
       const tagRequests = [];
+      const processedNames = new Set(); // 이미 처리된 태그 이름 추적
+
       Object.entries(TDEFS).forEach(([catKey, tagList]) => {
         tagList.forEach(tagName => {
-          if (chosen.has(tagName)) {
+          const pureName = tagName.replace('#', '');
+          if (chosen.has(tagName) && !processedNames.has(pureName)) {
             tagRequests.push({
               category: CAT_MAP[catKey],
-              name: tagName.replace('#', '') // 백엔드 저장 시 '#' 제거
+              name: pureName
             });
+            processedNames.add(pureName); // 동일 이름은 다시 추가되지 않도록 차단
           }
         });
       });
