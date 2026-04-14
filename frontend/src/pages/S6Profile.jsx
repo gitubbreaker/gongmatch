@@ -81,6 +81,11 @@ function S6Profile() {
             <div style={{ flex: '1' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '22px', fontWeight: '900' }}>{student?.name}</span>
+                {student?.role && (
+                  <span style={{ fontSize: '12px', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '4px 10px', borderRadius: '6px', fontWeight: '800' }}>
+                    {student.role}
+                  </span>
+                )}
                 <span className="tag green">✓ 학교인증</span>
                 <span className="tag" style={{ fontSize: '13px', padding: '5px 13px', fontWeight: '800' }}>매칭 점수 {totalScore}점</span>
               </div>

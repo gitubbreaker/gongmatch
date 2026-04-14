@@ -65,6 +65,10 @@ function S3Tags() {
   };
 
   const handleComplete = async () => {
+    if (!role) {
+      showToast('나의 대표 역할을 반드시 선택해 주세요!');
+      return;
+    }
     try {
       // 1. 관심사 태그 저장 (중복 제거 로직 추가)
       const tagRequests = [];

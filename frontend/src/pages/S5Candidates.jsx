@@ -178,13 +178,20 @@ function S5Candidates() {
                   <div style={{ width: '70px', height: '70px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', fontWeight:'900', borderRadius:'22px', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px' }}>
                     {c.name.charAt(0)}
                   </div>
-                  <div style={{fontSize:'10px', color:'var(--tx3)', fontWeight:'700'}}>{c.role || 'MEMBER'}</div>
+                  <div style={{fontSize:'12px', color:'var(--ac)', fontWeight:'800', border:'1px solid var(--ac-brd)', borderRadius:'4px', padding:'2px 4px', background:'var(--ac-dim)'}}>
+                    {c.role || 'MEMBER'}
+                  </div>
                 </div>
 
                 {/* 중앙: 정보 및 인사이트 */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                     <span style={{ fontSize: '20px', fontWeight: '900' }}>{c.name}</span>
+                    {myRole && c.role && (c.role.includes(myRole.trim()) || myRole.trim().includes(c.role)) && (
+                      <span style={{ fontSize: '10px', background: 'var(--green-dim)', color: 'var(--green)', padding: '3px 8px', borderRadius: '4px', fontWeight: '800', border: '1px solid var(--green)' }}>
+                        ★ 내 분야 일치
+                      </span>
+                    )}
                     <span style={{ fontSize: '13px', color: 'var(--tx2)', fontWeight:'500' }}>{c.major} · {c.grade}학년</span>
                     <span style={{fontSize:'10px', color:'#999', marginLeft:'auto'}}>#{c.id}</span>
                   </div>
