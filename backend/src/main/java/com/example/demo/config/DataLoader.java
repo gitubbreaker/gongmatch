@@ -39,6 +39,20 @@ public class DataLoader implements CommandLineRunner {
             createProject("서울 스마트시티 앱 서비스 공모전", "서울시", "서울시장상 수여", 2, 4, "IT/서비스");
         }
 
+        // [중요] 정성원님 본인 계정 복구 (데이터 분석가)
+        if (studentRepository.findByLoginId("sungwon3049@naver.com").isEmpty()) {
+            Student s = new Student();
+            s.setLoginId("sungwon3049@naver.com");
+            s.setName("정성원");
+            s.setMajor("IT융합응용공학과");
+            s.setGrade(4);
+            s.setRole("데이터 분석가");
+            s.setIntroduction("안녕하세요, 데이터 분석 전문가를 꿈꾸는 정성원입니다.");
+            s.setPassword("tjddnjs1234"); // StudentService.register에서 암호화됨
+            studentService.register(s);
+            System.out.println("✅ 정성원님 본인 계정이 복구되었습니다.");
+        }
+
         // 2. 샘플 학생들 (점수 30~40점대 유지하도록 구성)
         createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "UI/UX 디자이너", 
             "Figma를 활용한 앱/웹 프로토타이핑 전담 가능합니다! 깔끔한 인터페이스 설계를 지향해요.",
