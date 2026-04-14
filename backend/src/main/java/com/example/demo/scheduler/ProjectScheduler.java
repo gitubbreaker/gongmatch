@@ -116,6 +116,8 @@ public class ProjectScheduler {
                t.contains("ai") || t.contains("데이터") || t.contains("알고리즘") || 
                t.contains("클라우드") || t.contains("코딩") || t.contains("프로그래밍") || 
                t.contains("컴퓨터") || t.contains("보안") || t.contains("ict") || t.contains("코드") ||
-               t.contains("빅데이터") || t.contains("시스템") || t.contains("블록체인");
+               t.contains("빅데이터") || t.contains("시스템") || t.contains("블록체인") ||
+               t.contains("창업") || t.contains("스타트업") || t.contains("사업") || 
+               t.contains("패키지") || t.contains("경진대회") || t.contains("지원사업");
     }
 }
