@@ -57,15 +57,12 @@ public class ProjectScheduler {
                 JsonNode dataNode = root.get("data");
 
                 for (JsonNode item : dataNode) {
-                    String title = item.path("title").asText();
-                    if (isTargetProject(title)) {
-                        PublicProject project = new PublicProject();
-                        project.setTitle(title);
-                        project.setHost(item.path("organizer").asText("미지정"));
-                        project.setCategory("공공/창업");
-                        project.setLink(item.path("url").asText("#"));
-                        projects.add(project);
-                    }
+                    PublicProject project = new PublicProject();
+                    project.setTitle(item.path("title").asText("제목 없음"));
+                    project.setHost(item.path("organizer").asText("미지정"));
+                    project.setCategory("공공/창업");
+                    project.setLink(item.path("url").asText("#"));
+                    projects.add(project);
                 }
                 publicProjectRepository.saveAll(projects);
                 log.info("Source A: Successfully saved {} projects", projects.size());
