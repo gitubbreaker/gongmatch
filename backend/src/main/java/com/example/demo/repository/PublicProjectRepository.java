@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PublicProjectRepository extends JpaRepository<PublicProject, Long> {
+    java.util.Optional<PublicProject> findByTitle(String title);
 }

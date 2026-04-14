@@ -47,28 +47,34 @@ public class ProjectScheduler {
     @Scheduled(cron = "0 0 2 * * *")
     public void fetchPublicApiData() {
         log.info("Starting Source A: Public API Data Collection...");
-        String fullUrl = String.format("%s?serviceKey=%s&perPage=100", publicApiUrl, publicApiServiceKey);
+        
+        // 페이지 1과 페이지 2 모두 가져와서 더 많은 데이터 확보 (각 100개씩)
+        for (int page = 1; page <= 3; page++) {
+            String fullUrl = String.format("%s?serviceKey=%s&page=%d&perPage=100", publicApiUrl, publicApiServiceKey, page);
+            try {
+                JsonNode root = restTemplate.getForObject(fullUrl, JsonNode.class);
+                if (root != null && root.has("data")) {
+                    List<PublicProject> projects = new ArrayList<>();
+                    JsonNode dataNode = root.get("data");
 
-        try {
-            JsonNode root = restTemplate.getForObject(fullUrl, JsonNode.class);
-            
-            if (root != null && root.has("data")) {
-                List<PublicProject> projects = new ArrayList<>();
-                JsonNode dataNode = root.get("data");
+                    for (JsonNode item : dataNode) {
+                        String title = item.path("title").asText("제목 없음");
+                        // 중복 체크: 이미 있는 제목은 건너뜀
+                        if (publicProjectRepository.findByTitle(title).isPresent()) continue;
 
-                for (JsonNode item : dataNode) {
-                    PublicProject project = new PublicProject();
-                    project.setTitle(item.path("title").asText("제목 없음"));
-                    project.setHost(item.path("organizer").asText("미지정"));
-                    project.setCategory("공공/창업");
-                    project.setLink(item.path("url").asText("#"));
-                    projects.add(project);
+                        PublicProject project = new PublicProject();
+                        project.setTitle(title);
+                        project.setHost(item.path("organizer").asText("미지정"));
+                        project.setCategory("공공/창업");
+                        project.setLink(item.path("url").asText("#"));
+                        projects.add(project);
+                    }
+                    publicProjectRepository.saveAll(projects);
+                    log.info("Source A (Page {}): Successfully saved {} projects", page, projects.size());
                 }
-                publicProjectRepository.saveAll(projects);
-                log.info("Source A: Successfully saved {} projects", projects.size());
+            } catch (Exception e) {
+                log.error("Source A Page {} Error: {}", page, e.getMessage());
             }
-        } catch (Exception e) {
-            log.error("Source A Error: {}", e.getMessage());
         }
     }
 
