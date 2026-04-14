@@ -24,6 +24,8 @@ public class ProjectResponseDto {
     private String detailUrl;
     private String posterImageUrl;
     private String officialUrl;
+    private String category; // 추가
+    private java.time.LocalDateTime createdAt; // 추가
     private long dDay; // D-Day 계산 결과
 
     /**
@@ -32,7 +34,7 @@ public class ProjectResponseDto {
     public static ProjectResponseDto from(Project project) {
         long dDay = -1;
         if (project.getEndDate() != null) {
-            dDay = ChronoUnit.DAYS.between(LocalDate.now(), project.getEndDate());
+            dDay = java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), project.getEndDate());
         }
 
         return ProjectResponseDto.builder()
@@ -46,6 +48,8 @@ public class ProjectResponseDto {
                 .detailUrl(project.getDetailUrl())
                 .posterImageUrl(project.getPosterImageUrl())
                 .officialUrl(project.getOfficialUrl())
+                .category(project.getCategory()) // 추가
+                .createdAt(project.getCreatedAt()) // 추가
                 .dDay(dDay)
                 .build();
     }

@@ -39,7 +39,8 @@ public class ProjectController {
                         .host(p.getHost())
                         .category(p.getCategory())
                         .detailUrl(p.getLink())
-                        .endDate(null) // API에 마감일이 없는 경우 상시로 처리
+                        .endDate(null)
+                        .createdAt(p.getCreatedAt()) // 추가
                         .build())
                 .collect(Collectors.toList());
 
