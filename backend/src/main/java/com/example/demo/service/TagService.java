@@ -46,7 +46,7 @@ public class TagService {
      */
     @Transactional(readOnly = true)
     public List<Tag> getMyTags(String loginId) {
-        Student student = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         List<StudentTag> studentTags = studentTagRepository.findByStudent(student);
@@ -71,7 +71,7 @@ public class TagService {
             throw new IllegalArgumentException("해시태그는 최대 " + MAX_TAGS + "개까지 등록할 수 있습니다.");
         }
 
-        Student student = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         // 기존 매핑 삭제
