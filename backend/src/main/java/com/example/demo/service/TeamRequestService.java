@@ -22,7 +22,7 @@ public class TeamRequestService {
      */
     @Transactional
     public TeamRequest sendRequest(String senderLoginId, Long receiverId, String message) {
-        Student sender = studentRepository.findByLoginId(senderLoginId)
+        Student sender = studentRepository.findFirstByLoginIdOrderByIdDesc(senderLoginId)
                 .orElseThrow(() -> new IllegalArgumentException("보내는 사용자가 존재하지 않습니다."));
         Student receiver = studentRepository.findById(receiverId)
                 .orElseThrow(() -> new IllegalArgumentException("받는 사용자가 존재하지 않습니다."));
@@ -45,7 +45,7 @@ public class TeamRequestService {
      */
     @Transactional(readOnly = true)
     public List<TeamRequest> getReceivedRequests(String loginId) {
-        Student me = studentRepository.findByLoginId(loginId)
+        Student me = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         return teamRequestRepository.findByReceiver(me);
     }
@@ -55,7 +55,7 @@ public class TeamRequestService {
      */
     @Transactional(readOnly = true)
     public List<TeamRequest> getSentRequests(String loginId) {
-        Student me = studentRepository.findByLoginId(loginId)
+        Student me = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         return teamRequestRepository.findBySender(me);
     }

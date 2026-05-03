@@ -40,7 +40,7 @@ public class DataLoader implements CommandLineRunner {
         }
 
         // [중요] 정성원님 본인 계정 복구 (데이터 분석가)
-        if (studentRepository.findByLoginId("sungwon3049@naver.com").isEmpty()) {
+        if (studentRepository.findFirstByLoginIdOrderByIdDesc("sungwon3049@naver.com").isEmpty()) {
             Student s = new Student();
             s.setLoginId("sungwon3049@naver.com");
             s.setName("정성원");
@@ -102,7 +102,7 @@ public class DataLoader implements CommandLineRunner {
 
     private void createSampleStudent(String id, String name, String major, int grade, String role, String intro, List<TagRequest> tags, List<TimeSlotRequest> times) {
         try {
-            Student s = studentRepository.findByLoginId(id).orElseGet(() -> {
+            Student s = studentRepository.findFirstByLoginIdOrderByIdDesc(id).orElseGet(() -> {
                 Student newStudent = new Student();
                 newStudent.setLoginId(id);
                 newStudent.setPassword("1234");

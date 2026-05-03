@@ -24,7 +24,7 @@ public class AvailableTimeService {
      */
     @Transactional(readOnly = true)
     public List<AvailableTime> getMyTimes(String loginId) {
-        Student student = studentRepository.findByLoginId(loginId)
+        Student student = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         return availableTimeRepository.findByStudent(student);
     }
@@ -35,7 +35,7 @@ public class AvailableTimeService {
      */
     @Transactional
     public List<AvailableTime> updateMyTimes(String loginId, List<TimeSlotRequest> timeSlots) {
-        Student student = studentRepository.findByLoginId(loginId)
+        Student student = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         // 기존 가용 시간 삭제

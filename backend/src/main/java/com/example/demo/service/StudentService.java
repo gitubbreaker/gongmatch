@@ -31,13 +31,16 @@ public class StudentService {
 
     @Transactional
     public Student register(Student student) {
+        if (studentRepository.findFirstByLoginIdOrderByIdDesc(student.getLoginId()).isPresent()) {
+            throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
+        }
         student.setPassword(passwordEncoder.encode(student.getPassword()));
         return studentRepository.save(student);
     }
 
     @Transactional(readOnly = true)
     public com.example.demo.controller.StudentController.LoginResponse login(String loginId, String password) {
-        Student student = studentRepository.findByLoginId(loginId)
+        Student student = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
 
         if (!passwordEncoder.matches(password, student.getPassword())) {
@@ -54,13 +57,13 @@ public class StudentService {
 
     @Transactional(readOnly = true)
     public Student getStudentByLoginId(String loginId) {
-        return studentRepository.findByLoginId(loginId)
+        return studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 
     @Transactional
     public Student updateStudentInfo(String loginId, String introduction, String major, Integer grade, String openChatUrl, String role) {
-        Student student = studentRepository.findByLoginId(loginId)
+        Student student = studentRepository.findFirstByLoginIdOrderByIdDesc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         if (introduction != null) student.setIntroduction(introduction);
