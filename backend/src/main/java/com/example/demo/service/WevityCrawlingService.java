@@ -83,8 +83,7 @@ public class WevityCrawlingService implements InitializingBean {
                             this.currentProgress = String.format("%d페이지 수집 중: %s (%d/%d)", 
                                 page, title.length() > 10 ? title.substring(0, 10) + "..." : title, processed, totalItems);
 
-                            // 1. IT 키워드 검증
-                            if (!isRelevantToIT(title)) continue;
+                            // 삭제됨: 1. IT 키워드 검증 (상세 페이지에서 분야를 보고 판단하도록 보류)
 
                             String detailUrl = titleTag.attr("href").startsWith("http") ? titleTag.attr("href") : BASE_URL + titleTag.attr("href");
                             
@@ -117,7 +116,9 @@ public class WevityCrawlingService implements InitializingBean {
                                     break;
                                 }
                             }
-                            if (!field.isEmpty() && !isRelevantToIT(field) && !isRelevantToIT(title)) continue;
+                            if (!isRelevantToIT(field) && !isRelevantToIT(title)) {
+                                continue;
+                            }
 
                             // 3. 마감일 파싱 (정규식 강화)
                             String dateRange = "";
