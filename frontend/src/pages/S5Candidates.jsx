@@ -12,7 +12,13 @@ function S5Candidates() {
   const [candidates, setCandidates] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ role: false, grade: [] });
+  const [filters, setFilters] = useState({ 
+    roleSort: false, 
+    grades: [],
+    roles: [],
+    majors: [],
+    tags: []
+  });
   const [myRole, setMyRole] = useState('');
   const [reqModal, setReqModal] = useState({ open: false, id: null, name: '', score: 0 });
   const [reqMessage, setReqMessage] = useState('');
@@ -28,13 +34,11 @@ function S5Candidates() {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      // 1. 내 정보 가져오기 (내 역할을 알기 위해)
       const meRes = await api.get('/api/students/me');
       if (meRes.data.role) {
         setMyRole(meRes.data.role);
       }
 
-      // 2. 추천 후보 로딩
       const response = await api.get('/api/students/recommendations');
       setCandidates(response.data);
       setFiltered(response.data);
@@ -48,7 +52,23 @@ function S5Candidates() {
 
   const applyFilters = () => {
     let list = [...candidates];
-    if (filters.role && myRole) {
+    
+    // 필터링 적용
+    if (filters.grades.length > 0) {
+      list = list.filter(c => filters.grades.includes(c.grade));
+    }
+    if (filters.roles.length > 0) {
+      list = list.filter(c => filters.roles.includes(c.role));
+    }
+    if (filters.majors.length > 0) {
+      list = list.filter(c => filters.majors.includes(c.major));
+    }
+    if (filters.tags.length > 0) {
+      list = list.filter(c => (c.tags || []).some(t => filters.tags.includes(t)));
+    }
+
+    // 정렬 적용 (내 분야 우선 추천 선택 시)
+    if (filters.roleSort && myRole) {
       const myRoleNormal = (myRole || '').replace(/\s/g, '').toLowerCase();
       
       list = list.sort((a, b) => {
@@ -60,21 +80,39 @@ function S5Candidates() {
         
         if (aMatch && !bMatch) return -1;
         if (!aMatch && bMatch) return 1;
+        
+        // 일치 여부가 같으면 점수순 (원래 정렬 유지)
         return 0;
       });
     }
-    if (filters.grade.length > 0) {
-      list = list.filter(c => filters.grade.includes(c.grade));
-    }
+
     setFiltered(list);
   };
 
-  const toggleGrade = (g) => {
+  const toggleFilter = (key, value) => {
     setFilters(prev => ({
       ...prev,
-      grade: prev.grade.includes(g) ? prev.grade.filter(i => i !== g) : [...prev.grade, g]
+      [key]: prev[key].includes(value) 
+        ? prev[key].filter(i => i !== value) 
+        : [...prev[key], value]
     }));
   };
+
+  const resetFilters = () => {
+    setFilters({
+      roleSort: false,
+      grades: [],
+      roles: [],
+      majors: [],
+      tags: []
+    });
+  };
+
+  // 가용 옵션 추출
+  const availableRoles = Array.from(new Set(candidates.map(c => c.role))).filter(Boolean);
+  const availableMajors = Array.from(new Set(candidates.map(c => c.major))).filter(Boolean);
+  // 태그는 너무 많을 수 있으니 상위 8개 또는 겹치는 태그 위주로 (여기선 간단히 전체에서 추출)
+  const availableTags = Array.from(new Set(candidates.flatMap(c => c.tags || []))).slice(0, 8);
 
   const openModal = (id, name, score) => {
     setReqModal({ open: true, id, name, score });
@@ -129,34 +167,105 @@ function S5Candidates() {
         </div>
       </div>
 
-      <div className="s5-body" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', flex: '1' }}>
+      <div className="s5-body" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', flex: '1' }}>
         {/* 필터 사이드바 */}
-        <div className="sidebar" style={{ background: 'var(--bg2)', borderRight: '1px solid var(--brd)', padding: '32px 24px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        <div className="sidebar" style={{ background: 'var(--bg2)', borderRight: '1px solid var(--brd)', padding: '32px 20px', display: 'flex', flexDirection: 'column', gap: '32px', overflowY:'auto', maxHeight:'calc(100vh - var(--navh) - 100px)' }}>
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+            <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px' }}>SMART FILTER</p>
+            <button onClick={resetFilters} style={{fontSize:'10px', color:'var(--tx3)', background:'none', border:'none', cursor:'pointer', textDecoration:'underline'}}>초기화</button>
+          </div>
+
           <div>
-            <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '16px' }}>SMART FILTER</p>
             <label style={{ display: 'flex', alignItems: 'center', justifyContent:'space-between', padding:'12px 14px', background:'var(--card)', borderRadius:'10px', border:'1px solid var(--brd)', cursor:'pointer' }}>
               <span style={{fontSize:'13px', fontWeight:'600'}}>내 분야 우선 추천</span>
-              <input type="checkbox" checked={filters.role} onChange={e => setFilters(f => ({...f, role: e.target.checked}))} style={{ accentColor: 'var(--ac)', width:'16px', height:'16px' }} />
+              <input type="checkbox" checked={filters.roleSort} onChange={e => setFilters(f => ({...f, roleSort: e.target.checked}))} style={{ accentColor: 'var(--ac)', width:'16px', height:'16px' }} />
             </label>
           </div>
           
           <div>
-            <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '16px' }}>학년 선택</p>
+            <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '12px' }}>학년 선택</p>
             <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px'}}>
               {[1,2,3,4].map(g => (
                 <button 
                   key={g} 
-                  onClick={() => toggleGrade(g)}
+                  onClick={() => toggleFilter('grades', g)}
                   style={{
                     padding:'10px', borderRadius:'8px', border:'1px solid', fontSize:'12px', fontWeight:'700',
-                    background: filters.grade.includes(g) ? 'var(--ac-dim)' : 'var(--card)',
-                    borderColor: filters.grade.includes(g) ? 'var(--ac-brd)' : 'var(--brd2)',
-                    color: filters.grade.includes(g) ? 'var(--ac)' : 'var(--tx3)'
+                    background: filters.grades.includes(g) ? 'var(--ac-dim)' : 'var(--card)',
+                    borderColor: filters.grades.includes(g) ? 'var(--ac-brd)' : 'var(--brd2)',
+                    color: filters.grades.includes(g) ? 'var(--ac)' : 'var(--tx3)'
                   }}
                 >{g}학년</button>
               ))}
             </div>
           </div>
+
+          {availableRoles.length > 0 && (
+            <div>
+              <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '12px' }}>관심 직무</p>
+              <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                {availableRoles.map(r => (
+                  <button 
+                    key={r} 
+                    onClick={() => toggleFilter('roles', r)}
+                    style={{
+                      textAlign:'left', padding:'10px 14px', borderRadius:'8px', border:'1px solid', fontSize:'12px', fontWeight:'600',
+                      background: filters.roles.includes(r) ? 'var(--ac-dim)' : 'var(--card)',
+                      borderColor: filters.roles.includes(r) ? 'var(--ac-brd)' : 'var(--brd2)',
+                      color: filters.roles.includes(r) ? 'var(--ac)' : 'var(--tx2)'
+                    }}
+                  >
+                    {filters.roles.includes(r) ? '✓ ' : ''}{r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {availableMajors.length > 0 && (
+            <div>
+              <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '12px' }}>소속 학과</p>
+              <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                {availableMajors.map(m => (
+                  <button 
+                    key={m} 
+                    onClick={() => toggleFilter('majors', m)}
+                    style={{
+                      textAlign:'left', padding:'10px 14px', borderRadius:'8px', border:'1px solid', fontSize:'11px', fontWeight:'600',
+                      background: filters.majors.includes(m) ? 'var(--ac-dim)' : 'var(--card)',
+                      borderColor: filters.majors.includes(m) ? 'var(--ac-brd)' : 'var(--brd2)',
+                      color: filters.majors.includes(m) ? 'var(--ac)' : 'var(--tx2)',
+                      whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'
+                    }}
+                  >
+                    {filters.majors.includes(m) ? '✓ ' : ''}{m}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {availableTags.length > 0 && (
+            <div>
+              <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '12px' }}>보유 기술 / 관심사</p>
+              <div style={{display:'flex', gap:'6px', flexWrap:'wrap'}}>
+                {availableTags.map(t => (
+                  <button 
+                    key={t} 
+                    onClick={() => toggleFilter('tags', t)}
+                    style={{
+                      padding:'6px 12px', borderRadius:'20px', border:'1px solid', fontSize:'11px', fontWeight:'600',
+                      background: filters.tags.includes(t) ? 'var(--ac)' : 'var(--card)',
+                      borderColor: filters.tags.includes(t) ? 'var(--ac)' : 'var(--brd2)',
+                      color: filters.tags.includes(t) ? '#000' : 'var(--tx3)'
+                    }}
+                  >
+                    #{t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 메인 리스트 */}
@@ -164,7 +273,7 @@ function S5Candidates() {
           {filtered.length === 0 ? (
             <div style={{padding:'100px', textAlign:'center', color:'var(--tx3)'}}>
               <p style={{fontSize:'15px', marginBottom:'10px'}}>조건에 맞는 후보가 없습니다.</p>
-              <button className="btn-ghost btn-sm" onClick={() => setFilters({major:false, grade:[]})}>필터 초기화</button>
+              <button className="btn-ghost btn-sm" onClick={resetFilters}>필터 초기화</button>
             </div>
           ) : (
             filtered.map(c => (

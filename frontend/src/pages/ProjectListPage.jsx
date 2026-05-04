@@ -268,6 +268,20 @@ function ProjectListPage() {
     navigate(`/projects/${id}`);
   };
 
+  const handleManualSync = async () => {
+    try {
+      await api.post('/api/projects/crawl');
+      alert('데이터 수집 요청이 전송되었습니다. 백그라운드에서 수집이 진행되며 완료 시 자동으로 갱신됩니다.');
+      checkStatus(); // 즉시 상태 업데이트
+    } catch (err) {
+      if (err.response && err.response.status === 400) {
+        alert('이미 데이터 수집이 진행 중입니다. 잠시만 기다려주세요.');
+      } else {
+        alert('데이터 수집 요청에 실패했습니다.');
+      }
+    }
+  };
+
   // 대학생 맞춤 필터링 로직
   const filteredProjects = projects;
 
@@ -278,6 +292,17 @@ function ProjectListPage() {
       <HeaderSection>
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
         <Subtitle>대학생 여러분을 위한 최신 IT 프로젝트 및 대외활동 정보를 실시간으로 수집합니다.</Subtitle>
+        <button 
+          onClick={handleManualSync} 
+          disabled={crawlingStatus.isCrawling}
+          style={{
+            marginTop: '16px', padding: '8px 16px', background: 'var(--card)', border: '1px solid var(--brd)',
+            borderRadius: '8px', color: crawlingStatus.isCrawling ? 'var(--tx3)' : 'var(--tx)', cursor: crawlingStatus.isCrawling ? 'not-allowed' : 'pointer',
+            fontSize: '13px', fontWeight: '800'
+          }}
+        >
+          {crawlingStatus.isCrawling ? '🤖 현재 수집 진행 중...' : '🔄 위비티 최신 공모전 즉시 수집하기'}
+        </button>
       </HeaderSection>
 
       {isLoading ? (

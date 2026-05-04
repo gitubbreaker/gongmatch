@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,5 +65,23 @@ public class ProjectController {
             "lastStartTime", wevityCrawlingService.getLastStartTime() != null ? 
                              wevityCrawlingService.getLastStartTime().toString() : null
         ));
+    }
+
+    @PostMapping("/crawl")
+    public ResponseEntity<?> triggerCrawling() {
+        if (wevityCrawlingService.isCrawling()) {
+            return ResponseEntity.badRequest().body("이미 수집 작업이 진행 중입니다.");
+        }
+        
+        // 비동기로 수집 시작
+        new Thread(() -> {
+            try {
+                wevityCrawlingService.crawlWevityProjects();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+        
+        return ResponseEntity.ok("수집 작업이 백그라운드에서 시작되었습니다.");
     }
 }
