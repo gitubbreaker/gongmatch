@@ -211,8 +211,7 @@ public class WevityCrawlingService implements InitializingBean {
         try {
             projectRepository.findAll().forEach(p -> {
                 if (p.getDetailUrl() != null && p.getDetailUrl().contains("wevity.com")) {
-                    boolean isBad = !isRelevantToIT(p.getTitle()) || 
-                                   (p.getEndDate() != null && p.getEndDate().isBefore(LocalDate.now()));
+                    boolean isBad = (p.getEndDate() != null && p.getEndDate().isBefore(LocalDate.now()));
                     if (isBad) projectRepository.delete(p);
                 }
             });
