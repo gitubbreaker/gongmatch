@@ -65,25 +65,24 @@ function ContestDetailPage() {
     return localStorage.getItem(`gongmatch_joined_room_${id}`) === 'true';
   });
   const [activeTab, setActiveTab] = useState('matching');
-  const [reqModal, setReqModal] = useState({ open: false, name: '' });
+  const [reqModal, setReqModal] = useState({ open: false, id: null, name: '' });
   const [reqMessage, setReqMessage] = useState('');
   const [kakaoLink, setKakaoLink] = useState('');
+  const [candidates, setCandidates] = useState([]);
 
   useEffect(() => {
     api.get('/api/students/me').then(res => {
       if(res.data.openChatUrl) setKakaoLink(res.data.openChatUrl);
     }).catch(e => {
-      // Mock fallback if api fails
       setKakaoLink('https://open.kakao.com/o/gQtEJgpi');
     });
+    
+    api.get('/api/students/recommendations').then(res => {
+      setCandidates(res.data || []);
+    }).catch(e => {
+      console.error('추천 목록 로드 실패', e);
+    });
   }, []);
-
-  const users = [
-    { n: '김지원', r: '백엔드 개발 · 한양대 3학년', rt: 94, c: '#5c7cfa', tags: ['#Python', '#데이터분석'] },
-    { n: '이수현', r: 'UI/UX 기획 · 홍익대 4학년', rt: 89, c: '#20c997', tags: ['#Figma', '#기획'] },
-    { n: '박도현', r: '프론트엔드 · 연세대 2학년', rt: 82, c: '#ff922b', tags: ['#React', '#개발'] },
-    { n: '최유빈', r: '데이터분석 · 숭실대 3학년', rt: 76, c: '#cc5de8', tags: ['#Pandas', '#SQL'] }
-  ];
 
   useEffect(() => {
     // 실시간 DB에서 선택한 대회 정보를 가져오는 척 (실제로는 ProjectListPage에서 받아온 ID 사용)
@@ -116,16 +115,17 @@ function ContestDetailPage() {
   };
 
   const handleSendRequest = async () => {
+    if (!reqModal.id) return;
     try {
       await api.post('/api/team-requests', { 
-        receiverId: 999, 
+        receiverId: reqModal.id, 
         message: `${reqMessage}\n\n[연락처] ${kakaoLink}` 
       });
-      setReqModal({ open: false, name: '' });
+      setReqModal({ open: false, id: null, name: '' });
       setReqMessage('');
       showToast(`${reqModal.name}님께 합류 제안을 성공적으로 보냈습니다!`);
     } catch(e) {
-      setReqModal({ open: false, name: '' });
+      setReqModal({ open: false, id: null, name: '' });
       setReqMessage('');
       showToast(`${reqModal.name}님께 합류 제안을 성공적으로 보냈습니다!`);
     }
@@ -171,7 +171,7 @@ function ContestDetailPage() {
         <div onClick={() => setActiveTab('info')} style={{ padding: '16px 0', fontSize: '18px', fontWeight: '900', color: activeTab === 'info' ? 'var(--ac)' : 'var(--tx3)', cursor: 'pointer', borderBottom: activeTab === 'info' ? '3px solid var(--ac)' : '3px solid transparent' }}>대회 상세정보</div>
         <div onClick={() => setActiveTab('matching')} style={{ padding: '16px 0', fontSize: '18px', fontWeight: '900', color: activeTab === 'matching' ? 'var(--ac)' : 'var(--tx3)', cursor: 'pointer', borderBottom: activeTab === 'matching' ? '3px solid var(--ac)' : '3px solid transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
           대회 전용 매칭룸
-          <span style={{ background: 'var(--ac)', color: 'var(--bg)', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '900' }}>{isJoined ? users.length + 1 : users.length}명 대기중</span>
+          <span style={{ background: 'var(--ac)', color: 'var(--bg)', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '900' }}>{isJoined ? candidates.length + 1 : candidates.length}명 대기중</span>
         </div>
       </div>
 
@@ -237,18 +237,18 @@ function ContestDetailPage() {
                 </div>
 
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px'}}>
-                  {users.map(u => (
-                    <UserCard key={u.n} rate={u.rt}>
+                  {candidates.map(u => (
+                    <UserCard key={u.id} rate={u.totalScore || 70}>
                       <div style={{display:'flex', justifyContent:'space-between'}}>
                         <div style={{display:'flex', gap:'16px', alignItems: 'center'}}>
-                          <div style={{width:'56px', height:'56px', background:`var(--bg)`, color: u.c, border: `2px solid ${u.c}`, borderRadius:'16px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', fontSize:'20px'}}>{u.n[0]}</div>
+                          <div style={{width:'56px', height:'56px', background:`var(--bg)`, color: 'var(--ac)', border: `2px solid var(--ac)`, borderRadius:'16px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', fontSize:'20px'}}>{u.name?.charAt(0) || 'U'}</div>
                           <div>
-                            <p style={{fontWeight:'900', color: 'var(--tx)', marginBottom: '6px', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '4px'}}>{u.n} <span style={{fontSize:'13px'}}>✅</span></p>
-                            <p style={{fontSize:'13px', color:'var(--tx3)', fontWeight:'600'}}>{u.r}</p>
+                            <p style={{fontWeight:'900', color: 'var(--tx)', marginBottom: '6px', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '4px'}}>{u.name} <span style={{fontSize:'13px'}}>✅</span></p>
+                            <p style={{fontSize:'13px', color:'var(--tx3)', fontWeight:'600'}}>{u.role || '포지션 미정'} · {u.major || '전공 미상'}</p>
                           </div>
                         </div>
                         <div style={{textAlign: 'right'}}>
-                          <div style={{color:'var(--ac)', fontWeight:'900', fontSize: '24px', letterSpacing: '-1px'}}>{u.rt}점</div>
+                          <div style={{color:'var(--ac)', fontWeight:'900', fontSize: '24px', letterSpacing: '-1px'}}>{u.totalScore || 70}점</div>
                           <div style={{fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', marginTop: '4px'}}>매칭 찰떡!</div>
                         </div>
                       </div>
@@ -256,12 +256,12 @@ function ContestDetailPage() {
                       <div className="progress" style={{ margin: '24px 0 20px', background: 'var(--bg)' }}><div className="bar" /></div>
                       
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', flexWrap: 'wrap' }}>
-                        {u.tags.map(t => <span key={t} style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)', background: 'var(--bg)', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--brd2)' }}>{t}</span>)}
+                        {(u.tags || ['#IT', '#개발']).map(t => <span key={t} style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)', background: 'var(--bg)', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--brd2)' }}>{t}</span>)}
                       </div>
 
                       <div style={{ display: 'flex', gap: '12px' }}>
                         <button onClick={() => navigate('/profile-detail')} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
-                        <button onClick={() => setReqModal({ open: true, name: u.n })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
+                        <button onClick={() => setReqModal({ open: true, id: u.id, name: u.name })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
                     </UserCard>
                   ))}
@@ -273,7 +273,7 @@ function ContestDetailPage() {
       )}
 
       {reqModal.open && (
-        <div className="modal-bg" onClick={() => setReqModal({ open: false, name: '' })}>
+        <div className="modal-bg" onClick={() => setReqModal({ open: false, id: null, name: '' })}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--card)', border: '1px solid var(--brd)', padding: '40px', borderRadius: '24px' }}>
             <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--tx)', marginBottom: '12px' }}>팀 합류 제안 보내기</h3>
             <p style={{ fontSize: '15px', color: 'var(--tx3)', marginBottom: '32px', lineHeight: '1.5' }}>
@@ -303,7 +303,7 @@ function ContestDetailPage() {
             />
 
             <div style={{ display: 'flex', gap: '16px' }}>
-              <button className="btn-ghost" style={{ flex: 1, padding: '16px', fontSize: '15px', fontWeight: '800', borderRadius: '12px' }} onClick={() => setReqModal({ open: false, name: '' })}>취소</button>
+              <button className="btn-ghost" style={{ flex: 1, padding: '16px', fontSize: '15px', fontWeight: '800', borderRadius: '12px' }} onClick={() => setReqModal({ open: false, id: null, name: '' })}>취소</button>
               <button className="btn-prim" style={{ flex: 1, padding: '16px', fontSize: '15px', fontWeight: '900', borderRadius: '12px' }} onClick={handleSendRequest}>요청 보내기</button>
             </div>
           </div>
