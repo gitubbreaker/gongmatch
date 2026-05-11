@@ -29,6 +29,9 @@ public class TeamRequest {
     @JoinColumn(name = "project_id")
     private PublicProject project;
 
+    @Column(name = "target_project_title")
+    private String targetProjectTitle;
+
     @Column(columnDefinition = "TEXT")
     private String message;
 

@@ -1,8 +1,10 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.PublicProject;
+import com.example.demo.entity.Project;
 import com.example.demo.entity.Student;
 import com.example.demo.entity.TeamRequest;
+import com.example.demo.repository.ProjectRepository;
 import com.example.demo.repository.PublicProjectRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeamRequestRepository;
@@ -19,6 +21,7 @@ public class TeamRequestService {
     private final TeamRequestRepository teamRequestRepository;
     private final StudentRepository studentRepository;
     private final PublicProjectRepository publicProjectRepository;
+    private final ProjectRepository projectRepository;
 
     /**
      * 팀원 요청 보내기
@@ -41,9 +44,15 @@ public class TeamRequestService {
         request.setStatus("PENDING");
 
         if (projectId != null) {
-            PublicProject project = publicProjectRepository.findById(projectId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공모전입니다."));
-            request.setProject(project);
+            projectRepository.findById(projectId).ifPresentOrElse(
+                p -> request.setTargetProjectTitle(p.getTitle()),
+                () -> {
+                    PublicProject pp = publicProjectRepository.findById(projectId)
+                            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공모전입니다."));
+                    request.setProject(pp);
+                    request.setTargetProjectTitle(pp.getTitle());
+                }
+            );
         }
 
         return teamRequestRepository.save(request);

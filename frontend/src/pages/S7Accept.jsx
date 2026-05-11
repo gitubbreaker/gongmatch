@@ -156,7 +156,7 @@ function S7Accept() {
                       <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{new Date(req.createdAt).toLocaleDateString()}</span>
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
-                      <div style={{color:'var(--ac)', fontSize: '11px', fontWeight:'800', marginBottom:'4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>🎯 {req.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
+                      <div style={{color:'var(--ac)', fontSize: '11px', fontWeight:'800', marginBottom:'4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>🎯 {req.targetProjectTitle || req.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
                       {req.message?.substring(0, 30)}...
                     </div>
                   </div>
@@ -183,7 +183,7 @@ function S7Accept() {
                 <span style={{ fontSize: '28px' }}>🏆</span>
                 <div>
                   <div style={{ fontSize: '11px', color: 'var(--tx3)', fontWeight: '800', marginBottom: '6px' }}>지원한 목표 공모전 / 해커톤</div>
-                  <div style={{ fontSize: '16px', color: 'var(--ac)', fontWeight: '900', letterSpacing: '-0.5px' }}>{activeChat.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
+                  <div style={{ fontSize: '16px', color: 'var(--ac)', fontWeight: '900', letterSpacing: '-0.5px' }}>{activeChat.targetProjectTitle || activeChat.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
                 </div>
               </div>
 
