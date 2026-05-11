@@ -5,100 +5,110 @@ import { showToast } from '../App';
 function S4Board() {
   const navigate = useNavigate();
 
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      type: '📢 공지',
-      category: '운영',
-      typeColor: 'green',
-      title: '공매치 매칭 알고리즘 v2.1 업데이트 안내 — 관심사 가중치 개선',
-      content: '이번 업데이트로 기술스택 해시태그의 가중치가 기존 대비 1.3배 상향 조정되었습니다. 동일 스택을 보유한 팀원과의 매칭 점수가 더 높아지니 프로필 해시태그를 더 상세하게 작성해 주세요.',
-      author: '공매치 운영팀',
-      authorColor: 'ac',
-      authorIcon: '공',
-      date: '2026.04.30',
-      views: 241,
-      likes: 34,
-      isLiked: false,
-      comments: [
-        { id: 101, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '좋은 업데이트네요! 확인했습니다.', date: '2026.04.30' },
-        { id: 102, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '기대됩니다!', date: '2026.04.30' }
-      ],
-      isHot: false
-    },
-    {
-      id: 2,
-      type: 'HOT',
-      category: '팀원 구해요',
-      typeColor: 'red',
-      title: '부산 공공데이터 경진대회 백엔드 개발자 급구 — D-3, Python/Django',
-      content: '안녕하세요! 기획 PM 2명, 디자이너 1명 확정된 팀인데 백엔드 개발자 한 분이 개인 사정이 생겨서 급하게 구합니다. 공공데이터 API 연동 경험 있으신 분 우대해요.',
-      author: '권상아',
-      authorColor: 'blue',
-      authorIcon: '권',
-      date: '2시간 전',
-      views: 189,
-      likes: 65,
-      isLiked: false,
-      comments: [
-        { id: 201, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '백엔드 개발자 급구 아직 유효한가요?', date: '3시간 전' },
-        { id: 202, author: '이수현', authorIcon: '이', authorColor: 'orange', content: '쪽지 드렸습니다.', date: '1시간 전' }
-      ],
-      isHot: true
-    },
-    {
-      id: 3,
-      type: '',
-      category: '공모전 후기',
-      title: '2025 행안부 데이터 분석 챌린지 수상 후기 — 공매치로 팀 꾸린 썰',
-      content: '지난번 공매치로 팀 꾸려서 최우수 받았습니다! 알고리즘 추천으로 만난 팀원들인데 실제로 가용시간이 딱 맞아서 협업이 너무 편했고, 매너태그 덕에 소통도 잘 맞았습니다. 후기 공유해요.',
-      author: '박도현',
-      authorColor: 'green',
-      authorIcon: '박',
-      date: '어제',
-      views: 189,
-      likes: 65,
-      isLiked: false,
-      comments: [
-        { id: 301, author: '김지현', authorIcon: '김', authorColor: 'purple', content: '우와 축하드려요! 저도 얼른 좋은 팀 만나고 싶네요.', date: '어제' }
-      ],
-      isHot: false
-    },
-    {
-      id: 4,
-      type: '',
-      category: '질문·고민',
-      title: '처음 공모전 팀반인데 팀 꾸리는 게 너무 두려워요 — 조언 부탁드려요',
-      content: '비전공자인데 데이터 분석에 관심이 생겨서 공모전 참가해보고 싶은데 어떻게 팀을 찾아야 할지 모르겠어요. 공매치 처음 해보는데 매너태그를 어떻게 설정해야 매칭이 잘 될까요?',
-      author: '김지현',
-      authorColor: 'purple',
-      authorIcon: '김',
-      date: '2일 전',
-      views: 56,
-      likes: 5,
-      isLiked: false,
-      comments: [],
-      isHot: false
-    },
-    {
-      id: 5,
-      type: '',
-      category: '팀 참여 원해요',
-      title: 'UI/UX 디자이너 팀 참여 가능 — Figma 고급, 홍대 시각디자인 4학년',
-      content: '합류합니다. 광고/서비스 UX 개선 공모전 최우수 수상 경력 있고, Figma/Adobe XD 능숙합니다. 부산·온라인 모두 가능하고 주말 오후 가용시간 여유롭습니다.',
-      author: '이수현',
-      authorColor: 'orange',
-      authorIcon: '이',
-      date: '4일 전',
-      views: 124,
-      likes: 22,
-      isLiked: false,
-      comments: [
-        { id: 501, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '혹시 프론트엔드도 구하시나요?', date: '3일 전' }
-      ],
-      isHot: false
-    }
-  ]);
+  const getInitialPosts = () => {
+    const saved = localStorage.getItem('gongmatch_posts');
+    if (saved) return JSON.parse(saved);
+    return [
+      {
+        id: 1,
+        type: '📢 공지',
+        category: '운영',
+        typeColor: 'green',
+        title: '공매치 매칭 알고리즘 v2.1 업데이트 안내 — 관심사 가중치 개선',
+        content: '이번 업데이트로 기술스택 해시태그의 가중치가 기존 대비 1.3배 상향 조정되었습니다. 동일 스택을 보유한 팀원과의 매칭 점수가 더 높아지니 프로필 해시태그를 더 상세하게 작성해 주세요.',
+        author: '공매치 운영팀',
+        authorColor: 'ac',
+        authorIcon: '공',
+        date: '2026.04.30',
+        views: 241,
+        likes: 34,
+        isLiked: false,
+        comments: [
+          { id: 101, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '좋은 업데이트네요! 확인했습니다.', date: '2026.04.30', replies: [] },
+          { id: 102, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '기대됩니다!', date: '2026.04.30', replies: [] }
+        ],
+        isHot: false
+      },
+      {
+        id: 2,
+        type: 'HOT',
+        category: '팀원 구해요',
+        typeColor: 'red',
+        title: '부산 공공데이터 경진대회 백엔드 개발자 급구 — D-3, Python/Django',
+        content: '안녕하세요! 기획 PM 2명, 디자이너 1명 확정된 팀인데 백엔드 개발자 한 분이 개인 사정이 생겨서 급하게 구합니다. 공공데이터 API 연동 경험 있으신 분 우대해요.',
+        author: '권상아',
+        authorColor: 'blue',
+        authorIcon: '권',
+        date: '2시간 전',
+        views: 189,
+        likes: 65,
+        isLiked: false,
+        comments: [
+          { id: 201, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '백엔드 개발자 급구 아직 유효한가요?', date: '3시간 전', replies: [] },
+          { id: 202, author: '이수현', authorIcon: '이', authorColor: 'orange', content: '쪽지 드렸습니다.', date: '1시간 전', replies: [] }
+        ],
+        isHot: true
+      },
+      {
+        id: 3,
+        type: '',
+        category: '공모전 후기',
+        title: '2025 행안부 데이터 분석 챌린지 수상 후기 — 공매치로 팀 꾸린 썰',
+        content: '지난번 공매치로 팀 꾸려서 최우수 받았습니다! 알고리즘 추천으로 만난 팀원들인데 실제로 가용시간이 딱 맞아서 협업이 너무 편했고, 매너태그 덕에 소통도 잘 맞았습니다. 후기 공유해요.',
+        author: '박도현',
+        authorColor: 'green',
+        authorIcon: '박',
+        date: '어제',
+        views: 189,
+        likes: 65,
+        isLiked: false,
+        comments: [
+          { id: 301, author: '김지현', authorIcon: '김', authorColor: 'purple', content: '우와 축하드려요! 저도 얼른 좋은 팀 만나고 싶네요.', date: '어제', replies: [] }
+        ],
+        isHot: false
+      },
+      {
+        id: 4,
+        type: '',
+        category: '질문·고민',
+        title: '처음 공모전 팀반인데 팀 꾸리는 게 너무 두려워요 — 조언 부탁드려요',
+        content: '비전공자인데 데이터 분석에 관심이 생겨서 공모전 참가해보고 싶은데 어떻게 팀을 찾아야 할지 모르겠어요. 공매치 처음 해보는데 매너태그를 어떻게 설정해야 매칭이 잘 될까요?',
+        author: '김지현',
+        authorColor: 'purple',
+        authorIcon: '김',
+        date: '2일 전',
+        views: 56,
+        likes: 5,
+        isLiked: false,
+        comments: [],
+        isHot: false
+      },
+      {
+        id: 5,
+        type: '',
+        category: '팀 참여 원해요',
+        title: 'UI/UX 디자이너 팀 참여 가능 — Figma 고급, 홍대 시각디자인 4학년',
+        content: '합류합니다. 광고/서비스 UX 개선 공모전 최우수 수상 경력 있고, Figma/Adobe XD 능숙합니다. 부산·온라인 모두 가능하고 주말 오후 가용시간 여유롭습니다.',
+        author: '이수현',
+        authorColor: 'orange',
+        authorIcon: '이',
+        date: '4일 전',
+        views: 124,
+        likes: 22,
+        isLiked: false,
+        comments: [
+          { id: 501, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '혹시 프론트엔드도 구하시나요?', date: '3일 전', replies: [] }
+        ],
+        isHot: false
+      }
+    ];
+  };
+
+  const [posts, setPosts] = useState(getInitialPosts());
+
+  useEffect(() => {
+    localStorage.setItem('gongmatch_posts', JSON.stringify(posts));
+  }, [posts]);
 
   const [activeCategory, setActiveCategory] = useState('전체');
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
@@ -106,6 +116,9 @@ function S4Board() {
   
   const [activePost, setActivePost] = useState(null);
   const [commentInput, setCommentInput] = useState('');
+  
+  const [replyInput, setReplyInput] = useState('');
+  const [replyToCommentId, setReplyToCommentId] = useState(null);
   
   const categoryCounts = posts.reduce((acc, post) => {
     acc[post.category] = (acc[post.category] || 0) + 1;
@@ -189,6 +202,34 @@ function S4Board() {
     setActivePost(updatedPost);
     setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
     setCommentInput('');
+  };
+  
+  const handleAddReply = (commentId) => {
+    if (!replyInput.trim()) return;
+    const userStr = localStorage.getItem('gongmatch_currentUser');
+    const user = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
+    
+    const newReply = {
+      id: Date.now(),
+      author: user.name || '익명',
+      authorIcon: (user.name || '익명').charAt(0),
+      authorColor: 'ac',
+      content: replyInput,
+      date: '방금 전'
+    };
+    
+    const updatedComments = activePost.comments.map(c => {
+      if (c.id === commentId) {
+        return { ...c, replies: [...(c.replies || []), newReply] };
+      }
+      return c;
+    });
+
+    const updatedPost = { ...activePost, comments: updatedComments };
+    setActivePost(updatedPost);
+    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
+    setReplyInput('');
+    setReplyToCommentId(null);
   };
   
   const handlePostClick = (post) => {
@@ -420,15 +461,44 @@ function S4Board() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
                 {activePost.comments.map(c => (
-                  <div key={c.id} style={{ display: 'flex', gap: '12px' }}>
-                    <div onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', width: '28px', height: '28px', borderRadius: '50%', background: `var(--${c.authorColor}-dim)`, color: `var(--${c.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>{c.authorIcon}</div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <span onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>{c.author}</span>
-                        <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{c.date}</span>
+                  <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <div onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', width: '28px', height: '28px', borderRadius: '50%', background: `var(--${c.authorColor}-dim)`, color: `var(--${c.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>{c.authorIcon}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <span onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>{c.author}</span>
+                          <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{c.date}</span>
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5', marginBottom: '6px' }}>{c.content}</div>
+                        <div onClick={() => { setReplyToCommentId(replyToCommentId === c.id ? null : c.id); setReplyInput(''); }} style={{ fontSize: '11px', color: 'var(--tx3)', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}>답글 달기</div>
                       </div>
-                      <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>{c.content}</div>
                     </div>
+                    
+                    {/* 답글 리스트 */}
+                    {c.replies && c.replies.length > 0 && (
+                      <div style={{ paddingLeft: '40px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '4px' }}>
+                        {c.replies.map(r => (
+                          <div key={r.id} style={{ display: 'flex', gap: '10px' }}>
+                            <div onClick={(e) => handleProfileClick(e, r.author)} style={{ cursor: 'pointer', width: '24px', height: '24px', borderRadius: '50%', background: `var(--${r.authorColor}-dim)`, color: `var(--${r.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', flexShrink: 0 }}>{r.authorIcon}</div>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <span onClick={(e) => handleProfileClick(e, r.author)} style={{ cursor: 'pointer', fontSize: '12px', fontWeight: '800', color: 'var(--tx)' }}>{r.author}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{r.date}</span>
+                              </div>
+                              <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>{r.content}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* 답글 입력창 */}
+                    {replyToCommentId === c.id && (
+                      <div style={{ paddingLeft: '40px', marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                        <textarea value={replyInput} onChange={e => setReplyInput(e.target.value)} onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddReply(c.id); } }} placeholder="답글을 남겨보세요..." style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', fontSize: '12px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)', height: '40px', resize: 'none' }}></textarea>
+                        <button onClick={() => handleAddReply(c.id)} className="btn-prim" style={{ padding: '0 16px', borderRadius: '8px', fontSize: '12px', fontWeight: '800', height: '40px' }}>등록</button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {activePost.comments.length === 0 && <div style={{ fontSize: '13px', color: 'var(--tx3)', textAlign: 'center', padding: '20px 0' }}>아직 작성된 댓글이 없습니다.</div>}
