@@ -142,19 +142,26 @@ public class StudentService {
         
         List<RecommendationResponse> filtered = new ArrayList<>();
         for (RecommendationResponse rec : allRecs) {
-            // 약 40% 확률로 이 대회 대기실에 입장한 것으로 간주
-            if (random.nextInt(100) < 40) {
+            // 약 60% 확률로 이 대회 대기실에 입장한 것으로 간주 (모의 데이터 풀이 작으므로 확률 상향)
+            if (random.nextInt(100) < 60) {
                 filtered.add(rec);
             }
         }
         
-        // 만약 대기실에 아무도 없다면 시너지가 높은 상위 1~2명을 강제로 배정
-        if (filtered.isEmpty() && !allRecs.isEmpty()) {
-            filtered.add(allRecs.get(0));
-            if (allRecs.size() > 1) {
-                filtered.add(allRecs.get(1));
+        // 만약 대기실 인원이 3명 미만이라면, 시너지가 높은 순서대로 부족한 인원수만큼 강제 추가 (이수현 등 테스트를 위함)
+        if (filtered.size() < 3 && allRecs.size() >= 3) {
+            for (RecommendationResponse rec : allRecs) {
+                if (!filtered.contains(rec)) {
+                    filtered.add(rec);
+                }
+                if (filtered.size() >= 3) break;
             }
+        } else if (filtered.isEmpty() && !allRecs.isEmpty()) {
+            filtered.addAll(allRecs);
         }
+        
+        // 다시 총점 기준 내림차순 정렬
+        filtered.sort((a, b) -> b.getTotalScore() - a.getTotalScore());
         
         return filtered;
     }
