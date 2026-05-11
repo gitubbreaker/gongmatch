@@ -42,20 +42,28 @@ public class AiSummaryService {
         java.time.LocalDate todayDate = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
         String today = todayDate.toString();
         
-        // 이번 달 전체 달력 생성 (GPT 날짜 계산 오류 방지)
-        java.time.LocalDate firstDay = todayDate.withDayOfMonth(1);
-        StringBuilder calendarBuilder = new StringBuilder();
+        // 1년치 달력 생성 (GPT 날짜 계산 오류 완전 방지)
         String[] dayNames = {"월", "화", "수", "목", "금", "토", "일"};
-        for (int d = 0; d < todayDate.lengthOfMonth(); d++) {
-            java.time.LocalDate date = firstDay.plusDays(d);
-            int dayIdx = date.getDayOfWeek().getValue() - 1; // 0=월, 6=일
-            if (d > 0) calendarBuilder.append(", ");
-            calendarBuilder.append(date.getDayOfMonth() + "일(" + dayNames[dayIdx] + ")=" + date);
+        StringBuilder calendarBuilder = new StringBuilder();
+        java.time.LocalDate yearStart = todayDate.withDayOfYear(1);
+        int yearLength = todayDate.lengthOfYear();
+        int prevMonth = 0;
+        for (int d = 0; d < yearLength; d++) {
+            java.time.LocalDate date = yearStart.plusDays(d);
+            if (date.getMonthValue() != prevMonth) {
+                if (prevMonth > 0) calendarBuilder.append("\n");
+                calendarBuilder.append("[" + date.getMonthValue() + "월] ");
+                prevMonth = date.getMonthValue();
+            } else {
+                calendarBuilder.append(", ");
+            }
+            int dayIdx = date.getDayOfWeek().getValue() - 1;
+            calendarBuilder.append(date.getDayOfMonth() + "일(" + dayNames[dayIdx] + ")");
         }
 
         String prompt = "당신은 팀 프로젝트 카카오톡 대화를 분석하는 AI 비서입니다.\n" +
-                "오늘(요약 시점): " + today + " (" + todayDate.getDayOfWeek() + ")\n" +
-                todayDate.getYear() + "년 " + todayDate.getMonthValue() + "월 달력: " + calendarBuilder.toString() + "\n\n" +
+                "오늘(요약 시점): " + today + " (" + dayNames[todayDate.getDayOfWeek().getValue() - 1] + "요일)\n" +
+                todayDate.getYear() + "년 달력:\n" + calendarBuilder.toString() + "\n\n" +
                 "아래 카카오톡 대화에서 논의된 **모든 주제/안건**을 찾아 각각에 대해 일정, 장소, 역할을 추출하세요.\n" +
                 "하나의 대화에서 여러 건의 안건(발표 준비, 보고서 작성, 개발 작업 등)이 동시에 논의될 수 있습니다.\n\n" +
                 "**날짜 추론 규칙 (매우 중요):**\n" +
