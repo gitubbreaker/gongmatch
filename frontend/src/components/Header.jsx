@@ -112,7 +112,7 @@ function Header() {
           /* 로그인했을 때: 알림 및 프로필 아이콘 표시 */
           <>
             <div className="notif-wrap" style={{ position: 'relative', marginLeft: '10px' }}>
-              <div className="notif-icon" onClick={() => toggleDrop('notif')} style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', fontSize: '16px' }}>
+              <div className="notif-icon" onClick={() => navigate('/notifications')} style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', fontSize: '16px' }}>
                 🔔
                 {notifications.length > 0 && (
                   <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '18px', height: '18px', background: 'var(--red)', borderRadius: '50%', fontSize: '10px', fontWeight: '700', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>
@@ -120,48 +120,6 @@ function Header() {
                   </div>
                 )}
               </div>
-              {openDrop === 'notif' && (
-                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: '0', width: '320px', background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '12px', padding: '14px', zIndex: '300', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', padding: '0 4px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--tx)' }}>알림 <b style={{color:'var(--red)'}}>{notifications.length}</b>건</span>
-                  </div>
-                  
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--tx3)', fontSize: '13px' }}>
-                      새로운 도착한 알림이 없습니다.
-                    </div>
-                  ) : (
-                    <div style={{maxHeight:'320px', overflowY:'auto', display:'flex', flexDirection:'column', gap:'8px'}}>
-                      {notifications.map(req => (
-                        <div key={req.id} style={{ display: 'flex', gap: '12px', padding: '14px', background:'var(--card)', borderRadius: '10px', cursor: 'pointer', border:'1px solid var(--brd)' }} onClick={() => { navigate('/accept', { state: { request: req } }); setOpenDrop(null); }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--ac)', flexShrink: '0', marginTop: '5px' }}></div>
-                          <div style={{flex: 1, overflow: 'hidden'}}>
-                            {req.notifType === 'RECEIVED' ? (
-                              <>
-                                <div style={{ fontSize: '13px', color: 'var(--tx)', lineHeight: '1.4', marginBottom:'4px' }}>
-                                  <b style={{ color: 'var(--ac)', fontSize:'14px' }}>{req.sender?.name || '익명'}</b>님이 팀원 요청을 보냈습니다.
-                                </div>
-                                <div style={{ fontSize: '11px', color: 'var(--tx3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', background:'rgba(0,0,0,0.2)', padding:'6px 8px', borderRadius:'6px' }}>
-                                  "{req.message || '안녕하세요! 꼭 같이 팀하고 싶습니다.'}"
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div style={{ fontSize: '13px', color: 'var(--tx)', lineHeight: '1.4', marginBottom:'4px' }}>
-                                  🎉 <b style={{ color: 'var(--green)', fontSize:'14px' }}>{req.receiver?.name || '익명'}</b>님이 내 요청을 수락했습니다!
-                                </div>
-                                <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>
-                                  지금 바로 연동된 연락처를 확인해 보세요.
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
             <div className="my-wrap" style={{ position: 'relative' }}>

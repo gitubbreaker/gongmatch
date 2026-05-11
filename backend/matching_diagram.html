@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공매치 매칭 알고리즘 도식화</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f9fafb; /* PPT 배경이 흰색이면 투명하게 보이도록 밝은 회색 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- 이 영역을 캡처해서 PPT에 넣으시면 됩니다 -->
+    <div class="bg-white rounded-3xl p-10 w-full max-w-4xl card-shadow border border-gray-100 m-8">
+        
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-3">AI 기반 맞춤형 팀원 <span class="gradient-text">매칭 스코어링 시스템</span></h2>
+            <p class="text-gray-500 text-lg">사용자의 직무, 기술, 도메인을 3단계로 교차 분석하여 최적의 파트너를 추천합니다.</p>
+        </div>
+
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+            
+            <!-- Step 1 -->
+            <div class="bg-blue-50 rounded-2xl p-6 flex-1 w-full text-center border border-blue-100 relative h-48 flex flex-col justify-center">
+                <div class="text-4xl mb-3">🤝</div>
+                <h3 class="text-lg font-bold text-gray-800 mb-1">역할(Role) 보완</h3>
+                <p class="text-sm text-gray-600 mb-3">프론트엔드 ↔ 백엔드 매칭<br>(기획 ↔ 개발 포함)</p>
+                <div class="absolute -bottom-5 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white font-bold px-4 py-2 rounded-full shadow-lg">
+                    + 50 점
+                </div>
+            </div>
+
+            <div class="text-gray-300 text-3xl font-light hidden md:block">+</div>
+
+            <!-- Step 2 -->
+            <div class="bg-purple-50 rounded-2xl p-6 flex-1 w-full text-center border border-purple-100 relative h-48 flex flex-col justify-center">
+                <div class="text-4xl mb-3">🎯</div>
+                <h3 class="text-lg font-bold text-gray-800 mb-1">관심 도메인 일치</h3>
+                <p class="text-sm text-gray-600 mb-3">프로젝트 관심 분야 교집합<br>(1개 일치당 누적)</p>
+                <div class="absolute -bottom-5 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white font-bold px-4 py-2 rounded-full shadow-lg whitespace-nowrap">
+                    + 20 점 / 개
+                </div>
+            </div>
+
+            <div class="text-gray-300 text-3xl font-light hidden md:block">+</div>
+
+            <!-- Step 3 -->
+            <div class="bg-indigo-50 rounded-2xl p-6 flex-1 w-full text-center border border-indigo-100 relative h-48 flex flex-col justify-center">
+                <div class="text-4xl mb-3">💻</div>
+                <h3 class="text-lg font-bold text-gray-800 mb-1">기술 스택 일치</h3>
+                <p class="text-sm text-gray-600 mb-3">사용 가능한 개발 언어 및 툴<br>(1개 일치당 누적)</p>
+                <div class="absolute -bottom-5 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white font-bold px-4 py-2 rounded-full shadow-lg whitespace-nowrap">
+                    + 10 점 / 개
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Result -->
+        <div class="mt-14 pt-8 border-t-2 border-dashed border-gray-200 text-center flex justify-center">
+            <div class="inline-flex items-center justify-center gap-4 bg-gray-900 text-white rounded-2xl px-8 py-5 shadow-xl w-full max-w-2xl">
+                <div class="text-5xl">🏆</div>
+                <div class="text-left">
+                    <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-1">
+                        Total Match Score (최종 매칭률) 계산 완료
+                    </h3>
+                    <p class="text-gray-300 text-sm">
+                        "협업 시너지가 높은 상보적 역할군이며, 2개의 기술 스택이 일치합니다."<br>
+                        <span class="text-gray-400 text-xs">※ 점수 기반 추천 정렬 및 맞춤형 AI 코멘트 동시 제공</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -18,6 +18,7 @@ import ProjectListPage from './pages/ProjectListPage';
 import ProjectDetail from './pages/ProjectDetail';
 import PrivateRoute from './components/PrivateRoute';
 import NoticePage from './pages/NoticePage';
+import NotificationPage from './pages/NotificationPage';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
@@ -141,6 +142,7 @@ function App() {
           <Route path="/announcements" element={<ProjectListPage />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/notice" element={<NoticePage />} />
+          <Route path="/notifications" element={<NotificationPage />} />
 
           {/* 로그인 필요 라우트 */}
           <Route path="/time" element={<PrivateRoute><S2Time /></PrivateRoute>} />

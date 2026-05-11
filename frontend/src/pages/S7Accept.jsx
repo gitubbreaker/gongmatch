@@ -62,196 +62,288 @@ function S7Accept() {
   };
 
   // derived lists
-  const currentList = activeTab === 'RECEIVED' ? receivedRequests : sentRequests;
-
-  if (loading) return <div style={{padding:'100px', textAlign:'center', color:'var(--tx3)'}}>매칭 정보를 불러오는 중...</div>;
-
-  return (
-    <section className="screen on" id="s7" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
+  const currentList  return (
+    <section className="screen on" id="s7" style={{ display: 'flex', minHeight: 'calc(100vh - var(--navh) - var(--tabh))', background: 'var(--bg2)' }}>
       {/* 왼쪽 메인 패널 */}
-      <div className="s7-left" style={{ background: 'var(--bg)', borderRight: '1px solid var(--brd)', display: 'flex', flexDirection: 'column' }}>
+      <div className="s7-left" style={{ width: '340px', background: 'var(--bg)', borderRight: '1px solid var(--brd)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         
-        <div style={{ padding: '32px 28px 0 28px' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '24px', letterSpacing:'-0.5px' }}>팀 매칭 관리</h3>
+        <div style={{ padding: '32px 24px 0 24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '900', marginBottom: '24px', letterSpacing:'-0.5px' }}>매칭 수신함</h3>
           {/* 탭 버튼 */}
           <div style={{ display: 'flex', background: 'var(--card2)', borderRadius: '12px', padding: '6px', marginBottom: '24px', border:'1px solid var(--brd2)' }}>
             <button 
               onClick={() => {setActiveTab('RECEIVED'); setActiveChat(null);}} 
-              style={{ flex: 1, padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: '800', background: activeTab === 'RECEIVED' ? 'var(--card)' : 'transparent', color: activeTab === 'RECEIVED' ? 'var(--tx)' : 'var(--tx3)', boxShadow: activeTab === 'RECEIVED' ? '0 4px 10px rgba(0,0,0,0.3)' : 'none', border: activeTab === 'RECEIVED' ? '1px solid var(--brd)' : '1px solid transparent', transition:'all .2s' }}
+              style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: '800', background: activeTab === 'RECEIVED' ? 'var(--ac)' : 'transparent', color: activeTab === 'RECEIVED' ? '#000' : 'var(--tx3)', border: 'none', transition:'all .2s' }}
             >
-              나에게 온 요청
+              보낸 요청
             </button>
             <button 
               onClick={() => {setActiveTab('SENT'); setActiveChat(null);}} 
-              style={{ flex: 1, padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: '800', background: activeTab === 'SENT' ? 'var(--card)' : 'transparent', color: activeTab === 'SENT' ? 'var(--tx)' : 'var(--tx3)', boxShadow: activeTab === 'SENT' ? '0 4px 10px rgba(0,0,0,0.3)' : 'none', border: activeTab === 'SENT' ? '1px solid var(--brd)' : '1px solid transparent', transition:'all .2s'  }}
+              style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: '800', background: activeTab === 'SENT' ? 'var(--ac)' : 'transparent', color: activeTab === 'SENT' ? '#000' : 'var(--tx3)', border: 'none', transition:'all .2s'  }}
             >
-              내가 보낸 요청
+              받은 요청
+            </button>
+            <button 
+              style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: '800', background: 'transparent', color: 'var(--tx3)', border: 'none', transition:'all .2s'  }}
+            >
+              성사
             </button>
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 28px 28px 28px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px 24px' }}>
           {currentList.length === 0 ? (
             <div className="card" style={{padding:'50px 20px', textAlign:'center', color:'var(--tx3)', fontSize:'14px', borderRadius:'16px', background:'transparent', border:'1px dashed var(--brd)'}}>
               아직 내역이 없습니다.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {currentList.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(req => {
-                // 판단 로직: 이 요청의 상대방이 누군가?
-                const isSentByMe = activeTab === 'SENT';
-                const otherPerson = isSentByMe ? req.receiver : req.sender;
-                
-                return (
-                  <div key={req.requestId} onClick={() => req.status === 'ACCEPTED' && setActiveChat(req)} style={{ 
-                    border: req.status === 'ACCEPTED' ? '1px solid var(--ac-brd)' : '1px solid var(--brd2)',
-                    background: req.status === 'ACCEPTED' ? 'var(--ac-dim)' : 'var(--card2)',
-                    padding: '20px', borderRadius: '16px', cursor: req.status === 'ACCEPTED' ? 'pointer' : 'default',
-                    transition: 'all .2s', position: 'relative'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
-                      <div className="av" style={{ width: '42px', height: '42px', background: 'var(--blue-dim)', color: 'var(--blue)', fontSize: '18px', borderRadius:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900' }}>
-                        {otherPerson?.name ? otherPerson.name.charAt(0) : '?'}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '16px', fontWeight: '800' }}>{otherPerson?.name || '익명'}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--tx3)', marginTop:'3px' }}>{otherPerson?.major || '전공미상'}</div>
-                      </div>
-                      <div>
-                         {req.status === 'ACCEPTED' && <span style={{fontSize:'11px', background:'var(--green)', color:'#fff', padding:'4px 10px', borderRadius:'10px', fontWeight:'800'}}>매칭 성공</span>}
-                         {req.status === 'PENDING' && isSentByMe && <span style={{fontSize:'11px', background:'var(--brd2)', color:'var(--tx3)', padding:'4px 10px', borderRadius:'10px', fontWeight:'800'}}>상대방 수락 대기중</span>}
-                         {req.status === 'REJECTED' && <span style={{fontSize:'11px', background:'var(--red)', color:'#fff', padding:'4px 10px', borderRadius:'10px', fontWeight:'800'}}>아쉽게 거절됨</span>}
-                      </div>
-
-                      {/* 삭제 버튼: PENDING이 아닌 완료된 내역이거나, 내가 보낸 요청 중 거절된 것은 삭제 가능 */}
-                      {(req.status !== 'PENDING' || isSentByMe) && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleDeleteRequest(req.requestId); }}
-                          style={{ position:'absolute', top:'16px', right:'16px', background:'transparent', border:'none', color:'var(--tx3)', fontSize:'18px', cursor:'pointer', padding:'4px' }}
-                          title="목록에서 삭제"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                    
-                    <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', background: 'var(--bg)', padding: '12px 16px', borderRadius: '10px', marginBottom: '14px', paddingRight: '30px' }}>
-                      "{req.message || '안녕하세요! 같이 팀 하고 싶습니다.'}"
-                    </p>
-                    
-                    {!isSentByMe && req.status === 'PENDING' ? (
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        <button className="btn-prim btn-sm" style={{ flex: 1, padding:'12px', borderRadius:'10px', fontSize:'13px', fontWeight:'800' }} onClick={(e) => {e.stopPropagation(); handleUpdateStatus(req.requestId, 'ACCEPTED', otherPerson.name);}}>수락하기</button>
-                        <button className="btn-ghost btn-sm" style={{ flex: 1, padding:'12px', borderRadius:'10px', fontSize:'13px' }} onClick={(e) => {e.stopPropagation(); handleUpdateStatus(req.requestId, 'REJECTED', otherPerson.name);}}>거절하기</button>
-                      </div>
-                    ) : (
-                       req.status === 'ACCEPTED' && (
-                        <div style={{ textAlign:'center', fontSize:'12px', color:'var(--ac)', fontWeight:'800', marginTop:'6px' }}>
-                          클릭해서 연락처 보기 →
-                        </div>
-                       )
-                    )}
+              {/* Dummy requests based on screenshot */}
+              <div onClick={() => setActiveChat({ id: 1, name: '김지원', type: 'RECEIVED' })} style={{ borderLeft: '3px solid var(--ac)', background: 'rgba(200,242,38,0.05)', padding: '16px', borderRadius: '12px', cursor: 'pointer', borderTop: '1px solid var(--ac-brd)', borderRight: '1px solid var(--ac-brd)', borderBottom: '1px solid var(--ac-brd)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>
+                    <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>김지원</span>
+                    <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>새 요청</span>
                   </div>
-                )
-              })}
+                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>10분 전</span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
+                  2026 부산 공공데이터 창업 경진대회<br/>안녕하세요! 같이 팀을 꾸려보고 싶어서...
+                </div>
+              </div>
+
+              <div style={{ borderLeft: '3px solid var(--ac)', background: 'var(--card)', padding: '16px', borderRadius: '12px', cursor: 'pointer', borderTop: '1px solid var(--brd2)', borderRight: '1px solid var(--brd2)', borderBottom: '1px solid var(--brd2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>
+                    <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>박도현</span>
+                    <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>새 요청</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>2시간 전</span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
+                  행안부 분석 데이터 챌린지<br/>데이터 분석 파트로 참여 희망합니다...
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--card)', padding: '16px', borderRadius: '12px', cursor: 'pointer', border: '1px solid var(--brd2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>이수현</span>
+                    <span style={{ fontSize: '10px', border: '1px solid var(--purple)', color: 'var(--purple)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>응답 대기</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>어제</span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
+                  2026 부산 공공데이터 창업 경진대회<br/>요청을 보냈습니다. 수락을 기다리는 중...
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--card)', padding: '16px', borderRadius: '12px', cursor: 'pointer', border: '1px solid var(--brd2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>최민아</span>
+                    <span style={{ fontSize: '10px', background: 'var(--green-dim)', color: 'var(--green)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>수락완료</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>3일 전</span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
+                  청년 스타트업 창업 해커톤<br/>수락해주셔서 감사합니다! 언제 첫 미팅...
+                </div>
+              </div>
+
             </div>
           )}
         </div>
       </div>
 
-      {/* 오른쪽 상세/연락 패널 */}
-      <div className="s7-right" style={{ background: 'var(--bg2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      {/* 중앙 상세 패널 */}
+      <div style={{ flex: 1, padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: activeChat ? 'flex-start' : 'center', overflowY: 'auto' }}>
         {!activeChat ? (
-          <div style={{ width:'100%', maxWidth:'480px', padding:'40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ color: 'var(--tx3)', fontSize: '15px', textAlign: 'center', lineHeight:'1.7', background:'var(--card)', padding:'40px 60px', borderRadius:'24px', border:'1px solid var(--brd)' }}>
-              <div style={{fontSize:'48px', marginBottom:'20px', opacity:'0.5'}}>🤝</div>
-              왼쪽 목록에서 <b>수락된 매칭</b>을 선택하면<br/>상대방과 연락할 수 있는 정보를 제공해 드립니다.
-            </div>
-            
-            {/* 팀 구성 현황 패널 (항상 표시) */}
-            <div style={{ background:'var(--card)', borderRadius:'24px', padding:'32px', border:'1px solid var(--brd)', boxShadow:'0 10px 30px rgba(0,0,0,0.2)' }}>
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                 <div style={{ fontSize:'15px', color:'var(--tx)', fontWeight:'900' }}>현재 팀 구성 현황</div>
-                 <div style={{ fontSize:'14px', color:'var(--ac)', fontWeight:'900' }}>2/5명 확정</div>
-               </div>
-               <div style={{ width: '100%', background: 'var(--bg)', height: '10px', borderRadius: '5px', overflow: 'hidden', marginBottom:'20px' }}>
-                 <div style={{ width: '40%', background: 'var(--ac)', height: '100%', borderRadius: '5px' }}></div>
-               </div>
-               <div style={{ display: 'flex', gap: '10px' }}>
-                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>나</div>
-                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>황</div>
-                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
-                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
-                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
-               </div>
-            </div>
+          <div style={{ color: 'var(--tx3)', fontSize: '15px', textAlign: 'center', lineHeight:'1.7', background:'var(--card)', padding:'40px 60px', borderRadius:'24px', border:'1px solid var(--brd)' }}>
+            <div style={{fontSize:'48px', marginBottom:'20px', opacity:'0.5'}}>🤝</div>
+            왼쪽 목록에서 <b>수락된 매칭</b>을 선택하면<br/>상대방과 연락할 수 있는 정보를 제공해 드립니다.
           </div>
         ) : (
-          <div style={{ width:'100%', maxWidth:'480px', padding:'40px' }}>
-            <div style={{ background:'var(--card)', border:'1px solid var(--brd)', borderRadius:'28px', padding:'48px 40px', textAlign:'center', boxShadow:'0 30px 60px rgba(0,0,0,0.4)', position:'relative' }}>
-               <div style={{ position:'absolute', top:'-20px', left:'50%', transform:'translateX(-50%)', background:'var(--green)', color:'#fff', padding:'6px 16px', borderRadius:'20px', fontSize:'12px', fontWeight:'800', boxShadow:'0 5px 15px rgba(0,0,0,0.3)' }}>
-                 MATCH SUCCESS
-               </div>
-               
-               <div style={{ width:'88px', height:'88px', background:'var(--ac-dim)', color:'var(--ac)', borderRadius:'28px', fontSize:'36px', fontWeight:'900', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', border:'2px solid var(--ac-brd)' }}>
-                  {(activeTab === 'SENT' ? activeChat.receiver.name : activeChat.sender.name).charAt(0)}
-               </div>
-               <h2 style={{ fontSize:'26px', fontWeight:'900', marginBottom:'10px' }}>매칭이 성사되었습니다!</h2>
-               <p style={{ fontSize:'15px', color:'var(--tx2)', marginBottom:'32px', lineHeight:'1.5' }}>
-                 <b>{(activeTab === 'SENT' ? activeChat.receiver.name : activeChat.sender.name)}</b>님과 함께 팀을 이뤄<br/>멋진 공모전 프로젝트를 시작해 보세요.
-               </p>
+          <div style={{ width:'100%', maxWidth:'640px' }}>
+            <div style={{ background: 'var(--card)', borderRadius: '24px', border: '1px solid var(--brd)', padding: '32px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--blue-dim)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '900' }}>김</div>
+                  <div>
+                    <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--tx)', marginBottom: '6px' }}>김지원</h2>
+                    <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>백엔드 개발 · 한양대학교 컴퓨터공학과 3학년 · 서울 성동구 · 가입 2024.03</p>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: '#000', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>✓ 학교인증</span>
+                      <span style={{ fontSize: '10px', background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>🏆 대상 수상</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--ac)', lineHeight: '1' }}>94</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>매칭 점수</div>
+                </div>
+              </div>
 
-               {/* 카카오 오픈채팅 주소가 있을 경우 렌더링 로직 추가 */}
-               {(() => {
-                 const targetUser = activeTab === 'SENT' ? activeChat.receiver : activeChat.sender;
-                 const hasKakao = !!targetUser.openChatUrl && targetUser.openChatUrl.startsWith('http');
-                 
-                 return (
-                   <>
-                     <div style={{ background:'var(--bg)', borderRadius:'16px', padding:'24px', marginBottom:'28px', border:'1px solid var(--brd2)', textAlign:'left' }}>
-                       <div style={{ fontSize:'12px', color:'var(--tx3)', fontWeight:'800', marginBottom:'12px', letterSpacing:'1px' }}>
-                         {hasKakao ? 'KAKAO OPEN CHAT' : 'CONTACT INFO'}
-                       </div>
-                       <div style={{ fontSize:'16px', color:'var(--tx)', fontWeight:'700', letterSpacing:'0.5px', wordBreak: 'break-all' }}>
-                         {hasKakao ? targetUser.openChatUrl : targetUser.loginId}
-                       </div>
-                     </div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--brd2)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>💬</span> 팀원 요청 메시지
+                </div>
+                <p style={{ fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6' }}>
+                  안녕하세요! 저는 Python/Django 백엔드 개발을 주로 하는 한양대 컴공 3학년 김지원입니다. 공공데이터 활용 웹 공모전 경험이 있고, 이번 대회에서도 데이터 수집·분석 파이프라인 구축을 맡을 수 있어요. 같이 좋은 결과 만들어 봐요! 💪
+                </p>
+              </div>
 
-                     {hasKakao ? (
-                       <button 
-                         style={{ width:'100%', padding:'18px', borderRadius:'16px', fontSize:'16px', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px', background:'#FEE500', color:'#000000', border:'none', cursor:'pointer' }}
-                         onClick={() => window.open(targetUser.openChatUrl, '_blank')}
-                       >
-                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 3C6.48 3 2 6.81 2 11.5c0 2.65 1.48 5 3.75 6.5l-1.07 3.51a.5.5 0 0 0 .63.63l4.13-1.42c.83.21 1.69.31 2.56.31 5.52 0 10-3.81 10-8.5S17.52 3 12 3z"></path></svg>
-                         카카오톡 오픈채팅방 열기
-                       </button>
-                     ) : (
-                       <button 
-                         className="btn-prim" 
-                         style={{ width:'100%', padding:'18px', borderRadius:'16px', fontSize:'16px', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
-                         onClick={() => {
-                           navigator.clipboard.writeText(targetUser.loginId);
-                           showToast('이메일 주소가 클립보드에 복사되었습니다!');
-                         }}
-                       >
-                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                         이메일 정보 복사하기
-                       </button>
-                     )}
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--brd2)', borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>⏳</span> 겹치는 가용 시간
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', background: 'rgba(200,242,38,0.1)', color: 'var(--ac)', border: '1px solid var(--ac-brd)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>토 14:00~17:00</span>
+                    <span style={{ fontSize: '11px', background: 'rgba(200,242,38,0.1)', color: 'var(--ac)', border: '1px solid var(--ac-brd)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>수 14:00~15:00</span>
+                    <span style={{ fontSize: '11px', background: 'rgba(200,242,38,0.1)', color: 'var(--ac)', border: '1px solid var(--ac-brd)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>금 19:00~21:00</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '12px' }}>총 5.5시간 겹침</div>
+                </div>
 
-                     {/* 팀 구성 현황 패널 추가 */}
-                     <div style={{ marginTop: '24px', background:'var(--bg)', borderRadius:'16px', padding:'20px', border:'1px solid var(--brd2)', textAlign:'left' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                          <div style={{ fontSize:'13px', color:'var(--tx)', fontWeight:'800' }}>현재 팀 구성 현황</div>
-                          <div style={{ fontSize:'12px', color:'var(--ac)', fontWeight:'900' }}>2/5명 확정</div>
-                        </div>
-                        <div style={{ width: '100%', background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: '40%', background: 'var(--ac)', height: '100%', borderRadius: '4px' }}></div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>나</div>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>{targetUser.name?.charAt(0) || '?'}</div>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
+                <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--brd2)', borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🏷️</span> 공통 관심사 태그
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ Python</span>
+                    <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ Django</span>
+                    <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ 데이터분석</span>
+                    <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ 창업</span>
+                    <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ 공공데이터</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--brd)', paddingTop: '24px', marginBottom: '32px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '16px' }}>매칭 점수 상세</div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+                  <div style={{ width: '60px', fontSize: '13px', color: 'var(--tx2)' }}>가용시간</div>
+                  <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '94%', height: '100%', background: 'var(--ac)' }}></div>
+                  </div>
+                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>47<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+                  <div style={{ width: '60px', fontSize: '13px', color: 'var(--tx2)' }}>관심사</div>
+                  <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '94%', height: '100%', background: 'var(--ac)' }}></div>
+                  </div>
+                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>47<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '60px', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>총 점수</div>
+                  <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '94%', height: '100%', background: 'var(--ac)' }}></div>
+                  </div>
+                  <div style={{ width: '40px', fontSize: '14px', fontWeight: '900', color: 'var(--ac)', textAlign: 'right' }}>94<span style={{ color: 'var(--tx3)', fontWeight: '400', fontSize: '12px' }}>/100</span></div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button style={{ flex: 1, padding: '16px', borderRadius: '12px', background: 'transparent', border: '1px solid var(--brd2)', color: 'var(--tx2)', fontSize: '14px', fontWeight: '800', cursor: 'pointer' }}>거절하기</button>
+                <button style={{ flex: 2, padding: '16px', borderRadius: '12px', background: 'var(--ac)', border: 'none', color: '#000', fontSize: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <span>+</span> 팀원 수락하기
+                </button>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <button style={{ background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: '0 auto' }}>
+                  <span>☁️</span> 먼저 쪽지 보내기 (답장 전 대기)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 오른쪽 사이드바 (팀 활동 기록 및 현황) - activeChat이 있을 때만 표시 */}
+      {activeChat && (
+        <div style={{ width: '320px', background: 'var(--bg)', borderLeft: '1px solid var(--brd)', padding: '32px 24px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+              <span style={{ fontSize: '16px' }}>📕</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>채팅 활동 기록</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative' }}>
+              {/* 타임라인 라인 */}
+              <div style={{ position: 'absolute', top: '10px', left: '11px', bottom: '10px', width: '2px', background: 'var(--brd)' }}></div>
+              
+              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card)', border: '2px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>📬</div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>김지원님이 팀원 요청을 보냈습니다</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>10분 전 · 부산 공공데이터 창업대회</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>⚡</div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>이수현님에게 팀원 요청을 보냈습니다</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>어제 14:32 · 부산 공공데이터 창업대회</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--green-dim)', border: '2px solid var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>✅</div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>최민아님이 팀원 요청을 수락했습니다!</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>2일 전 · 청년 스타트업 해커톤</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card)', border: '2px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>👀</div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>박도현님이 프로필을 확인했습니다</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>3일 전</div>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card)', border: '2px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>📬</div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>박도현님이 팀원 요청을 보냈습니다</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>2시간 전 · 행안부 데이터 챌린지</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 현재 팀 구성 현황 (하단 고정) */}
+          <div style={{ background: 'var(--card2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--brd2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '13px' }}>👥</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>현재 팀 구성 현황 (부산 공공데이터)</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>나</div>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>최</div>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
+            </div>
+
+            <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--tx3)' }}>
+              2/5명 확정 · 3자리 남음
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
                           <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
                           <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
                         </div>

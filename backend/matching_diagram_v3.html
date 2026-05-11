@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공매치 매칭 알고리즘 도식화 (세로형 50/50)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        /* 우측 산 그림만 가리는 세로형 (Portrait) 비율: 폭 420px */
+        .capture-box {
+            width: 420px;
+            height: auto;
+            min-height: 600px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .ppt-primary-color { color: #4b5597; }
+        .ppt-primary-bg { background-color: #4b5597; }
+        .ppt-primary-border { border-color: #4b5597; }
+        
+        .score-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 24px 16px;
+            margin-bottom: 20px;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .arrow-down {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 20px;
+            color: #94a3b8;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 세로로 긴(우측 산 그림) 비율에 완벽히 맞춘 캡처 영역 (420x600) -->
+    <div class="capture-box">
+        
+        <!-- 제목 -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold ppt-primary-color tracking-tight mb-2">매칭 스코어 로직</h2>
+            <p class="text-sm text-gray-500 font-semibold">100점 만점 / 50:50 가중치 배분</p>
+        </div>
+
+        <!-- 2단계 로직 (세로 배치) -->
+        <div class="flex-1 flex flex-col justify-center">
+            
+            <div class="score-card border-l-8 border-l-blue-500 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🕒</span>
+                    <h3 class="text-2xl font-bold text-gray-800">가용 시간 일치</h3>
+                </div>
+                <p class="text-xs text-gray-500 mb-2">매주 겹치는 프로젝트 투자 가능 시간</p>
+                <div class="bg-blue-100 text-blue-800 font-semibold px-3 py-1 rounded-md text-sm mb-3">
+                    ▶ 1시간 일치당 <span class="font-extrabold text-blue-900">+10점</span> 추가
+                </div>
+                <div class="ppt-primary-bg text-white font-bold px-5 py-2 rounded-full text-base">
+                    최대 50 점
+                </div>
+            </div>
+
+            <div class="arrow-down">▼</div>
+
+            <div class="score-card border-l-8 border-l-purple-500 shadow-sm mb-0">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🎯</span>
+                    <h3 class="text-2xl font-bold text-gray-800">관심사 해시태그</h3>
+                </div>
+                <p class="text-xs text-gray-500 mb-2">기술 스택 및 관심 분야 태그 일치율</p>
+                <div class="bg-purple-100 text-purple-800 font-semibold px-3 py-1 rounded-md text-sm mb-3">
+                    ▶ 태그 1개 일치당 <span class="font-extrabold text-purple-900">+10점</span> 추가
+                </div>
+                <div class="ppt-primary-bg text-white font-bold px-5 py-2 rounded-full text-base">
+                    최대 50 점
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 결과 코멘트 -->
+        <div class="mt-6 ppt-primary-bg rounded-xl p-5 text-white shadow-lg text-center">
+            <div class="flex justify-center items-center gap-3 mb-2">
+                <div class="text-3xl">🏆</div>
+                <div class="text-2xl font-extrabold text-yellow-300">최종 80점 (예시)</div>
+            </div>
+            
+            <!-- 점수 계산 예시 박스 -->
+            <div class="bg-white bg-opacity-20 rounded-lg py-2 px-3 mb-3 text-sm font-semibold tracking-wide">
+                시간 3시간(30점) + 태그 5개 일치(50점)
+            </div>
+
+            <div class="text-sm font-light leading-relaxed opacity-90 border-t border-blue-400 pt-3">
+                "매주 3시간의 가용 시간이 겹치며,<br>5개의 관심사 해시태그가 일치합니다."
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -103,94 +103,108 @@ function S1Home() {
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>342</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>진행 중인 공고</div></div>
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>8,921</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>활동 학생</div></div>
         </div>
+
+        {/* 내 매칭 현황 */}
+        {isLoggedIn && (
+          <div style={{ marginTop: '36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>👍 내 매칭 현황</span>
+              </div>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/accept'); }} style={{ fontSize: '12px', color: 'var(--ac)', textDecoration: 'none' }}>전체 보기 →</a>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>김지원</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>2026 부산 공공데이터 활용 창업 경진대회</div>
+                </div>
+                <span style={{ fontSize: '11px', background: 'var(--green-dim)', color: 'var(--green)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>수락완료</span>
+              </div>
+              <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>이수현</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>2026 부산 공공데이터 활용 창업 경진대회</div>
+                </div>
+                <span style={{ fontSize: '11px', background: 'var(--card2)', border: '1px solid var(--purple)', color: 'var(--purple)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>응답 대기 중</span>
+              </div>
+              <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>박도현</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>행안부 데이터 분석 챌린지</div>
+                </div>
+                <span style={{ fontSize: '11px', background: 'var(--orange-dim)', color: 'var(--orange)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>내 팀원 요청</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="s1-right" style={{ background: 'var(--bg2)', borderLeft: '1px solid var(--brd)', padding: '28px 22px', display: 'flex', flexDirection: 'column', gap: '13px', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '2px' }}>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--ac)', display: 'inline-block' }}></span>
-          <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--tx3)' }}>오늘의 추천 공고 및 매칭</span>
+      <div className="s1-right" style={{ background: 'var(--bg2)', borderLeft: '1px solid var(--brd)', padding: '28px 22px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
+        
+        {/* 마감 임박 공고 */}
+        <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--brd)', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '14px' }}>⏳</span>
+            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>마감 임박 공고</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '13px', color: 'var(--tx2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>부산 공공데이터 활용 창업 경진대회</div>
+              <span style={{ fontSize: '11px', background: 'var(--red-dim)', color: 'var(--red)', padding: '4px 8px', borderRadius: '6px', fontWeight: '800', flexShrink: 0 }}>D-3</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '13px', color: 'var(--tx2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>청년 창업 아이디어 해커톤</div>
+              <span style={{ fontSize: '11px', background: 'var(--orange-dim)', color: 'var(--orange)', padding: '4px 8px', borderRadius: '6px', fontWeight: '800', flexShrink: 0 }}>D-7</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '13px', color: 'var(--tx2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>행안부 데이터 분석 챌린지</div>
+              <span style={{ fontSize: '11px', background: 'var(--green-dim)', color: 'var(--green)', padding: '4px 8px', borderRadius: '6px', fontWeight: '800', flexShrink: 0 }}>D-15</span>
+            </div>
+          </div>
         </div>
 
-        {projects.length === 0 ? (
-          <div className="card" style={{padding:'30px', textAlign:'center', color:'var(--tx3)', fontSize:'12px'}}>불러올 공고가 없습니다.</div>
-        ) : (
-          projects.map(p => {
-            // D-Day 계산 로직 추가
-            const getDDay = (dateStr) => {
-              if (!dateStr) return '상시';
-              const target = new Date(dateStr);
-              const now = new Date();
-              now.setHours(0,0,0,0);
-              const diffTime = target - now;
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              if (diffDays === 0) return 'D-Day';
-              if (diffDays < 0) return '마감';
-              return `D-${diffDays}`;
-            };
+        {/* 🏆 최신 공고 */}
+        <div style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', borderLeft: '4px solid var(--ac)', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '14px' }}>🏆</span>
+            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>최신 공고</span>
+            <span style={{ marginLeft: 'auto', background: 'var(--red)', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '2px 6px', borderRadius: '4px' }}>HOT</span>
+            <span style={{ background: 'var(--brd)', color: 'var(--tx3)', fontSize: '10px', fontWeight: '900', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}>D-3</span>
+          </div>
+          <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx1)', marginBottom: '8px', lineHeight: '1.4' }}>2026 부산 공공데이터 활용 창업 경진대회</h3>
+          <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '12px' }}>행정안전부 주최 · 총상금 5,000만원 · 3~5인</p>
+          
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+            <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--ac-brd)' }}>#데이터분석</span>
+            <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--ac-brd)' }}>#개발</span>
+            <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--ac-brd)' }}>#창업</span>
+          </div>
 
-            return (
-              <div key={p.id} className="pubcard" onClick={() => navigate('/projects/' + p.id)} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: 'var(--r2)', padding: '18px', borderLeft: '3px solid var(--ac)', cursor: 'pointer', transition: 'transform 0.2s', position: 'relative' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <div style={{ flex: 1, paddingRight: '45px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--tx3)', fontWeight: '600' }}>#{p.category || '기타'}</span>
-                      <span className="badge-hot" style={{ fontSize: '9px', padding: '1px 5px' }}>LIVE</span>
-                    </div>
-                    <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.4', color: 'var(--tx1)', letterSpacing: '-0.3px' }}>{p.title}</p>
-                  </div>
-                  <div style={{ position: 'absolute', top: '18px', right: '18px' }}>
-                    <span className="pub-d" style={{ background: 'rgba(164, 255, 68, 0.1)', color: 'var(--ac)', border: '1px solid rgba(164, 255, 68, 0.3)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: '900', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-                      {getDDay(p.endDate)}
-                    </span>
-                  </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '16px', marginBottom: '16px', border: '1px solid var(--brd2)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '12px', fontWeight: '700' }}>알고리즘 추천 팀원</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900', border: '2px solid var(--ac-brd)' }}>김</div>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx1)' }}>김지원</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>백엔드 · Python</div>
                 </div>
-                <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.host} · {p.teamLimit || '인원 미정'}</p>
-                
-                {/* 추천 팀원 섹션: 로그인 시 데이터 노출, 비로그인 시 블러 처리 */}
-                <div className="divider" style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.05)' }}></div>
-                <p className="slabel" style={{ marginBottom: '8px' }}>알고리즘 추천 팀원</p>
-                
-                {isLoggedIn && bestMatch ? (
-                  <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div className="av" style={{ width: '32px', height: '32px', background: 'var(--ac)', color: '#000', fontSize: '12px', fontWeight:'900', borderRadius: '50%' }}>{bestMatch.name.charAt(0)}</div>
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--tx1)' }}>{bestMatch.name}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>{bestMatch.major} · 적합도 {bestMatch.totalScore}%</div>
-                      </div>
-                    </div>
-                    <span className="match-sc" style={{ fontSize: '14px', fontWeight: '900', color: 'var(--ac)' }}>{bestMatch.totalScore}점</span>
-                  </div>
-                ) : (
-                  <div style={{ position: 'relative' }}>
-                    {/* 가짜 데이터 + 블러 처리 */}
-                    <div className="match-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', filter: 'blur(5px)', opacity: 0.6, pointerEvents: 'none' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="av" style={{ width: '32px', height: '32px', background: '#333', borderRadius: '50%' }}></div>
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--tx1)' }}>비공개 회원</div>
-                          <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>로그인 후 전공 확인</div>
-                        </div>
-                      </div>
-                      <span className="match-sc" style={{ fontSize: '14px', fontWeight: '900', color: 'var(--ac)' }}>??점</span>
-                    </div>
-                    {/* 로그인 유도 버튼Overlay */}
-                    {!isLoggedIn && (
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <button onClick={(e) => { e.stopPropagation(); navigate('/login'); }} className="btn-prim" style={{ padding: '6px 14px', fontSize: '11px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>👤 로그인 후 확인</button>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <button className="btn-prim" style={{ width: '100%', marginTop: '14px', padding: '12px', fontSize: '13px', borderRadius: '10px' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>⚡ 이 공고로 매칭 시작</button>
               </div>
-            );
-          })
-        )}
+              <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--ac)' }}>94점</div>
+            </div>
+          </div>
+          
+          <button className="btn-prim" style={{ width: '100%', padding: '14px', fontSize: '14px', fontWeight: '800', borderRadius: '10px' }} onClick={() => navigate('/candidates')}>⚡ 이 공고로 매칭 시작</button>
+        </div>
 
-        <div className="s1-minipill" style={{ background: 'rgba(200,242,38,.06)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '11px 14px' }}>
-          <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--ac)', marginBottom: '3px' }}>● 1:1 알고리즘 매칭 가동 중</p>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)' }}>나와 기술 스택이 겹치는 후보가 즉시 노출됩니다.</p>
+        <div className="s1-minipill" style={{ background: 'rgba(200,242,38,.06)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--ac)' }}>매일 오전 6시 자동 업데이트</span>
+          </div>
+          <p style={{ fontSize: '11px', color: 'var(--tx3)' }}>data.go.kr API 연동 중 · 미등록 공고는 수집 불가</p>
         </div>
       </div>
     </div>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공매치 매칭 알고리즘 도식화 (비율 맞춤형)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #e5e7eb; /* 캡처하기 쉽도록 바깥 배경은 어둡게 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        /* 피피티 사진 공간에 딱 맞는 4:3 비율의 캡처 영역 */
+        .capture-box {
+            width: 800px;
+            height: 600px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 50px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+        /* PPT의 메인 남색(퍼플블루) 컬러: 약 #4b5597 */
+        .ppt-primary-color {
+            color: #4b5597;
+        }
+        .ppt-primary-bg {
+            background-color: #4b5597;
+        }
+        .ppt-primary-border {
+            border-color: #4b5597;
+        }
+        
+        .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f8fafc;
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 16px;
+            border-left: 6px solid #4b5597;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 이 800x600 흰색 박스 전체를 캡처하시면 피피티 산 모양 사진 자리에 딱 맞습니다! -->
+    <div class="capture-box">
+        
+        <!-- 제목 -->
+        <div class="text-center mb-8">
+            <h2 class="text-4xl font-extrabold ppt-primary-color tracking-tight mb-2">매칭 스코어 산출 알고리즘</h2>
+            <p class="text-xl text-gray-500 font-semibold">사용자 교차 검증 및 AI 코멘트 생성</p>
+        </div>
+
+        <!-- 점수 산출 로직 -->
+        <div class="flex-1 flex flex-col justify-center mb-4">
+            
+            <div class="score-row shadow-sm">
+                <div class="flex items-center gap-5">
+                    <div class="text-4xl">🤝</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">역할(Role) 보완</h3>
+                        <p class="text-lg text-gray-500">프론트엔드 ↔ 백엔드 매칭</p>
+                    </div>
+                </div>
+                <div class="ppt-primary-color text-3xl font-extrabold">
+                    + 50 점
+                </div>
+            </div>
+
+            <div class="score-row shadow-sm">
+                <div class="flex items-center gap-5">
+                    <div class="text-4xl">🎯</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">관심 도메인</h3>
+                        <p class="text-lg text-gray-500">관심 프로젝트 분야 일치</p>
+                    </div>
+                </div>
+                <div class="ppt-primary-color text-3xl font-extrabold">
+                    + 20 점 <span class="text-xl text-gray-400 font-medium">/ 개</span>
+                </div>
+            </div>
+
+            <div class="score-row shadow-sm">
+                <div class="flex items-center gap-5">
+                    <div class="text-4xl">💻</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">기술 스택</h3>
+                        <p class="text-lg text-gray-500">사용 가능한 기술 교집합</p>
+                    </div>
+                </div>
+                <div class="ppt-primary-color text-3xl font-extrabold">
+                    + 10 점 <span class="text-xl text-gray-400 font-medium">/ 개</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 결과 (매칭 코멘트) -->
+        <div class="ppt-primary-bg rounded-2xl p-6 text-white shadow-lg relative">
+            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white text-3xl rounded-full p-2 shadow-md border-4 ppt-primary-border">
+                ⬇️
+            </div>
+            <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center gap-4">
+                    <div class="text-5xl">🏆</div>
+                    <div>
+                        <div class="text-lg text-blue-200 font-bold mb-1">Total Match Score 계산 완료</div>
+                        <div class="text-xl font-bold leading-snug">
+                            "협업 시너지가 높은 상보적 역할군이며,<br>
+                            2개의 기술 스택이 일치합니다."
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-5xl font-extrabold text-yellow-300 tracking-tighter">80<span class="text-2xl ml-1 text-white">점</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
