@@ -81,36 +81,57 @@ function S8Summary() {
           </div>
         )}
 
-        {summary && (
-          <>
-            <div className="card" style={{ borderLeft: '3px solid var(--ac)' }}>
-              <p className="slabel" style={{ color: 'var(--ac)' }}>확정된 다음 일정</p>
-              <div style={{ fontSize: '15px', fontWeight: '800', marginBottom: '6px' }}>{summary.schedule}</div>
-              <div style={{ fontSize: '13px', color: 'var(--tx2)' }}>장소: {summary.location}</div>
-            </div>
-
-            <div className="card">
-              <p className="slabel">팀원별 역할 분담</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {summary.roles.map((item, idx) => (
-                  <div key={idx} style={{ background: 'var(--bg2)', padding: '14px', borderRadius: '8px', border: '1px solid var(--brd)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '800' }}>{item.name}</span>
-                      <span className="tag gray">{item.role}</span>
+        {summary && (() => {
+          // topics 배열이 있으면 그걸 쓰고, 없으면 기존 단일 구조를 topics로 변환
+          const topics = summary.topics && summary.topics.length > 0
+            ? summary.topics
+            : [{ title: '회의 요약', schedule: summary.schedule, location: summary.location, roles: summary.roles || [] }];
+          
+          return (
+            <>
+              {topics.map((topic, tIdx) => (
+                <div key={tIdx} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: tIdx < topics.length - 1 ? '20px' : '0' }}>
+                  {topics.length > 1 && (
+                    <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--ac)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ background: 'var(--ac)', color: '#080F00', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>{tIdx + 1}</span>
+                      {topic.title}
                     </div>
-                    <p style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.5' }}>{item.task}</p>
+                  )}
+                  <div className="card" style={{ borderLeft: '3px solid var(--ac)' }}>
+                    <p className="slabel" style={{ color: 'var(--ac)' }}>확정된 일정</p>
+                    <div style={{ fontSize: '15px', fontWeight: '800', marginBottom: '6px' }}>{topic.schedule || '미정'}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--tx2)' }}>장소: {topic.location || '미정'}</div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
-              <button className="btn-ghost" style={{ width: '100%', padding: '12px' }} onClick={() => navigate('/board')}>
-                프로젝트 대시보드에 저장
-              </button>
-            </div>
-          </>
-        )}
+                  {topic.roles && topic.roles.length > 0 && (
+                    <div className="card">
+                      <p className="slabel">팀원별 역할 분담</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {topic.roles.map((item, idx) => (
+                          <div key={idx} style={{ background: 'var(--bg2)', padding: '14px', borderRadius: '8px', border: '1px solid var(--brd)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                              <span style={{ fontSize: '14px', fontWeight: '800' }}>{item.name}</span>
+                              <span className="tag gray">{item.role}</span>
+                            </div>
+                            <p style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.5' }}>{item.task}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {tIdx < topics.length - 1 && <div style={{ borderBottom: '1px solid var(--brd2)', margin: '8px 0' }}></div>}
+                </div>
+              ))}
+
+              <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+                <button className="btn-ghost" style={{ width: '100%', padding: '12px' }} onClick={() => navigate('/board')}>
+                  프로젝트 대시보드에 저장
+                </button>
+              </div>
+            </>
+          );
+        })()}
       </div>
     </section>
   );
