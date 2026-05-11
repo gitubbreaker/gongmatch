@@ -236,7 +236,7 @@ function S7Accept() {
                     <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ Django</span>
                     <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ 데이터분석</span>
                     <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ 창업</span>
-                    <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ 공공데이터</span>
+                    <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>✓ 데이터분석</span>
                   </div>
                 </div>
               </div>
@@ -327,7 +327,7 @@ function S7Accept() {
                 <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card)', border: '2px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>📬</div>
                 <div>
                   <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>김지원님이 팀원 요청을 보냈습니다</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>10분 전 · 부산 공공데이터 창업대회</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>10분 전 · 서울 스마트시티 해커톤</div>
                 </div>
               </div>
 
@@ -335,7 +335,7 @@ function S7Accept() {
                 <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>⚡</div>
                 <div>
                   <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>이수현님에게 팀원 요청을 보냈습니다</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>어제 14:32 · 부산 공공데이터 창업대회</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>어제 14:32 · 서울 스마트시티 해커톤</div>
                 </div>
               </div>
 

@@ -23,11 +23,11 @@ public class DummyProjectController {
     public List<ProjectResponseDto> getMockProjects() {
         List<ProjectResponseDto> dummyList = new ArrayList<>();
 
-        // 1) 2026 부산 공공데이터 활용 창업 경진대회
+        // 1) 2026 핀테크 아이디어 해커톤
         Project p1 = Project.builder()
                 .id(101L)
-                .title("2026 부산 공공데이터 활용 창업 경진대회")
-                .host("행정안전부 주최")
+                .title("2026 핀테크 아이디어 해커톤")
+                .host("한국핀테크지원센터 주최")
                 .prize("총상금 5,000만원")
                 .teamLimit("3~5인 팀")
                 .endDate(LocalDate.now().plusDays(30))

@@ -13,7 +13,7 @@ function NotificationPage() {
       icon: '⚡',
       title: '김지원님이 팀원 요청을 보냈어요',
       isNew: true,
-      desc1: '2026 부산 공공데이터 활용 창업 경진대회 - 매칭 점수 94점',
+      desc1: '2026 핀테크 아이디어 해커톤 - 매칭 점수 94점',
       desc2: '겹치는 시간: 토 14-17시, 수 14-15시',
       time: '10분 전',
       actions: [
@@ -40,7 +40,7 @@ function NotificationPage() {
       icon: '⏰',
       title: '관심 공고 마감 3일 전이에요',
       isNew: true,
-      desc1: '2026 부산 공공데이터 활용 창업 경진대회 · 2026.04.14 마감',
+      desc1: '2026 핀테크 아이디어 해커톤 · 2026.04.14 마감',
       desc2: '아직 팀원 2명이 부족해요',
       time: '오전 9:00',
       actions: [
@@ -53,7 +53,7 @@ function NotificationPage() {
       icon: '⚡',
       title: '이수현님이 팀원 요청을 수락했어요',
       isNew: true,
-      desc1: '2026 부산 공공데이터 활용 창업 경진대회 팀 합류 확정',
+      desc1: '2026 핀테크 아이디어 해커톤 팀 합류 확정',
       desc2: '이제 팀 채팅방을 개설해보세요!',
       time: '오전 8:24',
       actions: [

@@ -64,7 +64,7 @@ function ProfileDetailPage() {
         <Section>
           <h3>공모전 이력</h3>
           <Timeline style={{marginTop:'20px'}}>
-            <div className="item"><h4>🏆 공공데이터 앱 공모전 2024 (대상)</h4><p style={{color:'#666'}}>행안부 · 2024.11</p></div>
+            <div className="item"><h4>🏆 네이버 D2 대학생 해커톤 (대상)</h4><p style={{color:'#666'}}>네이버 · 2024.11</p></div>
             <div className="item"><h4>🥈 데이터 분석 챌린지 2024 (최우수)</h4><p style={{color:'#666'}}>행안부 · 2024.08</p></div>
           </Timeline>
         </Section>

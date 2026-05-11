@@ -26,7 +26,7 @@ function S8Summary() {
         roles: [
           { name: '김지원', role: '백엔드 개발', task: 'Django REST API 서버 초기 세팅 및 DB 스키마 설계' },
           { name: '이수현', role: 'UI/UX 디자인', task: 'Figma 와이어프레임 작성 및 프로토타입 디자인 완성' },
-          { name: '나(본인)', role: '기획 및 PM', task: '요구사항 명세서 작성 및 공공데이터 API 연동 테스트' }
+          { name: '나(본인)', role: '기획 및 PM', task: '요구사항 명세서 작성 및 위비티 크롤러 API 연동 테스트' }
         ]
       });
       showToast('AI 요약이 완료되었습니다.');

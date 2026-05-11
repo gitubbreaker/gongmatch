@@ -32,7 +32,7 @@ public class ProjectController {
                 .map(ProjectResponseDto::from)
                 .collect(Collectors.toList());
 
-        // 2. 공공데이터(K-Startup 등) 가져오기
+        // 2. K-Startup 등 부가 데이터 가져오기
         List<ProjectResponseDto> publicContents = publicProjectRepository.findAll().stream()
                 .map(p -> ProjectResponseDto.builder()
                         .id(p.getProjectId()) // p.getId() -> p.getProjectId()로 수정

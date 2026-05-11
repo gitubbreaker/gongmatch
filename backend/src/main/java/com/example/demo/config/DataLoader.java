@@ -37,7 +37,7 @@ public class DataLoader implements CommandLineRunner {
 
         // 1. 공모전 데이터
         if (publicProjectRepository.count() == 0) {
-            createProject("2026 부산 공공데이터 활용 창업 경진대회", "행정안전부", "총상금 5,000만원", 3, 5, "창업");
+            createProject("2026 핀테크 아이디어 해커톤", "한국핀테크지원센터", "총상금 5,000만원", 3, 5, "창업");
             createProject("서울 스마트시티 앱 서비스 공모전", "서울시", "서울시장상 수여", 2, 4, "IT/서비스");
         }
 

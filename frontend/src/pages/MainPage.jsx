@@ -57,7 +57,7 @@ function MainPage() {
       </Left>
       <RightCard>
         <div style={{color:'#ff4b4b', fontSize:'13px', fontWeight:'bold', marginBottom:'10px'}}>🔥 지금 팀원 모집 중</div>
-        <h2 style={{fontSize:'20px', marginBottom:'20px'}}>2025 공공데이터 활용 창업 경진대회</h2>
+        <h2 style={{fontSize:'20px', marginBottom:'20px'}}>2025 글로벌 AI 해커톤</h2>
         {[
           { n: '김지원', r: '백엔드 · Python', c: '#5c7cfa', rt: '94%' },
           { n: '이수현', r: 'UI/UX · Figma', c: '#20c997', rt: '89%' },
