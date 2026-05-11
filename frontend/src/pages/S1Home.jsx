@@ -214,7 +214,7 @@ function S1Home() {
                       <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>{bestMatch.major}</div>
                     </div>
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--ac)' }}>{Math.floor(bestMatch.matchScore)}점</div>
+                  <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--ac)' }}>{Math.floor(bestMatch.totalScore || 0)}점</div>
                 </div>
               </div>
             )}
