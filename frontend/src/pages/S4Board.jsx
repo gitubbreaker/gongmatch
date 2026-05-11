@@ -174,7 +174,6 @@ function S4Board() {
             />
           </div>
           <button className="btn-prim" onClick={handleWrite} style={{ borderRadius: '12px', padding: '0 20px', fontSize: '13px' }}>작성</button>
-        </div>
           <select className="field" style={{ width: '120px', padding: '0 16px', borderRadius: '12px', fontSize: '13px', border: '1px solid var(--brd2)', background: 'var(--card)' }}>
             <option>최신순</option>
             <option>인기순</option>
