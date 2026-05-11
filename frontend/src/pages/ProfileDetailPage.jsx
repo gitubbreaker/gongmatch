@@ -29,10 +29,19 @@ const Timeline = styled.div`
 function ProfileDetailPage() {
   const navigate = useNavigate();
   const [reqMessage, setReqMessage] = React.useState('');
+  const [kakaoLink, setKakaoLink] = React.useState('');
+
+  React.useEffect(() => {
+    api.get('/api/students/me').then(res => {
+      if(res.data.openChatUrl) setKakaoLink(res.data.openChatUrl);
+    }).catch(e => {
+      setKakaoLink('https://open.kakao.com/o/gQtEJgpi');
+    });
+  }, []);
 
   const handleRequest = async () => {
     try {
-      await api.post('/api/team-requests', { receiverId: 999, message: reqMessage });
+      await api.post('/api/team-requests', { receiverId: 999, message: `${reqMessage}\n\n[연락처] ${kakaoLink}` });
       showToast('성공적으로 팀원 합류 제안을 보냈습니다!');
       navigate(-1);
     } catch(e) {
@@ -63,13 +72,28 @@ function ProfileDetailPage() {
       <aside>
         <Section>
           <h3 style={{marginBottom:'20px'}}>이 공모전으로 팀원 요청</h3>
+          
+          <div style={{ fontSize: '13px', color: '#8a8b91', marginBottom: '8px', fontWeight: '800' }}>제안 메시지</div>
           <textarea 
-            style={{width:'100%', height:'140px', background:'#0b0c10', border:'1px solid #2a2b36', color:'#fff', padding:'15px', borderRadius:'10px', resize: 'none'}} 
-            placeholder="제안 메시지와 오픈채팅방 링크(선택)를 입력하세요."
+            style={{width:'100%', height:'120px', background:'#0b0c10', border:'1px solid #2a2b36', color:'#fff', padding:'15px', borderRadius:'10px', resize: 'none', marginBottom: '24px'}} 
+            placeholder="인사말과 팀 제안 이유를 적어주세요."
             value={reqMessage}
             onChange={e => setReqMessage(e.target.value)}
           />
-          <button onClick={handleRequest} style={{width:'100%', background:'#c4ff00', color:'#000', padding:'18px', borderRadius:'12px', fontWeight:'900', marginTop:'20px', fontSize:'16px', border:'none', cursor:'pointer'}}>팀원 요청 보내기</button>
+
+          <div style={{ fontSize: '13px', color: '#8a8b91', marginBottom: '8px', fontWeight: '800', display: 'flex', justifyContent: 'space-between' }}>
+            <span>나의 오픈채팅방 링크</span>
+          </div>
+          <input 
+            type="text"
+            style={{width:'100%', background:'#0b0c10', border:'1px solid #2a2b36', color: kakaoLink ? '#c4ff00' : '#fff', padding:'15px', borderRadius:'10px', marginBottom: '8px'}} 
+            placeholder="https://open.kakao.com/o/..."
+            value={kakaoLink}
+            onChange={e => setKakaoLink(e.target.value)}
+          />
+          <div style={{ fontSize: '11px', color: '#666', marginBottom: '24px', lineHeight: '1.4' }}>프로필에 등록된 연락처가 자동으로 입력됩니다.</div>
+
+          <button onClick={handleRequest} style={{width:'100%', background:'#c4ff00', color:'#000', padding:'18px', borderRadius:'12px', fontWeight:'900', marginTop:'10px', fontSize:'16px', border:'none', cursor:'pointer'}}>팀원 요청 보내기</button>
         </Section>
       </aside>
     </Container>

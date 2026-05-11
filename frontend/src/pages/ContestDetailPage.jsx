@@ -67,6 +67,16 @@ function ContestDetailPage() {
   const [activeTab, setActiveTab] = useState('matching');
   const [reqModal, setReqModal] = useState({ open: false, name: '' });
   const [reqMessage, setReqMessage] = useState('');
+  const [kakaoLink, setKakaoLink] = useState('');
+
+  useEffect(() => {
+    api.get('/api/students/me').then(res => {
+      if(res.data.openChatUrl) setKakaoLink(res.data.openChatUrl);
+    }).catch(e => {
+      // Mock fallback if api fails
+      setKakaoLink('https://open.kakao.com/o/gQtEJgpi');
+    });
+  }, []);
 
   const users = [
     { n: '김지원', r: '백엔드 개발 · 한양대 3학년', rt: 94, c: '#5c7cfa', tags: ['#Python', '#데이터분석'] },
@@ -109,7 +119,7 @@ function ContestDetailPage() {
     try {
       await api.post('/api/team-requests', { 
         receiverId: 999, 
-        message: reqMessage 
+        message: `${reqMessage}\n\n[연락처] ${kakaoLink}` 
       });
       setReqModal({ open: false, name: '' });
       setReqMessage('');
@@ -273,12 +283,25 @@ function ContestDetailPage() {
             <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '800', color: 'var(--tx2)' }}>제안 메시지</div>
             <textarea 
               className="field" 
-              placeholder="안녕하세요! 프로젝트 팀원을 구하고 있는데, 프로필과 가용시간이 저희 팀과 딱 맞는 것 같아서 제안드립니다. 수락해주시면 아래 오픈채팅방으로 연락주세요! (https://open.kakao.com/...)"
-              style={{ height: '160px', marginBottom: '32px', resize: 'none', background: 'var(--bg)', border: '1px solid var(--brd2)' }}
+              placeholder="안녕하세요! 프로젝트 팀원을 구하고 있는데, 프로필과 가용시간이 저희 팀과 딱 맞는 것 같아서 제안드립니다. 수락해주시면 아래 오픈채팅방으로 연락주세요!"
+              style={{ height: '100px', marginBottom: '24px', resize: 'none', background: 'var(--bg)', border: '1px solid var(--brd2)' }}
               value={reqMessage}
               onChange={e => setReqMessage(e.target.value)}
             ></textarea>
             
+            <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '800', color: 'var(--tx2)', display: 'flex', justifyContent: 'space-between' }}>
+              <span>나의 오픈채팅방 링크</span>
+              <span style={{ fontSize: '11px', color: 'var(--tx3)', fontWeight: 'normal' }}>프로필에 등록된 링크가 자동 입력됩니다.</span>
+            </div>
+            <input 
+              type="text"
+              className="field" 
+              placeholder="https://open.kakao.com/o/..."
+              style={{ width: '100%', padding: '14px', marginBottom: '32px', background: 'var(--bg)', border: '1px solid var(--brd2)', color: kakaoLink ? 'var(--ac)' : 'var(--tx)' }}
+              value={kakaoLink}
+              onChange={e => setKakaoLink(e.target.value)}
+            />
+
             <div style={{ display: 'flex', gap: '16px' }}>
               <button className="btn-ghost" style={{ flex: 1, padding: '16px', fontSize: '15px', fontWeight: '800', borderRadius: '12px' }} onClick={() => setReqModal({ open: false, name: '' })}>취소</button>
               <button className="btn-prim" style={{ flex: 1, padding: '16px', fontSize: '15px', fontWeight: '900', borderRadius: '12px' }} onClick={handleSendRequest}>요청 보내기</button>
