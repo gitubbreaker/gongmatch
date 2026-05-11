@@ -39,8 +39,23 @@ function S8Summary() {
       <div style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', gap: '20px', borderRight: '1px solid var(--brd)' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>AI 회의록 자동 요약</h2>
-          <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6' }}>카카오톡 채팅방 → 메뉴(≡) → 대화 내용 내보내기 → 텍스트 파일을 열어 아래에 붙여넣어 주세요.</p>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>💡 내보내기하면 날짜 구분선이 자동 포함되어, AI가 정확한 일정을 추론합니다.</p>
+          <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.8' }}>
+            팀 매칭 후 카카오톡 오픈채팅에서 나눈 대화를 AI(GPT)가 자동으로 분석하여,
+            <strong style={{ color: 'var(--tx)' }}> 다음 회의 일정 · 장소 · 팀원별 역할 분담</strong>을 한눈에 정리해 드립니다.
+            여러 안건이 동시에 논의된 대화도 주제별로 나누어 병렬 요약합니다.
+          </p>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+            <span className="tag">📅 일정 추출</span>
+            <span className="tag">📍 장소 파악</span>
+            <span className="tag">👥 역할 분담</span>
+            <span className="tag">🔀 복수 안건 병렬 처리</span>
+          </div>
+          <div style={{ marginTop: '16px', padding: '12px 16px', background: 'var(--card)', borderRadius: '8px', border: '1px solid var(--brd)' }}>
+            <p style={{ fontSize: '12px', color: 'var(--tx3)', lineHeight: '1.6' }}>
+              <strong style={{ color: 'var(--tx2)' }}>사용 방법:</strong> 카카오톡 채팅방 → 메뉴(≡) → 대화 내용 내보내기 → 텍스트 파일을 열어 아래에 붙여넣어 주세요.
+              <br/>💡 내보내기하면 날짜 구분선이 자동 포함되어, AI가 정확한 일정을 추론합니다.
+            </p>
+          </div>
         </div>
 
         <div className="card2" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
