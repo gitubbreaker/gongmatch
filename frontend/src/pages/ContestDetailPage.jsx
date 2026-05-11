@@ -231,7 +231,7 @@ function ContestDetailPage() {
                       </div>
 
                       <div style={{ display: 'flex', gap: '12px' }}>
-                        <button onClick={() => navigate('/profile')} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
+                        <button onClick={() => navigate('/profile-detail')} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
                         <button onClick={() => navigate('/chat')} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
                     </UserCard>

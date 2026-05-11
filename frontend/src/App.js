@@ -19,6 +19,8 @@ import ContestDetailPage from './pages/ContestDetailPage';
 import PrivateRoute from './components/PrivateRoute';
 import NoticePage from './pages/NoticePage';
 import NotificationPage from './pages/NotificationPage';
+import ProfileDetailPage from './pages/ProfileDetailPage';
+import ChatPage from './pages/ChatPage';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
@@ -149,6 +151,8 @@ function App() {
           <Route path="/tags" element={<PrivateRoute><S3Tags /></PrivateRoute>} />
           <Route path="/candidates" element={<PrivateRoute><S5Candidates /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><S6Profile /></PrivateRoute>} />
+          <Route path="/profile-detail" element={<PrivateRoute><ProfileDetailPage /></PrivateRoute>} />
+          <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
           <Route path="/accept" element={<PrivateRoute><S7Accept /></PrivateRoute>} />
         </Routes>
       </div>
