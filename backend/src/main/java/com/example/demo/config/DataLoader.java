@@ -12,6 +12,7 @@ import com.example.demo.service.TagService.TagRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ public class DataLoader implements CommandLineRunner {
     private final AvailableTimeService availableTimeService;
     private final StudentRepository studentRepository;
     private final PublicProjectRepository publicProjectRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -105,10 +107,15 @@ public class DataLoader implements CommandLineRunner {
             Student s = studentRepository.findFirstByLoginIdOrderByIdAsc(id).orElseGet(() -> {
                 Student newStudent = new Student();
                 newStudent.setLoginId(id);
-                newStudent.setPassword("1234");
+                newStudent.setPassword(passwordEncoder.encode("1234"));
                 newStudent.setName(name);
                 return newStudent;
             });
+
+            // 기존 계정들의 비밀번호도 혹시 평문이라면 갱신 (선택적)
+            if (s.getPassword().equals("1234")) {
+                s.setPassword(passwordEncoder.encode("1234"));
+            }
 
             s.setName(name);
             s.setMajor(major);
