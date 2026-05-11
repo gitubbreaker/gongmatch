@@ -226,9 +226,9 @@ function S1Home() {
         <div className="s1-minipill" style={{ background: 'rgba(200,242,38,.06)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>
-            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--ac)' }}>매일 오전 6시 자동 업데이트</span>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--ac)' }}>실시간 IT 공모전 웹 크롤링 수집</span>
           </div>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)' }}>data.go.kr API 연동 중 · 미등록 공고는 수집 불가</p>
+          <p style={{ fontSize: '11px', color: 'var(--tx3)' }}>위비티(Wevity) IT 공모전 페이지 자동 크롤링 연동 중</p>
         </div>
       </div>
     </div>

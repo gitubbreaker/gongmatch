@@ -49,7 +49,7 @@ function MainPage() {
     <Container>
       <Left>
         <h1>공모전 팀원 찾기<br /><span style={{color:'#fff', opacity:0.3}}>이제는</span><br /><span>공매치로 간편하게</span></h1>
-        <p>공공데이터 기반으로 매일 최신 공모전을 자동 업데이트하고,<br />AI 유사도 알고리즘이 나와 딱 맞는 팀원을 연결해드려요.</p>
+        <p>위비티(Wevity) 크롤링 기반으로 매일 최신 IT 공모전을 자동 업데이트하고,<br />AI 유사도 알고리즘이 나와 딱 맞는 팀원을 연결해드려요.</p>
         <BtnGroup>
           <button className="match" onClick={() => navigate('/contest-detail')}>⚡ 팀원 매칭 시작하기</button>
           <button className="browse">공모전 둘러보기</button>
