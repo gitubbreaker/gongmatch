@@ -80,6 +80,15 @@ public class StudentController {
         return ResponseEntity.ok(recommendations);
     }
 
+    @GetMapping("/recommendations/{projectId}")
+    public ResponseEntity<List<StudentService.RecommendationResponse>> getRecommendationsForProject(
+            @PathVariable Long projectId,
+            Authentication authentication) {
+        String loginId = authentication.getName();
+        List<StudentService.RecommendationResponse> recommendations = studentService.getRecommendationsForProject(loginId, projectId);
+        return ResponseEntity.ok(recommendations);
+    }
+
     @Getter @Setter
     static class LoginRequest {
         private String loginId;

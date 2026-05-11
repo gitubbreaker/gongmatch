@@ -77,12 +77,12 @@ function ContestDetailPage() {
       setKakaoLink('https://open.kakao.com/o/gQtEJgpi');
     });
     
-    api.get('/api/students/recommendations').then(res => {
+    api.get(`/api/students/recommendations/${id}`).then(res => {
       setCandidates(res.data || []);
     }).catch(e => {
       console.error('추천 목록 로드 실패', e);
     });
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     // 실시간 DB에서 선택한 대회 정보를 가져오는 척 (실제로는 ProjectListPage에서 받아온 ID 사용)

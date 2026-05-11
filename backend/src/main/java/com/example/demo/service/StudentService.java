@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -130,6 +131,32 @@ public class StudentService {
         // 총점 기준 내림차순 정렬
         results.sort((a, b) -> b.getTotalScore() - a.getTotalScore());
         return results;
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecommendationResponse> getRecommendationsForProject(String loginId, Long projectId) {
+        List<RecommendationResponse> allRecs = getRecommendations(loginId);
+        
+        // 프로젝트 ID를 시드로 사용하여 항상 같은 사람들이 같은 대회 대기실에 있도록 보장
+        Random random = new Random(projectId);
+        
+        List<RecommendationResponse> filtered = new ArrayList<>();
+        for (RecommendationResponse rec : allRecs) {
+            // 약 40% 확률로 이 대회 대기실에 입장한 것으로 간주
+            if (random.nextInt(100) < 40) {
+                filtered.add(rec);
+            }
+        }
+        
+        // 만약 대기실에 아무도 없다면 시너지가 높은 상위 1~2명을 강제로 배정
+        if (filtered.isEmpty() && !allRecs.isEmpty()) {
+            filtered.add(allRecs.get(0));
+            if (allRecs.size() > 1) {
+                filtered.add(allRecs.get(1));
+            }
+        }
+        
+        return filtered;
     }
 
     private String getOverlapSummary(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
