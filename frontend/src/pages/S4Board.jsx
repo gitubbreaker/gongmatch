@@ -116,12 +116,17 @@ function S4Board() {
   const [activeCategory, setActiveCategory] = useState('전체');
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [writeForm, setWriteForm] = useState({ title: '', category: '자유게시판', content: '' });
+  const [editingPostId, setEditingPostId] = useState(null);
   
   const [activePost, setActivePost] = useState(null);
   const [commentInput, setCommentInput] = useState('');
   
   const [replyInput, setReplyInput] = useState('');
   const [replyToCommentId, setReplyToCommentId] = useState(null);
+  
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editInput, setEditInput] = useState('');
   
   const categoryCounts = posts.reduce((acc, post) => {
     acc[post.category] = (acc[post.category] || 0) + 1;
@@ -134,6 +139,19 @@ function S4Board() {
   const handleWrite = () => {
     if (!writeForm.title.trim() || !writeForm.content.trim()) {
       showToast('제목과 내용을 모두 입력해주세요.');
+      return;
+    }
+    
+    if (editingPostId) {
+      const updatedPosts = posts.map(p => p.id === editingPostId ? { ...p, title: writeForm.title, category: writeForm.category, content: writeForm.content } : p);
+      setPosts(updatedPosts);
+      if (activePost && activePost.id === editingPostId) {
+        setActivePost({ ...activePost, title: writeForm.title, category: writeForm.category, content: writeForm.content });
+      }
+      setIsWriteModalOpen(false);
+      setEditingPostId(null);
+      setWriteForm({ title: '', category: '자유게시판', content: '' });
+      showToast('게시글이 성공적으로 수정되었습니다.');
       return;
     }
     
@@ -226,6 +244,40 @@ function S4Board() {
     setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
     setReplyInput('');
     setReplyToCommentId(null);
+  };
+  
+  const handleEditPost = (e, post) => {
+    if (e) e.stopPropagation();
+    setWriteForm({ title: post.title, category: post.category, content: post.content });
+    setEditingPostId(post.id);
+    setIsWriteModalOpen(true);
+  };
+
+  const handleSaveEditComment = (commentId) => {
+    if (!editInput.trim()) return;
+    const updatedComments = activePost.comments.map(c => c.id === commentId ? { ...c, content: editInput } : c);
+    const updatedPost = { ...activePost, comments: updatedComments };
+    setActivePost(updatedPost);
+    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
+    setEditingCommentId(null);
+    setEditInput('');
+    showToast('댓글이 수정되었습니다.');
+  };
+
+  const handleSaveEditReply = (commentId, replyId) => {
+    if (!editInput.trim()) return;
+    const updatedComments = activePost.comments.map(c => {
+      if (c.id === commentId) {
+        return { ...c, replies: c.replies.map(r => r.id === replyId ? { ...r, content: editInput } : r) };
+      }
+      return c;
+    });
+    const updatedPost = { ...activePost, comments: updatedComments };
+    setActivePost(updatedPost);
+    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
+    setEditingReplyId(null);
+    setEditInput('');
+    showToast('답글이 수정되었습니다.');
   };
   
   const handleDeletePost = (e, postId) => {
@@ -370,7 +422,10 @@ function S4Board() {
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <span>{post.date}</span>
                   {post.author === currentUser.name && (
-                    <span onClick={(e) => handleDeletePost(e, post.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span onClick={(e) => handleEditPost(e, post)} style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 'bold' }}>수정</span>
+                      <span onClick={(e) => handleDeletePost(e, post.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -425,11 +480,11 @@ function S4Board() {
       </div>
     </section>
     {isWriteModalOpen && (
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setIsWriteModalOpen(false)}>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => { setIsWriteModalOpen(false); setEditingPostId(null); setWriteForm({ title: '', category: '자유게시판', content: '' }); }}>
         <div style={{ width: '500px', background: 'var(--bg)', borderRadius: '24px', border: '1px solid var(--brd)', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }} onClick={e => e.stopPropagation()}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--tx)' }}>새 게시글 작성</h2>
-            <button onClick={() => setIsWriteModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+            <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--tx)' }}>{editingPostId ? '게시글 수정' : '새 게시글 작성'}</h2>
+            <button onClick={() => { setIsWriteModalOpen(false); setEditingPostId(null); setWriteForm({ title: '', category: '자유게시판', content: '' }); }} style={{ background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -451,7 +506,7 @@ function S4Board() {
             <textarea className="field" placeholder="게시글 내용을 자세히 적어주세요" value={writeForm.content} onChange={(e) => setWriteForm({...writeForm, content: e.target.value})} style={{ padding: '16px', borderRadius: '12px', fontSize: '14px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)', height: '150px', resize: 'none' }}></textarea>
           </div>
           
-          <button className="btn-prim" onClick={handleWrite} style={{ padding: '16px', borderRadius: '12px', fontSize: '15px', fontWeight: '800', marginTop: '10px' }}>게시글 등록하기</button>
+          <button className="btn-prim" onClick={handleWrite} style={{ padding: '16px', borderRadius: '12px', fontSize: '15px', fontWeight: '800', marginTop: '10px' }}>{editingPostId ? '게시글 수정하기' : '게시글 등록하기'}</button>
         </div>
       </div>
     )}
@@ -482,7 +537,10 @@ function S4Board() {
                 <span>👀 {activePost.views}</span>
                 <span style={{ cursor: 'pointer', color: activePost.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: activePost.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, activePost.id)}>💛 {activePost.likes}</span>
                 {activePost.author === currentUser.name && (
-                  <span onClick={(e) => handleDeletePost(e, activePost.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <span onClick={(e) => handleEditPost(e, activePost)} style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 'bold' }}>수정</span>
+                    <span onClick={(e) => handleDeletePost(e, activePost.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -504,11 +562,24 @@ function S4Board() {
                           <span onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>{c.author}</span>
                           <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{c.date}</span>
                         </div>
-                        <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5', marginBottom: '6px' }}>{c.content}</div>
+                        {editingCommentId === c.id ? (
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '6px', flexDirection: 'column' }}>
+                            <textarea value={editInput} onChange={e => setEditInput(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)', fontSize: '12px', resize: 'none', height: '40px' }} />
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                              <button onClick={() => setEditingCommentId(null)} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', background: 'var(--bg2)', border: '1px solid var(--brd)', color: 'var(--tx)' }}>취소</button>
+                              <button onClick={() => handleSaveEditComment(c.id)} className="btn-prim" style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '800' }}>저장</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5', marginBottom: '6px' }}>{c.content}</div>
+                        )}
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <div onClick={() => { setReplyToCommentId(replyToCommentId === c.id ? null : c.id); setReplyInput(''); }} style={{ fontSize: '11px', color: 'var(--tx3)', cursor: 'pointer', fontWeight: '600' }}>답글 달기</div>
-                          {c.author === currentUser.name && (
-                            <div onClick={() => handleDeleteComment(c.id)} style={{ fontSize: '11px', color: 'var(--red)', cursor: 'pointer', fontWeight: '600' }}>삭제</div>
+                          {c.author === currentUser.name && editingCommentId !== c.id && (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <div onClick={() => { setEditingCommentId(c.id); setEditInput(c.content); setEditingReplyId(null); setReplyToCommentId(null); }} style={{ fontSize: '11px', color: 'var(--blue)', cursor: 'pointer', fontWeight: '600' }}>수정</div>
+                              <div onClick={() => handleDeleteComment(c.id)} style={{ fontSize: '11px', color: 'var(--red)', cursor: 'pointer', fontWeight: '600' }}>삭제</div>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -524,11 +595,24 @@ function S4Board() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                 <span onClick={(e) => handleProfileClick(e, r.author)} style={{ cursor: 'pointer', fontSize: '12px', fontWeight: '800', color: 'var(--tx)' }}>{r.author}</span>
                                 <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{r.date}</span>
-                                {r.author === currentUser.name && (
-                                  <span onClick={() => handleDeleteReply(c.id, r.id)} style={{ fontSize: '10px', color: 'var(--red)', cursor: 'pointer', fontWeight: '600', marginLeft: 'auto' }}>삭제</span>
+                                {r.author === currentUser.name && editingReplyId !== r.id && (
+                                  <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                                    <span onClick={() => { setEditingReplyId(r.id); setEditInput(r.content); setEditingCommentId(null); setReplyToCommentId(null); }} style={{ fontSize: '10px', color: 'var(--blue)', cursor: 'pointer', fontWeight: '600' }}>수정</span>
+                                    <span onClick={() => handleDeleteReply(c.id, r.id)} style={{ fontSize: '10px', color: 'var(--red)', cursor: 'pointer', fontWeight: '600' }}>삭제</span>
+                                  </div>
                                 )}
                               </div>
-                              <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>{r.content}</div>
+                              {editingReplyId === r.id ? (
+                                <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                                  <textarea value={editInput} onChange={e => setEditInput(e.target.value)} style={{ padding: '6px', borderRadius: '6px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)', fontSize: '11px', resize: 'none', height: '36px' }} />
+                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                    <button onClick={() => setEditingReplyId(null)} style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', background: 'var(--bg2)', border: '1px solid var(--brd)', color: 'var(--tx)' }}>취소</button>
+                                    <button onClick={() => handleSaveEditReply(c.id, r.id)} className="btn-prim" style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '800' }}>저장</button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>{r.content}</div>
+                              )}
                             </div>
                           </div>
                         ))}
