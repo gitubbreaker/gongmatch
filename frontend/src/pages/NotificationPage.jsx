@@ -7,7 +7,9 @@ function NotificationPage() {
   const [activeTab, setActiveTab] = useState('전체');
   const [realNotifs, setRealNotifs] = useState([]);
   const [hiddenNotifIds, setHiddenNotifIds] = useState(new Set());
-  const [readNotifIds, setReadNotifIds] = useState(new Set());
+  const [readNotifIds, setReadNotifIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]')); } catch { return new Set(); }
+  });
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -59,72 +61,60 @@ function NotificationPage() {
     fetchNotifications();
   }, [navigate]);
 
-  // Hardcoded notifications to match the design from the image
+  const now = Date.now();
   const dummyNotifs = [
     {
-      id: 1,
-      type: '매칭',
-      icon: '⚡',
-      title: '김지원님이 팀원 요청을 보냈어요',
-      isNew: true,
+      id: 1, type: '매칭', icon: '⚡',
+      title: '김지원님이 팀원 요청을 보냈어요', isNew: true,
       desc1: '2026 핀테크 아이디어 해커톤 - 매칭 점수 94점',
       desc2: '겹치는 시간: 토 14-17시, 수 14-15시',
-      time: '10분 전',
-      actions: [
-        { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
-      ]
+      _rawTime: now - 600000, time: '10분 전',
+      actions: [{ label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }]
     },
     {
-      id: 2,
-      type: '쪽지',
-      icon: '💬',
-      title: '박도현님의 쪽지가 도착했어요',
-      isNew: true,
+      id: 2, type: '쪽지', icon: '💬',
+      title: '박도현님의 쪽지가 도착했어요', isNew: true,
       desc1: '"안녕하세요! 데이터 분석 파트로 함께하고 싶습니다. 한번 이야기 나눠볼 수 있을까요?"',
-      time: '3시간 전',
-      actions: [
-        { label: '프로필 보기', style: 'btn-ghost btn-sm', onClick: () => navigate('/profile-detail/1') }
-      ]
+      _rawTime: now - 10800000, time: '3시간 전',
+      actions: [{ label: '프로필 보기', style: 'btn-ghost btn-sm', onClick: () => navigate('/profile-detail/1') }]
     },
     {
-      id: 3,
-      type: '마감 임박',
-      icon: '⏰',
-      title: '관심 공고 마감 3일 전이에요',
-      isNew: true,
+      id: 3, type: '마감 임박', icon: '⏰',
+      title: '관심 공고 마감 3일 전이에요', isNew: true,
       desc1: '2026 핀테크 아이디어 해커톤 · 2026.04.14 마감',
       desc2: '아직 팀원 2명이 부족해요',
-      time: '오전 9:00',
-      actions: [
-        { label: '팀원 더 찾기', style: 'btn-ghost btn-sm', onClick: () => navigate('/contest-detail') }
-      ]
+      _rawTime: now - 18000000, time: '오전 9:00',
+      actions: [{ label: '팀원 더 찾기', style: 'btn-ghost btn-sm', onClick: () => navigate('/contest-detail') }]
     },
     {
-      id: 4,
-      type: '매칭',
-      icon: '⚡',
-      title: '이수현님이 팀원 요청을 수락했어요',
-      isNew: true,
+      id: 4, type: '매칭', icon: '⚡',
+      title: '이수현님이 팀원 요청을 수락했어요', isNew: true,
       desc1: '2026 핀테크 아이디어 해커톤 팀 합류 확정',
       desc2: '이제 팀 채팅방을 개설해보세요!',
-      time: '오전 8:24',
-      actions: [
-        { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
-      ]
+      _rawTime: now - 21600000, time: '오전 8:24',
+      actions: [{ label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }]
     },
     {
-      id: 5,
-      type: '커뮤니티',
-      icon: '🤍',
-      title: '내 커뮤니티 글에 댓글이 달렸어요',
-      isNew: false,
+      id: 5, type: '커뮤니티', icon: '🤍',
+      title: '내 커뮤니티 글에 댓글이 달렸어요', isNew: false,
       desc1: '박도현님: "저도 같은 고민이 있었는데 글에서 위안 얻고 갑니다!"',
-      time: '오전 7:30',
-      actions: [
-        { label: '글 보러가기', style: 'btn-ghost btn-sm', onClick: () => navigate('/community') }
-      ]
+      _rawTime: now - 25200000, time: '오전 7:30',
+      actions: [{ label: '글 보러가기', style: 'btn-ghost btn-sm', onClick: () => navigate('/community') }]
     }
   ];
+
+  const allNotifs = [...realNotifs, ...dummyNotifs];
+
+  const handleMarkAllRead = () => {
+    const allIds = allNotifs.map(n => n.id);
+    const newSet = new Set(allIds);
+    setReadNotifIds(newSet);
+    localStorage.setItem('readNotifIds', JSON.stringify([...newSet]));
+    // Header의 종 아이콘에도 알려줌
+    window.dispatchEvent(new Event('notifRead'));
+  };
+
+  const unreadCount = allNotifs.filter(n => !hiddenNotifIds.has(n.id) && n.isNew && !readNotifIds.has(n.id)).length;
 
   return (
     <section className="screen on" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - var(--navh) - var(--tabh))', background: 'var(--bg)' }}>
@@ -132,9 +122,9 @@ function NotificationPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h2 style={{ fontSize: '24px', fontWeight: '900' }}>알림 센터</h2>
-            {(() => { const unread = [...realNotifs, ...dummyNotifs].filter(n => !hiddenNotifIds.has(n.id) && n.isNew && !readNotifIds.has(n.id)).length; return unread > 0 ? <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '12px', fontWeight: '800' }}>읽지 않음 {unread}</span> : null; })()}
+            {unreadCount > 0 && <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '12px', fontWeight: '800' }}>읽지 않음 {unreadCount}</span>}
           </div>
-          <button onClick={() => { const allIds = [...realNotifs, ...dummyNotifs].map(n => n.id); setReadNotifIds(new Set(allIds)); }} style={{ background: 'none', border: 'none', color: 'var(--ac)', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>모두 읽음 처리</button>
+          <button onClick={handleMarkAllRead} style={{ background: 'none', border: 'none', color: 'var(--ac)', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>모두 읽음 처리</button>
         </div>
 
         {/* 탭 메뉴 */}
@@ -158,7 +148,7 @@ function NotificationPage() {
         <div>
           <h3 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>오늘</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[...realNotifs, ...dummyNotifs]
+            {allNotifs
               .map(n => ({ ...n, isNew: n.isNew && !readNotifIds.has(n.id) }))
               .filter(n => !hiddenNotifIds.has(n.id))
               .filter(n => {

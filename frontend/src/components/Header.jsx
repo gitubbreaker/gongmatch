@@ -37,14 +37,17 @@ function Header() {
           
           const pendingReceived = receivedRes.data
             .filter(req => req.status === 'PENDING')
-            .map(req => ({ ...req, notifType: 'RECEIVED' }));
+            .map(req => ({ ...req, notifType: 'RECEIVED', _id: `req_${req.requestId || req.id}` }));
             
           const acceptedSent = sentRes.data
             .filter(req => req.status === 'ACCEPTED')
-            .map(req => ({ ...req, notifType: 'ACCEPTED_SENT' }));
+            .map(req => ({ ...req, notifType: 'ACCEPTED_SENT', _id: `acc_${req.requestId || req.id}` }));
             
-          // 최신순 정렬
-          const combined = [...pendingReceived, ...acceptedSent].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          // 최신순 정렬 + 읽음 상태 반영
+          const readIds = new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]'));
+          const combined = [...pendingReceived, ...acceptedSent]
+            .filter(n => !readIds.has(n._id))
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           
           setNotifications(combined);
         } catch (e) {
@@ -55,7 +58,10 @@ function Header() {
       fetchNotifications();
       // 30초마다 자동 새로고침하여 실시간성 부여
       const intervalId = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(intervalId);
+      // 알림 페이지에서 '모두 읽음' 처리 시 즉시 반영
+      const handleNotifRead = () => fetchNotifications();
+      window.addEventListener('notifRead', handleNotifRead);
+      return () => { clearInterval(intervalId); window.removeEventListener('notifRead', handleNotifRead); };
     } else {
       setNotifications([]);
     }
