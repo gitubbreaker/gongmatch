@@ -39,7 +39,8 @@ function S8Summary() {
       <div style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', gap: '20px', borderRight: '1px solid var(--brd)' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>AI 회의록 자동 요약</h2>
-          <p style={{ fontSize: '13px', color: 'var(--tx2)' }}>카카오톡 오픈채팅방의 대화 내용을 [내보내기]하여 아래에 붙여넣어 주십시오.</p>
+          <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6' }}>카카오톡 채팅방 → 메뉴(≡) → 대화 내용 내보내기 → 텍스트 파일을 열어 아래에 붙여넣어 주세요.</p>
+          <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>💡 내보내기하면 날짜 구분선이 자동 포함되어, AI가 정확한 일정을 추론합니다.</p>
         </div>
 
         <div className="card2" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -47,7 +48,7 @@ function S8Summary() {
           <textarea
             className="field"
             style={{ flex: 1, minHeight: '300px', fontSize: '13px', lineHeight: '1.6', resize: 'vertical' }}
-            placeholder="[김지원] [오후 2:33] 이번 주 토요일 오후 2시 어떠신가요?&#10;[나] [오후 2:34] 네 좋습니다! 강남역 스터디룸 예약하겠습니다.&#10;[이수현] [오후 2:35] 저는 디자인 와이어프레임 먼저 짜올게요."
+            placeholder={"--------------- 2026년 5월 7일 목요일 ---------------\n[김지원] [오후 2:01] 이번주 토요일 오후 2시에 회의 어때요?\n[이수현] [오후 2:03] 좋아요! 디스코드로 하죠\n[박도현] [오후 2:05] 저는 데이터 분석 파트 맡을게요"}
             value={chatText}
             onChange={(e) => setChatText(e.target.value)}
             disabled={isAnalyzing}
