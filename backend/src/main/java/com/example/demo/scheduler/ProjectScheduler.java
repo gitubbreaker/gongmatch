@@ -42,7 +42,7 @@ public class ProjectScheduler {
     private String githubJsonUrl;
 
     /**
-     * Source A: K-Startup API 연동 (현재 비활성화, 위비티 크롤링으로 대체)
+     * Source A: 공공데이터 REST API 연동
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void fetchPublicApiData() {
