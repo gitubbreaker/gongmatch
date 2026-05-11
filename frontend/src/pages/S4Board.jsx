@@ -357,15 +357,28 @@ function S4Board() {
 
   // Dynamic popular hashtags based on posts
   const hashtagCountsMap = {};
+  const predefinedKeywords = ['데이터분석', 'Python', '백엔드', '디자인', 'Figma', '공모전', '해커톤', '기획', '프론트엔드', 'React', 'Spring', 'Java', 'UI', 'UX', '창업', '부산', '행안부'];
+
   posts.forEach(p => {
-    // Basic regex to find #tags in title and content
-    const textToSearch = `${p.title} ${p.content}`;
+    const tagsInPost = new Set();
+    const textToSearch = `${p.title} ${p.content}`.toLowerCase();
+    
+    // Literal hashtags
     const matches = textToSearch.match(/#[^\s#]+/g);
     if (matches) {
-      matches.forEach(tag => {
-        hashtagCountsMap[tag] = (hashtagCountsMap[tag] || 0) + 1;
-      });
+      matches.forEach(tag => tagsInPost.add(tag));
     }
+
+    // Predefined keywords
+    predefinedKeywords.forEach(kw => {
+      if (textToSearch.includes(kw.toLowerCase())) {
+        tagsInPost.add(`#${kw}`);
+      }
+    });
+
+    tagsInPost.forEach(tag => {
+      hashtagCountsMap[tag] = (hashtagCountsMap[tag] || 0) + 1;
+    });
   });
 
   let popularHashtags = Object.keys(hashtagCountsMap)
@@ -373,17 +386,6 @@ function S4Board() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5)
     .map((item, idx) => ({ rank: idx + 1, tag: item.tag, cnt: `게시글 ${item.count}개` }));
-
-  // Fallback default tags if no # is used anywhere yet
-  if (popularHashtags.length === 0) {
-    popularHashtags = [
-      { rank: 1, tag: '#데이터분석', cnt: '게시글 38개' },
-      { rank: 2, tag: '#공모전후기', cnt: '게시글 31개' },
-      { rank: 3, tag: '#Python', cnt: '게시글 27개' },
-      { rank: 4, tag: '#창업', cnt: '게시글 22개' },
-      { rank: 5, tag: '#부산', cnt: '게시글 18개' }
-    ];
-  }
 
   return (
     <>
