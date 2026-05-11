@@ -7,6 +7,7 @@ function NotificationPage() {
   const [activeTab, setActiveTab] = useState('전체');
   const [realNotifs, setRealNotifs] = useState([]);
   const [hiddenNotifIds, setHiddenNotifIds] = useState(new Set());
+  const [readNotifIds, setReadNotifIds] = useState(new Set());
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -26,6 +27,7 @@ function NotificationPage() {
             isNew: true,
             desc1: req.targetProjectTitle || '프로젝트 무관 (자유 매칭)',
             desc2: req.message ? `"${req.message}"` : '매칭 점수 기반 팀원 요청입니다.',
+            _rawTime: new Date(req.createdAt).getTime(),
             time: new Date(req.createdAt).toLocaleString(),
             actions: [
               { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
@@ -42,6 +44,7 @@ function NotificationPage() {
             isNew: true,
             desc1: req.targetProjectTitle ? `${req.targetProjectTitle} 팀 합류 확정` : '자유 매칭 팀 합류 확정',
             desc2: '이제 팀 채팅방을 개설해보세요!',
+            _rawTime: new Date(req.createdAt).getTime(),
             time: new Date(req.createdAt).toLocaleString(),
             actions: [
               { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
@@ -129,9 +132,9 @@ function NotificationPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h2 style={{ fontSize: '24px', fontWeight: '900' }}>알림 센터</h2>
-            <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '12px', fontWeight: '800' }}>읽지 않음 3</span>
+            {(() => { const unread = [...realNotifs, ...dummyNotifs].filter(n => !hiddenNotifIds.has(n.id) && n.isNew && !readNotifIds.has(n.id)).length; return unread > 0 ? <span style={{ fontSize: '11px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 10px', borderRadius: '12px', fontWeight: '800' }}>읽지 않음 {unread}</span> : null; })()}
           </div>
-          <button style={{ background: 'none', border: 'none', color: 'var(--ac)', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>모두 읽음 처리</button>
+          <button onClick={() => { const allIds = [...realNotifs, ...dummyNotifs].map(n => n.id); setReadNotifIds(new Set(allIds)); }} style={{ background: 'none', border: 'none', color: 'var(--ac)', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>모두 읽음 처리</button>
         </div>
 
         {/* 탭 메뉴 */}
@@ -155,14 +158,19 @@ function NotificationPage() {
         <div>
           <h3 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>오늘</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[...realNotifs, ...dummyNotifs].filter(n => !hiddenNotifIds.has(n.id)).filter(n => {
-              if (activeTab === '전체') return true;
-              if (activeTab === '매칭 요청' && n.type === '매칭') return true;
-              if (activeTab === '쪽지' && n.type === '쪽지') return true;
-              if (activeTab === '마감 임박' && n.type === '마감 임박') return true;
-              if (activeTab === '시스템' && (n.type === '시스템' || n.type === '커뮤니티')) return true;
-              return false;
-            }).map(notif => (
+            {[...realNotifs, ...dummyNotifs]
+              .map(n => ({ ...n, isNew: n.isNew && !readNotifIds.has(n.id) }))
+              .filter(n => !hiddenNotifIds.has(n.id))
+              .filter(n => {
+                if (activeTab === '전체') return true;
+                if (activeTab === '매칭 요청' && n.type === '매칭') return true;
+                if (activeTab === '쪽지' && n.type === '쪽지') return true;
+                if (activeTab === '마감 임박' && n.type === '마감 임박') return true;
+                if (activeTab === '시스템' && (n.type === '시스템' || n.type === '커뮤니티')) return true;
+                return false;
+              })
+              .sort((a, b) => (b._rawTime || 0) - (a._rawTime || 0))
+              .map(notif => (
               <div key={notif.id} style={{
                 background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', position: 'relative',
                 borderLeft: notif.isNew ? '3px solid var(--ac)' : '1px solid var(--brd2)'
