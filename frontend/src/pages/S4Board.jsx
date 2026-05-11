@@ -355,6 +355,36 @@ function S4Board() {
     recentActivities.push({ author: '시스템', authorIcon: '안', authorColor: 'ac', action: '아직 관련 활동이 없습니다.', desc: '새로운 글을 작성하거나 댓글을 남겨보세요!', time: '방금 전' });
   }
 
+  // Dynamic popular hashtags based on posts
+  const hashtagCountsMap = {};
+  posts.forEach(p => {
+    // Basic regex to find #tags in title and content
+    const textToSearch = `${p.title} ${p.content}`;
+    const matches = textToSearch.match(/#[^\s#]+/g);
+    if (matches) {
+      matches.forEach(tag => {
+        hashtagCountsMap[tag] = (hashtagCountsMap[tag] || 0) + 1;
+      });
+    }
+  });
+
+  let popularHashtags = Object.keys(hashtagCountsMap)
+    .map(tag => ({ tag, count: hashtagCountsMap[tag] }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+    .map((item, idx) => ({ rank: idx + 1, tag: item.tag, cnt: `게시글 ${item.count}개` }));
+
+  // Fallback default tags if no # is used anywhere yet
+  if (popularHashtags.length === 0) {
+    popularHashtags = [
+      { rank: 1, tag: '#데이터분석', cnt: '게시글 38개' },
+      { rank: 2, tag: '#공모전후기', cnt: '게시글 31개' },
+      { rank: 3, tag: '#Python', cnt: '게시글 27개' },
+      { rank: 4, tag: '#창업', cnt: '게시글 22개' },
+      { rank: 5, tag: '#부산', cnt: '게시글 18개' }
+    ];
+  }
+
   return (
     <>
     <section className="screen on" id="s4" style={{ display: 'grid', gridTemplateColumns: '210px 1fr 280px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
@@ -441,13 +471,7 @@ function S4Board() {
             <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>인기 해시태그</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[
-              { rank: 1, tag: '#데이터분석', cnt: '게시글 38개' },
-              { rank: 2, tag: '#공모전후기', cnt: '게시글 31개' },
-              { rank: 3, tag: '#Python', cnt: '게시글 27개' },
-              { rank: 4, tag: '#창업', cnt: '게시글 22개' },
-              { rank: 5, tag: '#부산', cnt: '게시글 18개' }
-            ].map(item => (
+            {popularHashtags.map(item => (
               <div key={item.rank} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <span style={{ fontSize: '13px', fontWeight: '900', color: item.rank <= 3 ? 'var(--ac)' : 'var(--tx3)' }}>{item.rank}</span>
