@@ -269,18 +269,22 @@ function S7Accept() {
                 </div>
               </div>
 
-              {activeChat.status === 'ACCEPTED' ? (
-                <div style={{ background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '12px' }}>🎉</div>
-                  <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--green)', marginBottom: '8px' }}>팀 매칭이 성사되었습니다!</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--tx2)', marginBottom: '20px' }}>
-                    서로 연락하여 프로젝트를 시작해 보세요. 오픈채팅이나 개별 연락처로 소통할 수 있습니다.
-                  </p>
-                  <a href="https://open.kakao.com/o/gongmatch" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', background: '#FEE500', color: '#000000', padding: '14px 28px', borderRadius: '12px', fontSize: '14px', fontWeight: '900', textDecoration: 'none' }}>
-                    카카오톡 오픈채팅방 입장하기
-                  </a>
-                </div>
-              ) : (
+              {activeChat.status === 'ACCEPTED' ? (() => {
+                const urlMatch = activeChat.message?.match(/(https?:\/\/[^\s]+)/);
+                const chatUrl = urlMatch ? urlMatch[1] : (getOtherPerson(activeChat)?.openChatUrl || '#');
+                return (
+                  <div style={{ background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '12px' }}>🎉</div>
+                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--green)', marginBottom: '8px' }}>팀 매칭이 성사되었습니다!</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--tx2)', marginBottom: '20px' }}>
+                      서로 연락하여 프로젝트를 시작해 보세요. 오픈채팅이나 개별 연락처로 소통할 수 있습니다.
+                    </p>
+                    <a href={chatUrl} target={chatUrl !== '#' ? "_blank" : "_self"} rel="noopener noreferrer" style={{ display: 'inline-block', background: '#FEE500', color: '#000000', padding: '14px 28px', borderRadius: '12px', fontSize: '14px', fontWeight: '900', textDecoration: 'none' }}>
+                      카카오톡 오픈채팅방 입장하기
+                    </a>
+                  </div>
+                );
+              })() : (
                 <>
                   {activeChat.type === 'RECEIVED' ? (
                     <div style={{ display: 'flex', gap: '12px' }}>
