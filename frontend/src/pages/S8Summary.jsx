@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../App';
+import api from '../api';
 
 function S8Summary() {
   const navigate = useNavigate();
@@ -17,20 +18,20 @@ function S8Summary() {
     setIsAnalyzing(true);
     setSummary(null);
 
-    // 백엔드 API 통신을 대기하는 시뮬레이션 (2초 후 결과 반환)
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setSummary({
-        schedule: '2026년 4월 11일 (토) 오후 2:00',
-        location: '강남역 스터디룸 (온라인 디스코드 병행)',
-        roles: [
-          { name: '김지원', role: '백엔드 개발', task: 'Django REST API 서버 초기 세팅 및 DB 스키마 설계' },
-          { name: '이수현', role: 'UI/UX 디자인', task: 'Figma 와이어프레임 작성 및 프로토타입 디자인 완성' },
-          { name: '나(본인)', role: '기획 및 PM', task: '요구사항 명세서 작성 및 공공데이터 API 연동 테스트' }
-        ]
-      });
-      showToast('AI 요약이 완료되었습니다.');
-    }, 2000);
+    const fetchSummary = async () => {
+      try {
+        const response = await api.post('/api/ai/summarize', { chatText });
+        setSummary(response.data);
+        showToast('AI 요약이 완료되었습니다.');
+      } catch (error) {
+        console.error(error);
+        showToast('AI 분석 중 오류가 발생했습니다. API 키나 서버 상태를 확인해주세요.');
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
+
+    fetchSummary();
   };
 
   return (
