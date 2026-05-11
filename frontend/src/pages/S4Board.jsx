@@ -105,6 +105,9 @@ function S4Board() {
   };
 
   const [posts, setPosts] = useState(getInitialPosts());
+  
+  const userStr = localStorage.getItem('gongmatch_currentUser');
+  const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
 
   useEffect(() => {
     localStorage.setItem('gongmatch_posts', JSON.stringify(posts));
@@ -134,9 +137,6 @@ function S4Board() {
       return;
     }
     
-    const userStr = localStorage.getItem('gongmatch_currentUser');
-    const user = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
-    
     const newPost = {
       id: Date.now(),
       type: 'NEW',
@@ -144,9 +144,9 @@ function S4Board() {
       typeColor: 'ac',
       title: writeForm.title,
       content: writeForm.content,
-      author: user.name || '익명',
+      author: currentUser.name || '익명',
       authorColor: 'purple',
-      authorIcon: (user.name || '익명').charAt(0),
+      authorIcon: (currentUser.name || '익명').charAt(0),
       date: '방금 전',
       views: 0,
       likes: 0,
@@ -186,13 +186,11 @@ function S4Board() {
   
   const handleAddComment = () => {
     if (!commentInput.trim()) return;
-    const userStr = localStorage.getItem('gongmatch_currentUser');
-    const user = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
     
     const newComment = {
       id: Date.now(),
-      author: user.name || '익명',
-      authorIcon: (user.name || '익명').charAt(0),
+      author: currentUser.name || '익명',
+      authorIcon: (currentUser.name || '익명').charAt(0),
       authorColor: 'ac',
       content: commentInput,
       date: '방금 전'
@@ -206,13 +204,11 @@ function S4Board() {
   
   const handleAddReply = (commentId) => {
     if (!replyInput.trim()) return;
-    const userStr = localStorage.getItem('gongmatch_currentUser');
-    const user = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
     
     const newReply = {
       id: Date.now(),
-      author: user.name || '익명',
-      authorIcon: (user.name || '익명').charAt(0),
+      author: currentUser.name || '익명',
+      authorIcon: (currentUser.name || '익명').charAt(0),
       authorColor: 'ac',
       content: replyInput,
       date: '방금 전'
@@ -232,6 +228,40 @@ function S4Board() {
     setReplyToCommentId(null);
   };
   
+  const handleDeletePost = (e, postId) => {
+    if (e) e.stopPropagation();
+    if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+      setPosts(posts.filter(p => p.id !== postId));
+      if (activePost && activePost.id === postId) setActivePost(null);
+      showToast('게시글이 삭제되었습니다.');
+    }
+  };
+
+  const handleDeleteComment = (commentId) => {
+    if (window.confirm('댓글을 삭제하시겠습니까?')) {
+      const updatedComments = activePost.comments.filter(c => c.id !== commentId);
+      const updatedPost = { ...activePost, comments: updatedComments };
+      setActivePost(updatedPost);
+      setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
+      showToast('댓글이 삭제되었습니다.');
+    }
+  };
+
+  const handleDeleteReply = (commentId, replyId) => {
+    if (window.confirm('답글을 삭제하시겠습니까?')) {
+      const updatedComments = activePost.comments.map(c => {
+        if (c.id === commentId) {
+          return { ...c, replies: c.replies.filter(r => r.id !== replyId) };
+        }
+        return c;
+      });
+      const updatedPost = { ...activePost, comments: updatedComments };
+      setActivePost(updatedPost);
+      setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
+      showToast('답글이 삭제되었습니다.');
+    }
+  };
+  
   const handlePostClick = (post) => {
     const updatedPost = { ...post, views: post.views + 1 };
     setActivePost(updatedPost);
@@ -239,12 +269,9 @@ function S4Board() {
   };
 
   // Dynamic recent activities related to the current user
-  const userStrForActivity = localStorage.getItem('gongmatch_currentUser');
-  const currentUserForActivity = userStrForActivity && userStrForActivity !== "undefined" ? JSON.parse(userStrForActivity) : { name: '익명' };
-  
   const recentActivities = [];
   posts.forEach(p => {
-    const isMyPost = p.author === currentUserForActivity.name;
+    const isMyPost = p.author === currentUser.name;
     
     // 내가 작성한 글
     if (isMyPost && (p.date === '방금 전' || p.date === '2시간 전' || p.date.includes('분 전') || p.date === '어제' || p.date.includes('일 전'))) {
@@ -256,8 +283,8 @@ function S4Board() {
 
     // 내 글에 달린 댓글이거나 내가 작성한 댓글
     p.comments.forEach(c => {
-      if (isMyPost || c.author === currentUserForActivity.name) {
-        if (c.author === currentUserForActivity.name) {
+      if (isMyPost || c.author === currentUser.name) {
+        if (c.author === currentUser.name) {
           recentActivities.push({
             author: c.author, authorIcon: c.authorIcon, authorColor: c.authorColor,
             action: '댓글을 남겼습니다.', desc: `"${c.content.substring(0, 15)}..."`, time: c.date
@@ -340,7 +367,12 @@ function S4Board() {
                   <span>💬 {post.comments.length}</span>
                   <span style={{ cursor: 'pointer', color: post.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: post.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, post.id)}>💛 {post.likes}</span>
                 </div>
-                <span>{post.date}</span>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <span>{post.date}</span>
+                  {post.author === currentUser.name && (
+                    <span onClick={(e) => handleDeletePost(e, post.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -446,9 +478,12 @@ function S4Board() {
                   <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{activePost.date}</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--tx3)' }}>
+              <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--tx3)', alignItems: 'center' }}>
                 <span>👀 {activePost.views}</span>
                 <span style={{ cursor: 'pointer', color: activePost.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: activePost.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, activePost.id)}>💛 {activePost.likes}</span>
+                {activePost.author === currentUser.name && (
+                  <span onClick={(e) => handleDeletePost(e, activePost.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                )}
               </div>
             </div>
             
@@ -470,7 +505,12 @@ function S4Board() {
                           <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{c.date}</span>
                         </div>
                         <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5', marginBottom: '6px' }}>{c.content}</div>
-                        <div onClick={() => { setReplyToCommentId(replyToCommentId === c.id ? null : c.id); setReplyInput(''); }} style={{ fontSize: '11px', color: 'var(--tx3)', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}>답글 달기</div>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div onClick={() => { setReplyToCommentId(replyToCommentId === c.id ? null : c.id); setReplyInput(''); }} style={{ fontSize: '11px', color: 'var(--tx3)', cursor: 'pointer', fontWeight: '600' }}>답글 달기</div>
+                          {c.author === currentUser.name && (
+                            <div onClick={() => handleDeleteComment(c.id)} style={{ fontSize: '11px', color: 'var(--red)', cursor: 'pointer', fontWeight: '600' }}>삭제</div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
@@ -484,6 +524,9 @@ function S4Board() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                 <span onClick={(e) => handleProfileClick(e, r.author)} style={{ cursor: 'pointer', fontSize: '12px', fontWeight: '800', color: 'var(--tx)' }}>{r.author}</span>
                                 <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{r.date}</span>
+                                {r.author === currentUser.name && (
+                                  <span onClick={() => handleDeleteReply(c.id, r.id)} style={{ fontSize: '10px', color: 'var(--red)', cursor: 'pointer', fontWeight: '600', marginLeft: 'auto' }}>삭제</span>
+                                )}
                               </div>
                               <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>{r.content}</div>
                             </div>
