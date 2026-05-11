@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.PublicProject;
 import com.example.demo.entity.Student;
 import com.example.demo.entity.TeamRequest;
+import com.example.demo.repository.PublicProjectRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeamRequestRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +18,13 @@ public class TeamRequestService {
 
     private final TeamRequestRepository teamRequestRepository;
     private final StudentRepository studentRepository;
+    private final PublicProjectRepository publicProjectRepository;
 
     /**
      * 팀원 요청 보내기
      */
     @Transactional
-    public TeamRequest sendRequest(String senderLoginId, Long receiverId, String message) {
+    public TeamRequest sendRequest(String senderLoginId, Long receiverId, Long projectId, String message) {
         Student sender = studentRepository.findFirstByLoginIdOrderByIdAsc(senderLoginId)
                 .orElseThrow(() -> new IllegalArgumentException("보내는 사용자가 존재하지 않습니다."));
         Student receiver = studentRepository.findById(receiverId)
@@ -36,6 +39,12 @@ public class TeamRequestService {
         request.setReceiver(receiver);
         request.setMessage(message);
         request.setStatus("PENDING");
+
+        if (projectId != null) {
+            PublicProject project = publicProjectRepository.findById(projectId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공모전입니다."));
+            request.setProject(project);
+        }
 
         return teamRequestRepository.save(request);
     }

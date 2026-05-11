@@ -119,6 +119,7 @@ function ContestDetailPage() {
     try {
       await api.post('/api/team-requests', { 
         receiverId: reqModal.id, 
+        projectId: id,
         message: `${reqMessage}\n\n[연락처] ${kakaoLink}` 
       });
       setReqModal({ open: false, id: null, name: '' });

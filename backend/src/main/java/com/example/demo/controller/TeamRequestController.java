@@ -29,7 +29,7 @@ public class TeamRequestController {
             @RequestBody TeamRequestSendRequest body) {
         String loginId = authentication.getName();
         TeamRequest savedRequest = teamRequestService.sendRequest(
-                loginId, body.getReceiverId(), body.getMessage());
+                loginId, body.getReceiverId(), body.getProjectId(), body.getMessage());
         return ResponseEntity.ok(savedRequest);
     }
 
@@ -79,6 +79,7 @@ public class TeamRequestController {
     @Getter @Setter
     static class TeamRequestSendRequest {
         private Long receiverId;
+        private Long projectId;
         private String message;
     }
 
