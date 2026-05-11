@@ -221,6 +221,7 @@ function S4Board() {
   }
 
   return (
+    <>
     <section className="screen on" id="s4" style={{ display: 'grid', gridTemplateColumns: '210px 1fr 280px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
       <div className="sidebar" style={{ background: 'var(--bg2)', borderRight: '1px solid var(--brd)', padding: '24px 18px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <button className="btn-prim" onClick={() => setIsWriteModalOpen(true)} style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
