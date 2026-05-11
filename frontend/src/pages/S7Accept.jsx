@@ -162,9 +162,29 @@ function S7Accept() {
       {/* 오른쪽 상세/연락 패널 */}
       <div className="s7-right" style={{ background: 'var(--bg2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         {!activeChat ? (
-          <div style={{ color: 'var(--tx3)', fontSize: '15px', textAlign: 'center', lineHeight:'1.7', background:'var(--card)', padding:'40px 60px', borderRadius:'24px', border:'1px solid var(--brd)' }}>
-            <div style={{fontSize:'48px', marginBottom:'20px', opacity:'0.5'}}>🤝</div>
-            왼쪽 목록에서 <b>수락된 매칭</b>을 선택하면<br/>상대방과 연락할 수 있는 정보를 제공해 드립니다.
+          <div style={{ width:'100%', maxWidth:'480px', padding:'40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ color: 'var(--tx3)', fontSize: '15px', textAlign: 'center', lineHeight:'1.7', background:'var(--card)', padding:'40px 60px', borderRadius:'24px', border:'1px solid var(--brd)' }}>
+              <div style={{fontSize:'48px', marginBottom:'20px', opacity:'0.5'}}>🤝</div>
+              왼쪽 목록에서 <b>수락된 매칭</b>을 선택하면<br/>상대방과 연락할 수 있는 정보를 제공해 드립니다.
+            </div>
+            
+            {/* 팀 구성 현황 패널 (항상 표시) */}
+            <div style={{ background:'var(--card)', borderRadius:'24px', padding:'32px', border:'1px solid var(--brd)', boxShadow:'0 10px 30px rgba(0,0,0,0.2)' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                 <div style={{ fontSize:'15px', color:'var(--tx)', fontWeight:'900' }}>현재 팀 구성 현황</div>
+                 <div style={{ fontSize:'14px', color:'var(--ac)', fontWeight:'900' }}>2/5명 확정</div>
+               </div>
+               <div style={{ width: '100%', background: 'var(--bg)', height: '10px', borderRadius: '5px', overflow: 'hidden', marginBottom:'20px' }}>
+                 <div style={{ width: '40%', background: 'var(--ac)', height: '100%', borderRadius: '5px' }}></div>
+               </div>
+               <div style={{ display: 'flex', gap: '10px' }}>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>나</div>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>황</div>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
+               </div>
+            </div>
           </div>
         ) : (
           <div style={{ width:'100%', maxWidth:'480px', padding:'40px' }}>
