@@ -347,19 +347,6 @@ function S7Accept() {
         </div>
       )}
     </section>
-  );', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
-                        </div>
-                     </div>
-                   </>
-                 );
-               })()}
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
   );
 }
 
