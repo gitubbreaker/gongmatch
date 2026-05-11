@@ -45,7 +45,7 @@ function ProfileDetailPage() {
       showToast('성공적으로 팀원 합류 제안을 보냈습니다!');
       navigate(-1);
     } catch(e) {
-      showToast('성공적으로 팀원 합류 제안을 보냈습니다!');
+      showToast('팀원 합류 제안에 실패했습니다. 유효하지 않은 대상입니다.');
       navigate(-1);
     }
   };
