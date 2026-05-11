@@ -6,6 +6,7 @@ function NotificationPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('전체');
   const [realNotifs, setRealNotifs] = useState([]);
+  const [hiddenNotifIds, setHiddenNotifIds] = useState(new Set());
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -18,10 +19,10 @@ function NotificationPage() {
         const pendingReceived = receivedRes.data
           .filter(req => req.status === 'PENDING')
           .map(req => ({
-            id: `req_${req.id}`,
+            id: `req_${req.requestId || req.id}`,
             type: '매칭',
             icon: '⚡',
-            title: `${req.senderName}님이 팀원 요청을 보냈어요`,
+            title: `${req.sender?.name || '익명'}님이 팀원 요청을 보냈어요`,
             isNew: true,
             desc1: req.targetProjectTitle || '알 수 없는 공모전',
             desc2: req.message,
@@ -34,10 +35,10 @@ function NotificationPage() {
         const acceptedSent = sentRes.data
           .filter(req => req.status === 'ACCEPTED')
           .map(req => ({
-            id: `acc_${req.id}`,
+            id: `acc_${req.requestId || req.id}`,
             type: '매칭',
             icon: '🎉',
-            title: `${req.receiverName}님이 팀원 요청을 수락했어요`,
+            title: `${req.receiver?.name || '익명'}님이 팀원 요청을 수락했어요`,
             isNew: true,
             desc1: `${req.targetProjectTitle || '알 수 없는 공모전'} 팀 합류 확정`,
             desc2: '이제 팀 채팅방을 개설해보세요!',
@@ -154,12 +155,20 @@ function NotificationPage() {
         <div>
           <h3 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>오늘</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[...realNotifs, ...dummyNotifs].map(notif => (
+            {[...realNotifs, ...dummyNotifs].filter(n => !hiddenNotifIds.has(n.id)).filter(n => {
+              if (activeTab === '전체') return true;
+              if (activeTab === '매칭 요청' && n.type === '매칭') return true;
+              if (activeTab === '쪽지' && n.type === '쪽지') return true;
+              if (activeTab === '마감 임박' && n.type === '마감 임박') return true;
+              if (activeTab === '시스템' && (n.type === '시스템' || n.type === '커뮤니티')) return true;
+              return false;
+            }).map(notif => (
               <div key={notif.id} style={{
                 background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', position: 'relative',
                 borderLeft: notif.isNew ? '3px solid var(--ac)' : '1px solid var(--brd2)'
               }}>
-                {notif.isNew && <div style={{ position: 'absolute', top: '24px', right: '24px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>}
+                {notif.isNew && <div style={{ position: 'absolute', top: '24px', right: '48px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>}
+                <button onClick={() => setHiddenNotifIds(prev => new Set([...prev, notif.id]))} style={{ position: 'absolute', top: '16px', right: '20px', background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '20px', cursor: 'pointer', padding: '4px' }}>&times;</button>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                     {notif.icon}
