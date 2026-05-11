@@ -156,7 +156,7 @@ function S7Accept() {
                       <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{new Date(req.createdAt).toLocaleDateString()}</span>
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
-                      {req.project?.title || '프로젝트 무관'}<br/>
+                      <div style={{color:'var(--ac)', fontSize: '11px', fontWeight:'800', marginBottom:'4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>🎯 {req.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
                       {req.message?.substring(0, 30)}...
                     </div>
                   </div>
@@ -178,6 +178,15 @@ function S7Accept() {
         ) : (
           <div style={{ width:'100%', maxWidth:'640px' }}>
             <div style={{ background: 'var(--card)', borderRadius: '24px', border: '1px solid var(--brd)', padding: '32px', marginBottom: '24px' }}>
+              {/* 목표 대회 배너 */}
+              <div style={{ background: 'var(--bg2)', padding: '16px 20px', borderRadius: '12px', border: '1px solid var(--ac-brd)', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span style={{ fontSize: '28px' }}>🏆</span>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', fontWeight: '800', marginBottom: '6px' }}>지원한 목표 공모전 / 해커톤</div>
+                  <div style={{ fontSize: '16px', color: 'var(--ac)', fontWeight: '900', letterSpacing: '-0.5px' }}>{activeChat.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--blue-dim)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '900' }}>{getOtherPerson(activeChat)?.name?.charAt(0) || '?'}</div>
