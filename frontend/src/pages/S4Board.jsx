@@ -197,27 +197,42 @@ function S4Board() {
     setPosts(posts.map(p => p.id === post.id ? updatedPost : p));
   };
 
-  // Dynamic recent activities
+  // Dynamic recent activities related to the current user
+  const userStrForActivity = localStorage.getItem('gongmatch_currentUser');
+  const currentUserForActivity = userStrForActivity && userStrForActivity !== "undefined" ? JSON.parse(userStrForActivity) : { name: '익명' };
+  
   const recentActivities = [];
   posts.forEach(p => {
-    if (p.date === '방금 전' || p.date === '2시간 전' || p.date.includes('분 전')) {
+    const isMyPost = p.author === currentUserForActivity.name;
+    
+    // 내가 작성한 글
+    if (isMyPost && (p.date === '방금 전' || p.date === '2시간 전' || p.date.includes('분 전') || p.date === '어제' || p.date.includes('일 전'))) {
       recentActivities.push({
         author: p.author, authorIcon: p.authorIcon, authorColor: p.authorColor,
         action: '새 글을 작성했습니다.', desc: `"${p.title.substring(0, 15)}..."`, time: p.date
       });
     }
+
+    // 내 글에 달린 댓글이거나 내가 작성한 댓글
     p.comments.forEach(c => {
-      if (c.date === '방금 전' || c.date === '1시간 전' || c.date === '3시간 전' || c.date.includes('분 전')) {
-        recentActivities.push({
-          author: c.author, authorIcon: c.authorIcon, authorColor: c.authorColor,
-          action: '글에 댓글을 남겼습니다.', desc: `"${c.content.substring(0, 15)}..."`, time: c.date
-        });
+      if (isMyPost || c.author === currentUserForActivity.name) {
+        if (c.author === currentUserForActivity.name) {
+          recentActivities.push({
+            author: c.author, authorIcon: c.authorIcon, authorColor: c.authorColor,
+            action: '댓글을 남겼습니다.', desc: `"${c.content.substring(0, 15)}..."`, time: c.date
+          });
+        } else if (isMyPost) {
+          recentActivities.push({
+            author: c.author, authorIcon: c.authorIcon, authorColor: c.authorColor,
+            action: '내 글에 댓글을 남겼습니다.', desc: `"${c.content.substring(0, 15)}..."`, time: c.date
+          });
+        }
       }
     });
   });
   
   if (recentActivities.length === 0) {
-    recentActivities.push({ author: '운영팀', authorIcon: '공', authorColor: 'ac', action: '알고리즘 업데이트 공지', desc: '', time: '2026.04.30' });
+    recentActivities.push({ author: '시스템', authorIcon: '안', authorColor: 'ac', action: '아직 관련 활동이 없습니다.', desc: '새로운 글을 작성하거나 댓글을 남겨보세요!', time: '방금 전' });
   }
 
   return (
