@@ -18,8 +18,12 @@ function S4Board() {
       authorIcon: '공',
       date: '2026.04.30',
       views: 241,
-      comments: 15,
       likes: 34,
+      isLiked: false,
+      comments: [
+        { id: 101, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '좋은 업데이트네요! 확인했습니다.', date: '2026.04.30' },
+        { id: 102, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '기대됩니다!', date: '2026.04.30' }
+      ],
       isHot: false
     },
     {
@@ -34,8 +38,12 @@ function S4Board() {
       authorIcon: '권',
       date: '2시간 전',
       views: 189,
-      comments: 24,
       likes: 65,
+      isLiked: false,
+      comments: [
+        { id: 201, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '백엔드 개발자 급구 아직 유효한가요?', date: '3시간 전' },
+        { id: 202, author: '이수현', authorIcon: '이', authorColor: 'orange', content: '쪽지 드렸습니다.', date: '1시간 전' }
+      ],
       isHot: true
     },
     {
@@ -49,8 +57,11 @@ function S4Board() {
       authorIcon: '박',
       date: '어제',
       views: 189,
-      comments: 24,
       likes: 65,
+      isLiked: false,
+      comments: [
+        { id: 301, author: '김지현', authorIcon: '김', authorColor: 'purple', content: '우와 축하드려요! 저도 얼른 좋은 팀 만나고 싶네요.', date: '어제' }
+      ],
       isHot: false
     },
     {
@@ -64,8 +75,9 @@ function S4Board() {
       authorIcon: '김',
       date: '2일 전',
       views: 56,
-      comments: 12,
       likes: 5,
+      isLiked: false,
+      comments: [],
       isHot: false
     },
     {
@@ -79,14 +91,21 @@ function S4Board() {
       authorIcon: '이',
       date: '4일 전',
       views: 124,
-      comments: 7,
       likes: 22,
+      isLiked: false,
+      comments: [
+        { id: 501, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '혹시 프론트엔드도 구하시나요?', date: '3일 전' }
+      ],
       isHot: false
     }
   ]);
 
-  const [newPostContent, setNewPostContent] = useState('');
   const [activeCategory, setActiveCategory] = useState('전체');
+  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+  const [writeForm, setWriteForm] = useState({ title: '', category: '자유게시판', content: '' });
+  
+  const [activePost, setActivePost] = useState(null);
+  const [commentInput, setCommentInput] = useState('');
   
   const categoryCounts = posts.reduce((acc, post) => {
     acc[post.category] = (acc[post.category] || 0) + 1;
@@ -97,45 +116,114 @@ function S4Board() {
   const filteredPosts = activeCategory === '전체' ? posts : posts.filter(p => p.category === activeCategory);
 
   const handleWrite = () => {
-    if (!newPostContent.trim()) {
-      showToast('게시글 내용을 입력해주세요.');
+    if (!writeForm.title.trim() || !writeForm.content.trim()) {
+      showToast('제목과 내용을 모두 입력해주세요.');
       return;
     }
     
-    // currentUser를 로컬 스토리지에서 가져오기
     const userStr = localStorage.getItem('gongmatch_currentUser');
     const user = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
     
     const newPost = {
       id: Date.now(),
       type: 'NEW',
-      category: '자유게시판',
+      category: writeForm.category,
       typeColor: 'ac',
-      title: '새로운 게시글',
-      content: newPostContent,
+      title: writeForm.title,
+      content: writeForm.content,
       author: user.name || '익명',
       authorColor: 'purple',
       authorIcon: (user.name || '익명').charAt(0),
       date: '방금 전',
       views: 0,
-      comments: 0,
       likes: 0,
+      isLiked: false,
+      comments: [],
       isHot: false
     };
 
     setPosts([newPost, ...posts]);
-    setNewPostContent('');
+    setIsWriteModalOpen(false);
+    setWriteForm({ title: '', category: '자유게시판', content: '' });
     showToast('게시글이 성공적으로 등록되었습니다.');
   };
 
-  const handleLike = (id) => {
-    setPosts(posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
+  const handleLike = (e, id) => {
+    e.stopPropagation();
+    setPosts(posts.map(p => {
+      if (p.id === id) {
+        return { ...p, likes: p.isLiked ? p.likes - 1 : p.likes + 1, isLiked: !p.isLiked };
+      }
+      return p;
+    }));
+    if (activePost && activePost.id === id) {
+      setActivePost({ ...activePost, likes: activePost.isLiked ? activePost.likes - 1 : activePost.likes + 1, isLiked: !activePost.isLiked });
+    }
   };
+
+  const handleProfileClick = (e, author) => {
+    e.stopPropagation();
+    if (author === '공매치 운영팀') {
+      showToast('운영팀 프로필입니다.');
+    } else {
+      showToast(`${author}님의 프로필 페이지로 이동합니다.`);
+      navigate('#'); 
+    }
+  };
+  
+  const handleAddComment = () => {
+    if (!commentInput.trim()) return;
+    const userStr = localStorage.getItem('gongmatch_currentUser');
+    const user = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
+    
+    const newComment = {
+      id: Date.now(),
+      author: user.name || '익명',
+      authorIcon: (user.name || '익명').charAt(0),
+      authorColor: 'ac',
+      content: commentInput,
+      date: '방금 전'
+    };
+    
+    const updatedPost = { ...activePost, comments: [...activePost.comments, newComment] };
+    setActivePost(updatedPost);
+    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
+    setCommentInput('');
+  };
+  
+  const handlePostClick = (post) => {
+    const updatedPost = { ...post, views: post.views + 1 };
+    setActivePost(updatedPost);
+    setPosts(posts.map(p => p.id === post.id ? updatedPost : p));
+  };
+
+  // Dynamic recent activities
+  const recentActivities = [];
+  posts.forEach(p => {
+    if (p.date === '방금 전' || p.date === '2시간 전' || p.date.includes('분 전')) {
+      recentActivities.push({
+        author: p.author, authorIcon: p.authorIcon, authorColor: p.authorColor,
+        action: '새 글을 작성했습니다.', desc: `"${p.title.substring(0, 15)}..."`, time: p.date
+      });
+    }
+    p.comments.forEach(c => {
+      if (c.date === '방금 전' || c.date === '1시간 전' || c.date === '3시간 전' || c.date.includes('분 전')) {
+        recentActivities.push({
+          author: c.author, authorIcon: c.authorIcon, authorColor: c.authorColor,
+          action: '글에 댓글을 남겼습니다.', desc: `"${c.content.substring(0, 15)}..."`, time: c.date
+        });
+      }
+    });
+  });
+  
+  if (recentActivities.length === 0) {
+    recentActivities.push({ author: '운영팀', authorIcon: '공', authorColor: 'ac', action: '알고리즘 업데이트 공지', desc: '', time: '2026.04.30' });
+  }
 
   return (
     <section className="screen on" id="s4" style={{ display: 'grid', gridTemplateColumns: '210px 1fr 280px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
       <div className="sidebar" style={{ background: 'var(--bg2)', borderRight: '1px solid var(--brd)', padding: '24px 18px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <button className="btn-prim" style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => document.getElementById('postInput').focus()}>
+        <button className="btn-prim" onClick={() => setIsWriteModalOpen(true)} style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <span>+</span> 글쓰기
         </button>
         <div style={{ marginTop: '12px' }}>
@@ -161,19 +249,8 @@ function S4Board() {
       </div>
  
       <div className="board-main" style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{ flex: 1, background: 'var(--card)', border: '1px solid var(--brd2)', borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '12px 16px' }}>
-            <input 
-              id="postInput"
-              type="text" 
-              placeholder="게시글 입력 후 엔터를 누르세요..." 
-              value={newPostContent}
-              onChange={(e) => setNewPostContent(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleWrite()}
-              style={{ background: 'transparent', border: 'none', color: 'var(--tx)', width: '100%', outline: 'none', fontSize: '14px' }} 
-            />
-          </div>
-          <button className="btn-prim" onClick={handleWrite} style={{ borderRadius: '12px', padding: '0 20px', fontSize: '13px' }}>작성</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--tx)' }}>{activeCategory} 게시판</div>
           <select className="field" style={{ width: '120px', padding: '0 16px', borderRadius: '12px', fontSize: '13px', border: '1px solid var(--brd2)', background: 'var(--card)' }}>
             <option>최신순</option>
             <option>인기순</option>
@@ -182,7 +259,7 @@ function S4Board() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {filteredPosts.map(post => (
-            <div key={post.id} style={{ background: 'var(--card)', borderRadius: '16px', border: post.category === '운영' ? '1px solid var(--green)' : '1px solid var(--brd)', padding: '24px', position: 'relative' }}>
+            <div key={post.id} onClick={() => handlePostClick(post)} style={{ background: 'var(--card)', borderRadius: '16px', border: post.category === '운영' ? '1px solid var(--green)' : '1px solid var(--brd)', padding: '24px', position: 'relative', cursor: 'pointer', transition: 'all 0.2s' }}>
               {post.category === '운영' && <div style={{ position: 'absolute', top: '0', left: '0', width: '4px', height: '100%', background: 'var(--green)', borderRadius: '16px 0 0 16px' }}></div>}
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -192,17 +269,19 @@ function S4Board() {
               
               <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>{post.title}</h3>
               <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px' }}>
-                {post.content}
+                {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
               </p>
               
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: 'var(--tx3)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: `var(--${post.authorColor}-dim)`, color: `var(--${post.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>{post.authorIcon}</div>
-                  <span>{post.author}</span>
+                  <div onClick={(e) => handleProfileClick(e, post.author)} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: `var(--${post.authorColor}-dim)`, color: `var(--${post.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>{post.authorIcon}</div>
+                    <span style={{ fontWeight: '600', color: 'var(--tx)' }}>{post.author}</span>
+                  </div>
                   <span style={{ margin: '0 4px' }}>·</span>
                   <span>👀 {post.views}</span>
-                  <span style={{ cursor: 'pointer' }} onClick={() => showToast('댓글 기능은 추후 업데이트 예정입니다.')}>💬 {post.comments}</span>
-                  <span style={{ cursor: 'pointer', color: post.likes > 0 ? 'var(--yellow)' : 'inherit' }} onClick={() => handleLike(post.id)}>💛 {post.likes}</span>
+                  <span>💬 {post.comments.length}</span>
+                  <span style={{ cursor: 'pointer', color: post.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: post.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, post.id)}>💛 {post.likes}</span>
                 </div>
                 <span>{post.date}</span>
               </div>
@@ -242,40 +321,113 @@ function S4Board() {
             <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>최근 활동</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--blue-dim)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>최</div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--tx)', lineHeight: '1.4' }}><b>최유빈</b>님이 글에 댓글을 남겼습니다.</div>
-                <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>"백엔드 개발자 급구..."</div>
-                <div style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '4px' }}>3시간 전</div>
+            {recentActivities.slice(0, 5).map((act, i) => (
+              <div key={i} style={{ display: 'flex', gap: '10px' }}>
+                <div onClick={(e) => handleProfileClick(e, act.author)} style={{ cursor: 'pointer', width: '28px', height: '28px', borderRadius: '50%', background: `var(--${act.authorColor}-dim)`, color: `var(--${act.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>{act.authorIcon}</div>
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--tx)', lineHeight: '1.4' }}><b onClick={(e) => handleProfileClick(e, act.author)} style={{ cursor: 'pointer' }}>{act.author}</b>님이 {act.action}</div>
+                  {act.desc && <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{act.desc}</div>}
+                  <div style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '4px' }}>{act.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+    {isWriteModalOpen && (
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setIsWriteModalOpen(false)}>
+        <div style={{ width: '500px', background: 'var(--bg)', borderRadius: '24px', border: '1px solid var(--brd)', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }} onClick={e => e.stopPropagation()}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--tx)' }}>새 게시글 작성</h2>
+            <button onClick={() => setIsWriteModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)' }}>카테고리</label>
+            <select className="field" value={writeForm.category} onChange={(e) => setWriteForm({...writeForm, category: e.target.value})} style={{ padding: '12px 16px', borderRadius: '12px', fontSize: '14px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)' }}>
+              {['팀원 구해요', '팀 참여 원해요', '공모전 후기', '질문·고민', '자유게시판'].map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)' }}>제목</label>
+            <input type="text" className="field" placeholder="게시글 제목을 입력하세요" value={writeForm.title} onChange={(e) => setWriteForm({...writeForm, title: e.target.value})} style={{ padding: '12px 16px', borderRadius: '12px', fontSize: '14px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)' }} />
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)' }}>내용</label>
+            <textarea className="field" placeholder="게시글 내용을 자세히 적어주세요" value={writeForm.content} onChange={(e) => setWriteForm({...writeForm, content: e.target.value})} style={{ padding: '16px', borderRadius: '12px', fontSize: '14px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)', height: '150px', resize: 'none' }}></textarea>
+          </div>
+          
+          <button className="btn-prim" onClick={handleWrite} style={{ padding: '16px', borderRadius: '12px', fontSize: '15px', fontWeight: '800', marginTop: '10px' }}>게시글 등록하기</button>
+        </div>
+      </div>
+    )}
+
+    {activePost && (
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setActivePost(null)}>
+        <div style={{ width: '600px', maxHeight: '85vh', background: 'var(--bg)', borderRadius: '24px', border: '1px solid var(--brd)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+          <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--brd)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {activePost.type && <span style={{ fontSize: '11px', background: `var(--${activePost.typeColor}-dim)`, color: `var(--${activePost.typeColor})`, padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>{activePost.type}</span>}
+              <span style={{ fontSize: '11px', background: 'var(--card2)', color: 'var(--tx3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '600' }}>{activePost.category}</span>
+            </div>
+            <button onClick={() => setActivePost(null)} style={{ background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+          </div>
+          
+          <div style={{ padding: '32px', overflowY: 'auto' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--tx)', marginBottom: '24px', lineHeight: '1.4' }}>{activePost.title}</h2>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <div onClick={(e) => handleProfileClick(e, activePost.author)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: `var(--${activePost.authorColor}-dim)`, color: `var(--${activePost.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>{activePost.authorIcon}</div>
+                <div>
+                  <div style={{ fontWeight: '800', color: 'var(--tx)', fontSize: '14px' }}>{activePost.author}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{activePost.date}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--tx3)' }}>
+                <span>👀 {activePost.views}</span>
+                <span style={{ cursor: 'pointer', color: activePost.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: activePost.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, activePost.id)}>💛 {activePost.likes}</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--green-dim)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>박</div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--tx)', lineHeight: '1.4' }}><b>박도현</b>님의 후기가 댓글 24개를 돌파했습니다!</div>
-                <div style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '4px' }}>어제</div>
-              </div>
+            
+            <div style={{ fontSize: '15px', color: 'var(--tx2)', lineHeight: '1.8', whiteSpace: 'pre-wrap', marginBottom: '40px' }}>
+              {activePost.content}
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--orange-dim)', color: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>이</div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--tx)', lineHeight: '1.4' }}><b>이수현</b>님이 새 글을 작성했습니다.</div>
-                <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>"팀 포트폴리오 첨부해요"</div>
-                <div style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '4px' }}>4일 전</div>
+            
+            <div style={{ borderTop: '1px solid var(--brd)', paddingTop: '24px' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>댓글 {activePost.comments.length}개</h4>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
+                {activePost.comments.map(c => (
+                  <div key={c.id} style={{ display: 'flex', gap: '12px' }}>
+                    <div onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', width: '28px', height: '28px', borderRadius: '50%', background: `var(--${c.authorColor}-dim)`, color: `var(--${c.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>{c.authorIcon}</div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>{c.author}</span>
+                        <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{c.date}</span>
+                      </div>
+                      <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>{c.content}</div>
+                    </div>
+                  </div>
+                ))}
+                {activePost.comments.length === 0 && <div style={{ fontSize: '13px', color: 'var(--tx3)', textAlign: 'center', padding: '20px 0' }}>아직 작성된 댓글이 없습니다.</div>}
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--ac)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', flexShrink: 0 }}>공</div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--tx)', lineHeight: '1.4' }}><b>운영팀</b> 알고리즘 업데이트 공지</div>
-                <div style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '4px' }}>2026.04.30</div>
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <textarea value={commentInput} onChange={e => setCommentInput(e.target.value)} onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }} placeholder="댓글을 남겨보세요..." style={{ flex: 1, padding: '12px 16px', borderRadius: '12px', fontSize: '13px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)', height: '60px', resize: 'none' }}></textarea>
+                <button onClick={handleAddComment} className="btn-prim" style={{ padding: '0 20px', borderRadius: '12px', fontSize: '13px', fontWeight: '800', height: '60px' }}>등록</button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    )}
+  </>
   );
 }
 
