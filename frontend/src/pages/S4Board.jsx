@@ -13,6 +13,7 @@ function S4Board() {
         id: 1,
         type: '📢 공지',
         category: '운영',
+        region: '전체',
         typeColor: 'green',
         title: '공매치 매칭 알고리즘 v2.1 업데이트 안내 — 관심사 가중치 개선',
         content: '이번 업데이트로 기술스택 해시태그의 가중치가 기존 대비 1.3배 상향 조정되었습니다. 동일 스택을 보유한 팀원과의 매칭 점수가 더 높아지니 프로필 해시태그를 더 상세하게 작성해 주세요.',
@@ -33,6 +34,7 @@ function S4Board() {
         id: 2,
         type: 'HOT',
         category: '팀원 구해요',
+        region: '부산',
         typeColor: 'red',
         title: '부산 공공데이터 경진대회 백엔드 개발자 급구 — D-3, Python/Django',
         content: '안녕하세요! 기획 PM 2명, 디자이너 1명 확정된 팀인데 백엔드 개발자 한 분이 개인 사정이 생겨서 급하게 구합니다. 공공데이터 API 연동 경험 있으신 분 우대해요.',
@@ -53,6 +55,7 @@ function S4Board() {
         id: 3,
         type: '',
         category: '공모전 후기',
+        region: '온라인',
         title: '2025 행안부 데이터 분석 챌린지 수상 후기 — 공매치로 팀 꾸린 썰',
         content: '지난번 공매치로 팀 꾸려서 최우수 받았습니다! 알고리즘 추천으로 만난 팀원들인데 실제로 가용시간이 딱 맞아서 협업이 너무 편했고, 매너태그 덕에 소통도 잘 맞았습니다. 후기 공유해요.',
         author: '박도현',
@@ -71,6 +74,7 @@ function S4Board() {
         id: 4,
         type: '',
         category: '질문·고민',
+        region: '서울',
         title: '처음 공모전 팀반인데 팀 꾸리는 게 너무 두려워요 — 조언 부탁드려요',
         content: '비전공자인데 데이터 분석에 관심이 생겨서 공모전 참가해보고 싶은데 어떻게 팀을 찾아야 할지 모르겠어요. 공매치 처음 해보는데 매너태그를 어떻게 설정해야 매칭이 잘 될까요?',
         author: '김지현',
@@ -87,6 +91,7 @@ function S4Board() {
         id: 5,
         type: '',
         category: '팀 참여 원해요',
+        region: '온라인',
         title: 'UI/UX 디자이너 팀 참여 가능 — Figma 고급, 홍대 시각디자인 4학년',
         content: '합류합니다. 광고/서비스 UX 개선 공모전 최우수 수상 경력 있고, Figma/Adobe XD 능숙합니다. 부산·온라인 모두 가능하고 주말 오후 가용시간 여유롭습니다.',
         author: '이수현',
@@ -114,8 +119,9 @@ function S4Board() {
   }, [posts]);
 
   const [activeCategory, setActiveCategory] = useState('전체');
+  const [activeRegion, setActiveRegion] = useState('전체');
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
-  const [writeForm, setWriteForm] = useState({ title: '', category: '자유게시판', content: '' });
+  const [writeForm, setWriteForm] = useState({ title: '', category: '자유게시판', region: '전체', content: '' });
   const [editingPostId, setEditingPostId] = useState(null);
   
   const [activePost, setActivePost] = useState(null);
@@ -134,7 +140,18 @@ function S4Board() {
     return acc;
   }, { '전체': 0, '팀원 구해요': 0, '팀 참여 원해요': 0, '공모전 후기': 0, '질문·고민': 0, '자유게시판': 0 });
 
-  const filteredPosts = activeCategory === '전체' ? posts : posts.filter(p => p.category === activeCategory);
+  const regionCounts = posts.reduce((acc, post) => {
+    if (post.region && post.region !== '전체') {
+      acc[post.region] = (acc[post.region] || 0) + 1;
+    }
+    acc['전체'] = (acc['전체'] || 0) + 1;
+    return acc;
+  }, { '전체': 0, '부산': 0, '서울': 0, '온라인': 0 });
+
+  const filteredPosts = posts.filter(p => 
+    (activeCategory === '전체' || p.category === activeCategory) &&
+    (activeRegion === '전체' || (p.region && p.region === activeRegion))
+  );
 
   const handleWrite = () => {
     if (!writeForm.title.trim() || !writeForm.content.trim()) {
@@ -143,14 +160,14 @@ function S4Board() {
     }
     
     if (editingPostId) {
-      const updatedPosts = posts.map(p => p.id === editingPostId ? { ...p, title: writeForm.title, category: writeForm.category, content: writeForm.content } : p);
+      const updatedPosts = posts.map(p => p.id === editingPostId ? { ...p, title: writeForm.title, category: writeForm.category, region: writeForm.region, content: writeForm.content } : p);
       setPosts(updatedPosts);
       if (activePost && activePost.id === editingPostId) {
-        setActivePost({ ...activePost, title: writeForm.title, category: writeForm.category, content: writeForm.content });
+        setActivePost({ ...activePost, title: writeForm.title, category: writeForm.category, region: writeForm.region, content: writeForm.content });
       }
       setIsWriteModalOpen(false);
       setEditingPostId(null);
-      setWriteForm({ title: '', category: '자유게시판', content: '' });
+      setWriteForm({ title: '', category: '자유게시판', region: '전체', content: '' });
       showToast('게시글이 성공적으로 수정되었습니다.');
       return;
     }
@@ -159,6 +176,7 @@ function S4Board() {
       id: Date.now(),
       type: 'NEW',
       category: writeForm.category,
+      region: writeForm.region,
       typeColor: 'ac',
       title: writeForm.title,
       content: writeForm.content,
@@ -175,7 +193,7 @@ function S4Board() {
 
     setPosts([newPost, ...posts]);
     setIsWriteModalOpen(false);
-    setWriteForm({ title: '', category: '자유게시판', content: '' });
+    setWriteForm({ title: '', category: '자유게시판', region: '전체', content: '' });
     showToast('게시글이 성공적으로 등록되었습니다.');
   };
 
@@ -414,6 +432,27 @@ function S4Board() {
             ))}
           </div>
         </div>
+
+        <div style={{ marginTop: '12px' }}>
+          <p className="sb-title" style={{ fontSize: '10px', fontWeight: '700', color: 'var(--tx3)', letterSpacing: '.6px', textTransform: 'uppercase', marginBottom: '10px' }}>지역</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {['전체', '부산', '서울', '온라인'].map(reg => (
+              <div 
+                key={reg}
+                onClick={() => setActiveRegion(reg)}
+                style={{ 
+                  display: 'flex', justifyContent: 'space-between', padding: '8px 12px', borderRadius: '8px', 
+                  background: activeRegion === reg ? 'var(--ac-dim)' : 'transparent', 
+                  color: activeRegion === reg ? 'var(--ac)' : 'var(--tx2)', 
+                  fontWeight: activeRegion === reg ? '800' : '400', 
+                  fontSize: '13px', cursor: 'pointer' 
+                }}
+              >
+                <span>{reg}</span><span>{regionCounts[reg] || 0}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
  
       <div className="board-main" style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
@@ -518,6 +557,16 @@ function S4Board() {
             <select className="field" value={writeForm.category} onChange={(e) => setWriteForm({...writeForm, category: e.target.value})} style={{ padding: '12px 16px', borderRadius: '12px', fontSize: '14px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)' }}>
               {['팀원 구해요', '팀 참여 원해요', '공모전 후기', '질문·고민', '자유게시판'].map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)' }}>지역 (선택)</label>
+            <select className="field" value={writeForm.region} onChange={(e) => setWriteForm({...writeForm, region: e.target.value})} style={{ padding: '12px 16px', borderRadius: '12px', fontSize: '14px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)' }}>
+              <option value="전체">선택 안함 (전체)</option>
+              {['부산', '서울', '온라인'].map(reg => (
+                <option key={reg} value={reg}>{reg}</option>
               ))}
             </select>
           </div>
