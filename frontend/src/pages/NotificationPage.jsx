@@ -1,9 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api';
 
 function NotificationPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('전체');
+  const [realNotifs, setRealNotifs] = useState([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const [receivedRes, sentRes] = await Promise.all([
+          api.get('/api/team-requests/received'),
+          api.get('/api/team-requests/sent')
+        ]);
+        
+        const pendingReceived = receivedRes.data
+          .filter(req => req.status === 'PENDING')
+          .map(req => ({
+            id: `req_${req.id}`,
+            type: '매칭',
+            icon: '⚡',
+            title: `${req.senderName}님이 팀원 요청을 보냈어요`,
+            isNew: true,
+            desc1: req.targetProjectTitle || '알 수 없는 공모전',
+            desc2: req.message,
+            time: new Date(req.createdAt).toLocaleString(),
+            actions: [
+              { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
+            ]
+          }));
+          
+        const acceptedSent = sentRes.data
+          .filter(req => req.status === 'ACCEPTED')
+          .map(req => ({
+            id: `acc_${req.id}`,
+            type: '매칭',
+            icon: '🎉',
+            title: `${req.receiverName}님이 팀원 요청을 수락했어요`,
+            isNew: true,
+            desc1: `${req.targetProjectTitle || '알 수 없는 공모전'} 팀 합류 확정`,
+            desc2: '이제 팀 채팅방을 개설해보세요!',
+            time: new Date(req.createdAt).toLocaleString(),
+            actions: [
+              { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
+            ]
+          }));
+          
+        setRealNotifs([...pendingReceived, ...acceptedSent]);
+      } catch (e) {
+        console.error('알림 로딩 실패', e);
+      }
+    };
+    fetchNotifications();
+  }, [navigate]);
 
   // Hardcoded notifications to match the design from the image
   const dummyNotifs = [
@@ -13,13 +63,11 @@ function NotificationPage() {
       icon: '⚡',
       title: '김지원님이 팀원 요청을 보냈어요',
       isNew: true,
-      desc1: '2026 부산 공공데이터 활용 창업 경진대회 - 매칭 점수 94점',
+      desc1: '2026 핀테크 아이디어 해커톤 - 매칭 점수 94점',
       desc2: '겹치는 시간: 토 14-17시, 수 14-15시',
       time: '10분 전',
       actions: [
-        { label: '수락하기', style: 'btn-prim btn-sm' },
-        { label: '프로필 보기', style: 'btn-ghost btn-sm' },
-        { label: '거절', style: 'btn-ghost btn-sm', borderOnly: true }
+        { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
       ]
     },
     {
@@ -31,7 +79,7 @@ function NotificationPage() {
       desc1: '"안녕하세요! 데이터 분석 파트로 함께하고 싶습니다. 한번 이야기 나눠볼 수 있을까요?"',
       time: '3시간 전',
       actions: [
-        { label: '쪽지 보기', style: 'btn-ghost btn-sm' }
+        { label: '프로필 보기', style: 'btn-ghost btn-sm', onClick: () => navigate('/profile-detail/1') }
       ]
     },
     {
@@ -40,11 +88,11 @@ function NotificationPage() {
       icon: '⏰',
       title: '관심 공고 마감 3일 전이에요',
       isNew: true,
-      desc1: '2026 부산 공공데이터 활용 창업 경진대회 · 2026.04.14 마감',
+      desc1: '2026 핀테크 아이디어 해커톤 · 2026.04.14 마감',
       desc2: '아직 팀원 2명이 부족해요',
       time: '오전 9:00',
       actions: [
-        { label: '팀원 더 찾기', style: 'btn-ghost btn-sm' }
+        { label: '팀원 더 찾기', style: 'btn-ghost btn-sm', onClick: () => navigate('/contest-detail') }
       ]
     },
     {
@@ -53,11 +101,11 @@ function NotificationPage() {
       icon: '⚡',
       title: '이수현님이 팀원 요청을 수락했어요',
       isNew: true,
-      desc1: '2026 부산 공공데이터 활용 창업 경진대회 팀 합류 확정',
+      desc1: '2026 핀테크 아이디어 해커톤 팀 합류 확정',
       desc2: '이제 팀 채팅방을 개설해보세요!',
       time: '오전 8:24',
       actions: [
-        { label: '팀 채팅방 개설', style: 'btn-prim btn-sm' }
+        { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
       ]
     },
     {
@@ -69,7 +117,7 @@ function NotificationPage() {
       desc1: '박도현님: "저도 같은 고민이 있었는데 글에서 위안 얻고 갑니다!"',
       time: '오전 7:30',
       actions: [
-        { label: '글 보러가기', style: 'btn-ghost btn-sm' }
+        { label: '글 보러가기', style: 'btn-ghost btn-sm', onClick: () => navigate('/community') }
       ]
     }
   ];
@@ -106,7 +154,7 @@ function NotificationPage() {
         <div>
           <h3 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>오늘</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {dummyNotifs.map(notif => (
+            {[...realNotifs, ...dummyNotifs].map(notif => (
               <div key={notif.id} style={{
                 background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', position: 'relative',
                 borderLeft: notif.isNew ? '3px solid var(--ac)' : '1px solid var(--brd2)'
@@ -129,7 +177,7 @@ function NotificationPage() {
                     
                     <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
                       {notif.actions.map((act, idx) => (
-                        <button key={idx} className={act.style} style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '8px', ...(act.borderOnly ? { background:'transparent', color:'var(--tx2)' } : {}) }}>
+                        <button key={idx} onClick={act.onClick || undefined} className={act.style} style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '8px', ...(act.borderOnly ? { background:'transparent', color:'var(--tx2)' } : {}) }}>
                           {act.label}
                         </button>
                       ))}
