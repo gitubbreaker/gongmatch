@@ -119,16 +119,17 @@ function ContestDetailPage() {
     try {
       await api.post('/api/team-requests', { 
         receiverId: reqModal.id, 
-        projectId: id,
+        projectId: parseInt(id, 10),
         message: `${reqMessage}\n\n[연락처] ${kakaoLink}` 
       });
       setReqModal({ open: false, id: null, name: '' });
       setReqMessage('');
       showToast(`${reqModal.name}님께 합류 제안을 성공적으로 보냈습니다!`);
     } catch(e) {
+      console.error('팀 합류 제안 실패:', e);
       setReqModal({ open: false, id: null, name: '' });
       setReqMessage('');
-      showToast(`${reqModal.name}님께 합류 제안을 성공적으로 보냈습니다!`);
+      showToast('합류 제안 전송에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
