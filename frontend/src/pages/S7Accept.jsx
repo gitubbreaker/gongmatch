@@ -12,6 +12,7 @@ function S7Accept() {
   const [sentRequests, setSentRequests] = useState([]);
   const [activeChat, setActiveChat] = useState(null); // The selected match to view details
   const [currentUser, setCurrentUser] = useState({ name: '나' });
+  const [recommendations, setRecommendations] = useState([]);
 
   useEffect(() => {
     const userStr = localStorage.getItem('gongmatch_currentUser');
@@ -23,12 +24,14 @@ function S7Accept() {
 
   const fetchRequests = async () => {
     try {
-      const [receivedRes, sentRes] = await Promise.all([
+      const [receivedRes, sentRes, recoRes] = await Promise.all([
         api.get('/api/team-requests/received'),
-        api.get('/api/team-requests/sent')
+        api.get('/api/team-requests/sent'),
+        api.get('/api/students/recommendations')
       ]);
       setReceivedRequests(receivedRes.data);
       setSentRequests(sentRes.data);
+      setRecommendations(recoRes.data || []);
     } catch (error) {
       console.error('요청 목록 로딩 실패:', error);
     } finally {
@@ -188,7 +191,7 @@ function S7Accept() {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--ac)', lineHeight: '1' }}>94</div>
+                  <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--ac)', lineHeight: '1' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.totalScore || 0}</div>
                   <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>매칭 점수</div>
                 </div>
               </div>
@@ -235,25 +238,25 @@ function S7Accept() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
                   <div style={{ width: '60px', fontSize: '13px', color: 'var(--tx2)' }}>가용시간</div>
                   <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '94%', height: '100%', background: 'var(--ac)' }}></div>
+                    <div style={{ width: `${(recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.timeScore || 0) * 2}%`, height: '100%', background: 'var(--ac)' }}></div>
                   </div>
-                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>47<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
+                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.timeScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
                   <div style={{ width: '60px', fontSize: '13px', color: 'var(--tx2)' }}>관심사</div>
                   <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '94%', height: '100%', background: 'var(--ac)' }}></div>
+                    <div style={{ width: `${(recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.tagScore || 0) * 2}%`, height: '100%', background: 'var(--ac)' }}></div>
                   </div>
-                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>47<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
+                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.tagScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ width: '60px', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>총 점수</div>
                   <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '94%', height: '100%', background: 'var(--ac)' }}></div>
+                    <div style={{ width: `${recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.totalScore || 0}%`, height: '100%', background: 'var(--ac)' }}></div>
                   </div>
-                  <div style={{ width: '40px', fontSize: '14px', fontWeight: '900', color: 'var(--ac)', textAlign: 'right' }}>94<span style={{ color: 'var(--tx3)', fontWeight: '400', fontSize: '12px' }}>/100</span></div>
+                  <div style={{ width: '40px', fontSize: '14px', fontWeight: '900', color: 'var(--ac)', textAlign: 'right' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.totalScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400', fontSize: '12px' }}>/100</span></div>
                 </div>
               </div>
 
