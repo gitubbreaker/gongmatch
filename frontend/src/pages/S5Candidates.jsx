@@ -348,9 +348,17 @@ function S5Candidates() {
 
                 {/* 오른쪽: 점수 및 액션 */}
                 <div style={{ borderLeft:'1px solid var(--brd)', paddingLeft:'24px', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', gap:'20px' }}>
-                  <div style={{textAlign:'center'}}>
+                  <div style={{textAlign:'center', width:'100%'}}>
                     <div style={{fontSize:'11px', fontWeight:'800', color:'var(--tx3)', marginBottom:'4px', letterSpacing:'1px'}}>MATCH SCORE</div>
-                    <div style={{fontSize:'48px', fontWeight:'950', color:'var(--ac)', lineHeight:'1'}}>{c.totalScore}</div>
+                    <div style={{fontSize:'48px', fontWeight:'950', color:'var(--ac)', lineHeight:'1', marginBottom:'12px'}}>{c.totalScore}</div>
+                    
+                    <div style={{width:'100%', background:'var(--card2)', height:'8px', borderRadius:'4px', overflow:'hidden', marginBottom:'4px'}}>
+                       <div style={{width:`${c.totalScore}%`, background:'var(--ac)', height:'100%', borderRadius:'4px'}}></div>
+                    </div>
+                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'var(--tx3)'}}>
+                       <span>0</span>
+                       <span>100</span>
+                    </div>
                   </div>
                   <div style={{display:'flex', flexDirection:'column', gap:'8px', width:'100%'}}>
                     <button className="btn-prim" style={{width:'100%', padding:'12px', borderRadius:'10px', fontSize:'14px', fontWeight:'800'}} onClick={() => openModal(c.id, c.name, c.totalScore)}>팀원 요청하기</button>

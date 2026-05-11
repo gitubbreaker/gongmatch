@@ -218,6 +218,24 @@ function S7Accept() {
                          이메일 정보 복사하기
                        </button>
                      )}
+
+                     {/* 팀 구성 현황 패널 추가 */}
+                     <div style={{ marginTop: '24px', background:'var(--bg)', borderRadius:'16px', padding:'20px', border:'1px solid var(--brd2)', textAlign:'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <div style={{ fontSize:'13px', color:'var(--tx)', fontWeight:'800' }}>현재 팀 구성 현황</div>
+                          <div style={{ fontSize:'12px', color:'var(--ac)', fontWeight:'900' }}>2/5명 확정</div>
+                        </div>
+                        <div style={{ width: '100%', background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: '40%', background: 'var(--ac)', height: '100%', borderRadius: '4px' }}></div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>나</div>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>{targetUser.name?.charAt(0) || '?'}</div>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>+</div>
+                        </div>
+                     </div>
                    </>
                  );
                })()}
