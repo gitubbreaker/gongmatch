@@ -62,7 +62,11 @@ function S7Accept() {
   };
 
   // derived lists
-  const currentList  return (
+  const currentList = activeTab === 'RECEIVED' ? receivedRequests : sentRequests;
+
+  if (loading) return <div style={{padding:'100px', textAlign:'center', color:'var(--tx3)'}}>매칭 정보를 불러오는 중...</div>;
+
+  return (
     <section className="screen on" id="s7" style={{ display: 'flex', minHeight: 'calc(100vh - var(--navh) - var(--tabh))', background: 'var(--bg2)' }}>
       {/* 왼쪽 메인 패널 */}
       <div className="s7-left" style={{ width: '340px', background: 'var(--bg)', borderRight: '1px solid var(--brd)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
