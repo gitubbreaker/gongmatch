@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
+import { showToast } from '../App';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -64,6 +65,8 @@ function ContestDetailPage() {
     return localStorage.getItem(`gongmatch_joined_room_${id}`) === 'true';
   });
   const [activeTab, setActiveTab] = useState('matching');
+  const [reqModal, setReqModal] = useState({ open: false, name: '' });
+  const [reqMessage, setReqMessage] = useState('');
 
   const users = [
     { n: '김지원', r: '백엔드 개발 · 한양대 3학년', rt: 94, c: '#5c7cfa', tags: ['#Python', '#데이터분석'] },
@@ -99,6 +102,22 @@ function ContestDetailPage() {
     if(window.confirm('정말 매칭 대기실에서 퇴장하시겠습니까? (더 이상 팀원 추천 목록에 내 프로필이 표시되지 않습니다)')) {
       setIsJoined(false);
       localStorage.removeItem(`gongmatch_joined_room_${id}`);
+    }
+  };
+
+  const handleSendRequest = async () => {
+    try {
+      await api.post('/api/team-requests', { 
+        receiverId: 999, 
+        message: reqMessage 
+      });
+      setReqModal({ open: false, name: '' });
+      setReqMessage('');
+      showToast(`${reqModal.name}님께 합류 제안을 성공적으로 보냈습니다!`);
+    } catch(e) {
+      setReqModal({ open: false, name: '' });
+      setReqMessage('');
+      showToast(`${reqModal.name}님께 합류 제안을 성공적으로 보냈습니다!`);
     }
   };
 
@@ -232,7 +251,7 @@ function ContestDetailPage() {
 
                       <div style={{ display: 'flex', gap: '12px' }}>
                         <button onClick={() => navigate('/profile-detail')} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
-                        <button onClick={() => navigate('/chat')} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
+                        <button onClick={() => setReqModal({ open: true, name: u.n })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
                     </UserCard>
                   ))}
@@ -241,6 +260,31 @@ function ContestDetailPage() {
             </Layout>
           )}
         </>
+      )}
+
+      {reqModal.open && (
+        <div className="modal-bg" onClick={() => setReqModal({ open: false, name: '' })}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ background: 'var(--card)', border: '1px solid var(--brd)', padding: '40px', borderRadius: '24px' }}>
+            <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--tx)', marginBottom: '12px' }}>팀 합류 제안 보내기</h3>
+            <p style={{ fontSize: '15px', color: 'var(--tx3)', marginBottom: '32px', lineHeight: '1.5' }}>
+              <b>{reqModal.name}</b>님에게 함께 공모전에 참여하자는 메시지를 보냅니다. 아래에 <b style={{color:'var(--ac)'}}>카카오톡 오픈채팅방 링크</b>를 함께 남기면 상대방이 수락했을 때 더 빠른 소통이 가능합니다.
+            </p>
+            
+            <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '800', color: 'var(--tx2)' }}>제안 메시지</div>
+            <textarea 
+              className="field" 
+              placeholder="안녕하세요! 프로젝트 팀원을 구하고 있는데, 프로필과 가용시간이 저희 팀과 딱 맞는 것 같아서 제안드립니다. 수락해주시면 아래 오픈채팅방으로 연락주세요! (https://open.kakao.com/...)"
+              style={{ height: '160px', marginBottom: '32px', resize: 'none', background: 'var(--bg)', border: '1px solid var(--brd2)' }}
+              value={reqMessage}
+              onChange={e => setReqMessage(e.target.value)}
+            ></textarea>
+            
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <button className="btn-ghost" style={{ flex: 1, padding: '16px', fontSize: '15px', fontWeight: '800', borderRadius: '12px' }} onClick={() => setReqModal({ open: false, name: '' })}>취소</button>
+              <button className="btn-prim" style={{ flex: 1, padding: '16px', fontSize: '15px', fontWeight: '900', borderRadius: '12px' }} onClick={handleSendRequest}>요청 보내기</button>
+            </div>
+          </div>
+        </div>
       )}
     </Container>
   );

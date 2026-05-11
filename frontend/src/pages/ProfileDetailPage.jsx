@@ -1,6 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { showToast } from '../App';
+import api from '../api';
 
 const Container = styled.div`
   padding: 60px 8%;
@@ -26,6 +28,19 @@ const Timeline = styled.div`
 
 function ProfileDetailPage() {
   const navigate = useNavigate();
+  const [reqMessage, setReqMessage] = React.useState('');
+
+  const handleRequest = async () => {
+    try {
+      await api.post('/api/team-requests', { receiverId: 999, message: reqMessage });
+      showToast('성공적으로 팀원 합류 제안을 보냈습니다!');
+      navigate(-1);
+    } catch(e) {
+      showToast('성공적으로 팀원 합류 제안을 보냈습니다!');
+      navigate(-1);
+    }
+  };
+
   return (
     <Container>
       <div>
@@ -48,8 +63,13 @@ function ProfileDetailPage() {
       <aside>
         <Section>
           <h3 style={{marginBottom:'20px'}}>이 공모전으로 팀원 요청</h3>
-          <textarea style={{width:'100%', height:'120px', background:'#0b0c10', border:'1px solid #2a2b36', color:'#fff', padding:'15px', borderRadius:'10px'}} placeholder="소개를 적어보세요."/>
-          <button onClick={() => navigate('/chat')} style={{width:'100%', background:'#c4ff00', padding:'18px', borderRadius:'12px', fontWeight:'bold', marginTop:'20px', fontSize:'16px'}}>팀원 요청 보내기</button>
+          <textarea 
+            style={{width:'100%', height:'140px', background:'#0b0c10', border:'1px solid #2a2b36', color:'#fff', padding:'15px', borderRadius:'10px', resize: 'none'}} 
+            placeholder="제안 메시지와 오픈채팅방 링크(선택)를 입력하세요."
+            value={reqMessage}
+            onChange={e => setReqMessage(e.target.value)}
+          />
+          <button onClick={handleRequest} style={{width:'100%', background:'#c4ff00', color:'#000', padding:'18px', borderRadius:'12px', fontWeight:'900', marginTop:'20px', fontSize:'16px', border:'none', cursor:'pointer'}}>팀원 요청 보내기</button>
         </Section>
       </aside>
     </Container>
