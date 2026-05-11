@@ -15,7 +15,7 @@ import SignupPage from './pages/SignupPage';
 import S8Summary from './pages/S8Summary';
 import S9Write from './pages/S9Write';
 import ProjectListPage from './pages/ProjectListPage';
-import ProjectDetail from './pages/ProjectDetail';
+import ContestDetailPage from './pages/ContestDetailPage';
 import PrivateRoute from './components/PrivateRoute';
 import NoticePage from './pages/NoticePage';
 import NotificationPage from './pages/NotificationPage';
@@ -140,7 +140,7 @@ function App() {
           <Route path="/summary" element={<S8Summary />} />
           <Route path="/write" element={<S9Write />} />
           <Route path="/announcements" element={<ProjectListPage />} />
-          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects/:id" element={<ContestDetailPage />} />
           <Route path="/notice" element={<NoticePage />} />
           <Route path="/notifications" element={<NotificationPage />} />
 
