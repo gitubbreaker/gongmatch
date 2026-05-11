@@ -13,8 +13,12 @@ public class AiSummaryController {
     private final AiSummaryService aiSummaryService;
 
     @PostMapping("/summarize")
-    public ResponseEntity<AiSummaryResponseDto> summarize(@RequestBody AiSummaryRequestDto request) {
-        AiSummaryResponseDto response = aiSummaryService.summarizeChat(request.getChatText());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> summarize(@RequestBody AiSummaryRequestDto request) {
+        try {
+            AiSummaryResponseDto response = aiSummaryService.summarizeChat(request.getChatText());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 }
