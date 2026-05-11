@@ -38,18 +38,27 @@ public class AiSummaryService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(openAiApiKey);
 
-        String today = java.time.LocalDate.now().toString();
+        java.time.LocalDate todayDate = java.time.LocalDate.now();
+        String today = todayDate.toString();
+        // 이번주 달력을 직접 계산해서 GPT에게 알려줌 (달력 계산 오류 방지)
+        java.time.LocalDate monday = todayDate.with(java.time.DayOfWeek.MONDAY);
+        String weekCalendar = String.format(
+            "월=%s, 화=%s, 수=%s, 목=%s, 금=%s, 토=%s, 일=%s",
+            monday, monday.plusDays(1), monday.plusDays(2), monday.plusDays(3),
+            monday.plusDays(4), monday.plusDays(5), monday.plusDays(6));
 
         String prompt = "당신은 팀 프로젝트 카카오톡 대화를 분석하는 AI 비서입니다.\n" +
-                "오늘(요약 시점) 날짜: " + today + "\n\n" +
+                "오늘(요약 시점): " + today + " (" + todayDate.getDayOfWeek() + ")\n" +
+                "이번주 달력: " + weekCalendar + "\n\n" +
                 "아래 카카오톡 대화를 분석하여 3가지를 추출해주세요.\n" +
                 "1. schedule (확정된 다음 회의 일정)\n" +
                 "2. location (확정된 장소)\n" +
                 "3. roles (팀원별 역할과 할 일)\n\n" +
                 "**날짜 추론 규칙 (매우 중요):**\n" +
-                "- 대화 내에 날짜 정보(예: '2026년 5월 10일', '5/10' 등)가 있으면, 그 날짜를 대화 시점으로 간주하고 '이번주 토요일' 등의 상대 표현을 그 기준으로 계산하세요.\n" +
-                "- 대화 내에 날짜 정보가 없으면, 오늘 날짜(" + today + ")를 기준으로 상대 표현을 계산하세요.\n" +
-                "- 구체적인 날짜를 특정할 수 없으면 대화에 나온 표현을 그대로 사용하세요 (예: '이번주 토요일 오후 2시').\n" +
+                "- 대화 내에 '--- 2026년 X월 X일 ---' 같은 날짜 구분선이 있으면, 그 날짜가 대화 시점입니다.\n" +
+                "- '이번주 수요일'처럼 상대 표현이 나오면, 대화 시점 날짜 기준으로 해당 요일의 실제 날짜를 위의 달력에서 찾아 정확히 계산하세요.\n" +
+                "- 날짜와 요일이 불일치하면 안 됩니다. 반드시 위 달력을 참고하세요.\n" +
+                "- 구체적 날짜를 특정할 수 없으면 대화 원문 표현을 그대로 쓰세요.\n" +
                 "- 대화에 언급되지 않은 내용은 절대 지어내지 마세요.\n\n" +
                 "반드시 아래 JSON 형식으로만 응답하세요. 마크다운 코드블록은 절대 포함하지 마세요.\n" +
                 "{\n" +
