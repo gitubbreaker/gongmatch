@@ -38,23 +38,29 @@ public class AiSummaryService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(openAiApiKey);
 
-        java.time.LocalDate todayDate = java.time.LocalDate.now();
+        // 한국 시간(KST) 기준으로 날짜 계산
+        java.time.LocalDate todayDate = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
         String today = todayDate.toString();
-        // 이번주 달력을 직접 계산해서 GPT에게 알려줌 (달력 계산 오류 방지)
-        java.time.LocalDate monday = todayDate.with(java.time.DayOfWeek.MONDAY);
-        String weekCalendar = String.format(
-            "월=%s, 화=%s, 수=%s, 목=%s, 금=%s, 토=%s, 일=%s",
-            monday, monday.plusDays(1), monday.plusDays(2), monday.plusDays(3),
-            monday.plusDays(4), monday.plusDays(5), monday.plusDays(6));
+        
+        // 이번 달 전체 달력 생성 (GPT 날짜 계산 오류 방지)
+        java.time.LocalDate firstDay = todayDate.withDayOfMonth(1);
+        StringBuilder calendarBuilder = new StringBuilder();
+        String[] dayNames = {"월", "화", "수", "목", "금", "토", "일"};
+        for (int d = 0; d < todayDate.lengthOfMonth(); d++) {
+            java.time.LocalDate date = firstDay.plusDays(d);
+            int dayIdx = date.getDayOfWeek().getValue() - 1; // 0=월, 6=일
+            if (d > 0) calendarBuilder.append(", ");
+            calendarBuilder.append(date.getDayOfMonth() + "일(" + dayNames[dayIdx] + ")=" + date);
+        }
 
         String prompt = "당신은 팀 프로젝트 카카오톡 대화를 분석하는 AI 비서입니다.\n" +
                 "오늘(요약 시점): " + today + " (" + todayDate.getDayOfWeek() + ")\n" +
-                "이번주 달력: " + weekCalendar + "\n\n" +
+                todayDate.getYear() + "년 " + todayDate.getMonthValue() + "월 달력: " + calendarBuilder.toString() + "\n\n" +
                 "아래 카카오톡 대화에서 논의된 **모든 주제/안건**을 찾아 각각에 대해 일정, 장소, 역할을 추출하세요.\n" +
                 "하나의 대화에서 여러 건의 안건(발표 준비, 보고서 작성, 개발 작업 등)이 동시에 논의될 수 있습니다.\n\n" +
                 "**날짜 추론 규칙 (매우 중요):**\n" +
                 "- 대화 내 '--- 2026년 X월 X일 ---' 날짜 구분선이 대화 시점입니다.\n" +
-                "- 상대 표현('이번주 수요일' 등)은 대화 시점 기준으로 위 달력에서 찾아 정확히 계산하세요.\n" +
+                "- 상대 표현('이번주 수요일' 등)은 대화 시점 날짜를 기준으로 위 달력에서 정확한 날짜를 찾으세요.\n" +
                 "- 날짜와 요일이 불일치하면 안 됩니다.\n" +
                 "- 특정할 수 없으면 대화 원문 표현 그대로 쓰세요.\n" +
                 "- 대화에 없는 내용은 절대 지어내지 마세요.\n" +
