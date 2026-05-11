@@ -134,7 +134,7 @@ function App() {
         <Routes>
           {/* 공개 라우트 */}
           <Route path="/" element={<S1Home />} />
-          <Route path="/board" element={<S4Board />} />
+          <Route path="/community" element={<S4Board />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/summary" element={<S8Summary />} />

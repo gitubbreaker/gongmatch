@@ -92,10 +92,9 @@ function Header() {
           <span className="g">GONG</span>MATCH
         </div>
         <div className="navlinks">
-          <a onClick={() => navigate('/board')}>프로젝트 찾기</a>
-          <a onClick={() => navigate('/candidates')}>팀원 찾기</a>
-          <a onClick={() => navigate('/announcements')} className={location.pathname === '/announcements' ? 'on' : ''}>공모전 & 해커톤</a>
-          <a onClick={() => navigate('/board')}>커뮤니티</a>
+          <a onClick={() => navigate('/')} className={location.pathname === '/' ? 'on' : ''}>프로젝트 찾기</a>
+          <a onClick={() => navigate('/candidates')} className={location.pathname === '/candidates' ? 'on' : ''}>팀원 찾기</a>
+          <a onClick={() => navigate('/community')} className={location.pathname === '/community' ? 'on' : ''}>커뮤니티</a>
           <a onClick={() => navigate('/notice')} className={location.pathname === '/notice' ? 'on' : ''}>공지사항</a>
         </div>
       </div>

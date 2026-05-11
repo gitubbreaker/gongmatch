@@ -8,6 +8,7 @@ function S1Home() {
   const [searchValue, setSearchValue] = useState('');
   const [selectedChip, setSelectedChip] = useState('#공모전');
   const [projects, setProjects] = useState([]);
+  const [myRequests, setMyRequests] = useState([]);
   const [bestMatch, setBestMatch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -25,13 +26,25 @@ function S1Home() {
   const fetchHomeData = async (hasToken) => {
     try {
       const projRes = await api.get('/api/projects');
-      setProjects(projRes.data.slice(0, 3));
+      setProjects(projRes.data);
 
       if (hasToken) {
         const recoRes = await api.get('/api/students/recommendations');
         if (recoRes.data && recoRes.data.length > 0) {
           setBestMatch(recoRes.data[0]);
         }
+        
+        const [recvRes, sentRes] = await Promise.all([
+          api.get('/api/team-requests/received'),
+          api.get('/api/team-requests/sent')
+        ]);
+        
+        const combined = [
+          ...recvRes.data.map(r => ({...r, type: 'received'})), 
+          ...sentRes.data.map(r => ({...r, type: 'sent'}))
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        setMyRequests(combined.slice(0, 3));
       }
     } catch (error) {
       console.error('홈 데이터 로딩 실패:', error);
@@ -54,6 +67,21 @@ function S1Home() {
     setSelectedChip(tag);
     setSearchValue(tag);
   };
+
+  const calculateDaysLeft = (endDateStr) => {
+    if (!endDateStr) return '상시';
+    const end = new Date(endDateStr);
+    const now = new Date();
+    const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+    return diff >= 0 ? `D-${diff}` : '마감';
+  };
+
+  const upcomingProjects = [...projects]
+    .filter(p => p.endDate && new Date(p.endDate) >= new Date())
+    .sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
+    .slice(0, 3);
+    
+  const latestProject = projects.length > 0 ? [...projects].sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] : null;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
@@ -115,27 +143,25 @@ function S1Home() {
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>김지원</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>2026 부산 공공데이터 활용 창업 경진대회</div>
+              {myRequests.length > 0 ? myRequests.map(req => {
+                const otherPerson = req.type === 'sent' ? req.receiver : req.sender;
+                return (
+                  <div key={req.requestId} style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>{otherPerson?.name || '익명'}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>매칭을 기다리고 있습니다</div>
+                    </div>
+                    {req.status === 'ACCEPTED' && <span style={{ fontSize: '11px', background: 'var(--green-dim)', color: 'var(--green)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>수락완료</span>}
+                    {req.status === 'PENDING' && req.type === 'sent' && <span style={{ fontSize: '11px', background: 'var(--card2)', border: '1px solid var(--purple)', color: 'var(--purple)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>응답 대기 중</span>}
+                    {req.status === 'PENDING' && req.type === 'received' && <span style={{ fontSize: '11px', background: 'var(--orange-dim)', color: 'var(--orange)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>수신된 요청</span>}
+                    {req.status === 'REJECTED' && <span style={{ fontSize: '11px', background: 'var(--red-dim)', color: 'var(--red)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>거절됨</span>}
+                  </div>
+                )
+              }) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--tx3)', fontSize: '13px', background: 'var(--card)', borderRadius: '12px', border: '1px solid var(--brd)' }}>
+                  아직 진행 중인 매칭이 없습니다.
                 </div>
-                <span style={{ fontSize: '11px', background: 'var(--green-dim)', color: 'var(--green)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>수락완료</span>
-              </div>
-              <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>이수현</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>2026 부산 공공데이터 활용 창업 경진대회</div>
-                </div>
-                <span style={{ fontSize: '11px', background: 'var(--card2)', border: '1px solid var(--purple)', color: 'var(--purple)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>응답 대기 중</span>
-              </div>
-              <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>박도현</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>행안부 데이터 분석 챌린지</div>
-                </div>
-                <span style={{ fontSize: '11px', background: 'var(--orange-dim)', color: 'var(--orange)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>내 팀원 요청</span>
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -150,54 +176,52 @@ function S1Home() {
             <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>마감 임박 공고</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '13px', color: 'var(--tx2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>부산 공공데이터 활용 창업 경진대회</div>
-              <span style={{ fontSize: '11px', background: 'var(--red-dim)', color: 'var(--red)', padding: '4px 8px', borderRadius: '6px', fontWeight: '800', flexShrink: 0 }}>D-3</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '13px', color: 'var(--tx2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>청년 창업 아이디어 해커톤</div>
-              <span style={{ fontSize: '11px', background: 'var(--orange-dim)', color: 'var(--orange)', padding: '4px 8px', borderRadius: '6px', fontWeight: '800', flexShrink: 0 }}>D-7</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '13px', color: 'var(--tx2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>행안부 데이터 분석 챌린지</div>
-              <span style={{ fontSize: '11px', background: 'var(--green-dim)', color: 'var(--green)', padding: '4px 8px', borderRadius: '6px', fontWeight: '800', flexShrink: 0 }}>D-15</span>
-            </div>
+            {upcomingProjects.length > 0 ? upcomingProjects.map(p => (
+              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate(`/projects/${p.id}`)}>
+                <div style={{ fontSize: '13px', color: 'var(--tx2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: '10px' }}>{p.title}</div>
+                <span style={{ fontSize: '11px', background: 'var(--red-dim)', color: 'var(--red)', padding: '4px 8px', borderRadius: '6px', fontWeight: '800', flexShrink: 0 }}>{calculateDaysLeft(p.endDate)}</span>
+              </div>
+            )) : (
+              <div style={{ fontSize: '13px', color: 'var(--tx3)', textAlign: 'center', padding: '10px 0' }}>마감 임박 공고가 없습니다.</div>
+            )}
           </div>
         </div>
 
         {/* 🏆 최신 공고 */}
-        <div style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', borderLeft: '4px solid var(--ac)', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '14px' }}>🏆</span>
-            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>최신 공고</span>
-            <span style={{ marginLeft: 'auto', background: 'var(--red)', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '2px 6px', borderRadius: '4px' }}>HOT</span>
-            <span style={{ background: 'var(--brd)', color: 'var(--tx3)', fontSize: '10px', fontWeight: '900', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}>D-3</span>
-          </div>
-          <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx1)', marginBottom: '8px', lineHeight: '1.4' }}>2026 부산 공공데이터 활용 창업 경진대회</h3>
-          <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '12px' }}>행정안전부 주최 · 총상금 5,000만원 · 3~5인</p>
-          
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--ac-brd)' }}>#데이터분석</span>
-            <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--ac-brd)' }}>#개발</span>
-            <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--ac-brd)' }}>#창업</span>
-          </div>
+        {latestProject && (
+          <div style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', borderLeft: '4px solid var(--ac)', position: 'relative', cursor: 'pointer' }} onClick={() => navigate(`/projects/${latestProject.id}`)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px' }}>🏆</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>최신 공고</span>
+              <span style={{ marginLeft: 'auto', background: 'var(--red)', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '2px 6px', borderRadius: '4px' }}>HOT</span>
+              <span style={{ background: 'var(--brd)', color: 'var(--tx3)', fontSize: '10px', fontWeight: '900', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}>{calculateDaysLeft(latestProject.endDate)}</span>
+            </div>
+            <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx1)', marginBottom: '8px', lineHeight: '1.4' }}>{latestProject.title}</h3>
+            <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '12px' }}>{latestProject.host}</p>
+            
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+              <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: 'var(--ac)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--ac-brd)' }}>#{latestProject.category || '공모전'}</span>
+            </div>
 
-          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '16px', marginBottom: '16px', border: '1px solid var(--brd2)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '12px', fontWeight: '700' }}>알고리즘 추천 팀원</div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900', border: '2px solid var(--ac-brd)' }}>김</div>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx1)' }}>김지원</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>백엔드 · Python</div>
+            {bestMatch && (
+              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '16px', marginBottom: '16px', border: '1px solid var(--brd2)' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>
+                <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '12px', fontWeight: '700' }}>알고리즘 추천 팀원</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900', border: '2px solid var(--ac-brd)' }}>{bestMatch.name.charAt(0)}</div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx1)' }}>{bestMatch.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>{bestMatch.major}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--ac)' }}>{Math.floor(bestMatch.matchScore)}점</div>
                 </div>
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--ac)' }}>94점</div>
-            </div>
+            )}
+            
+            <button className="btn-prim" style={{ width: '100%', padding: '14px', fontSize: '14px', fontWeight: '800', borderRadius: '10px' }} onClick={(e) => { e.stopPropagation(); navigate(`/projects/${latestProject.id}`); }}>⚡ 이 공고 상세보기</button>
           </div>
-          
-          <button className="btn-prim" style={{ width: '100%', padding: '14px', fontSize: '14px', fontWeight: '800', borderRadius: '10px' }} onClick={() => navigate('/candidates')}>⚡ 이 공고로 매칭 시작</button>
-        </div>
+        )}
 
         <div className="s1-minipill" style={{ background: 'rgba(200,242,38,.06)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
