@@ -24,8 +24,8 @@ function NotificationPage() {
             icon: '⚡',
             title: `${req.sender?.name || '익명'}님이 팀원 요청을 보냈어요`,
             isNew: true,
-            desc1: req.targetProjectTitle || '알 수 없는 공모전',
-            desc2: req.message,
+            desc1: req.targetProjectTitle || '프로젝트 무관 (자유 매칭)',
+            desc2: req.message ? `"${req.message}"` : '매칭 점수 기반 팀원 요청입니다.',
             time: new Date(req.createdAt).toLocaleString(),
             actions: [
               { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
@@ -40,7 +40,7 @@ function NotificationPage() {
             icon: '🎉',
             title: `${req.receiver?.name || '익명'}님이 팀원 요청을 수락했어요`,
             isNew: true,
-            desc1: `${req.targetProjectTitle || '알 수 없는 공모전'} 팀 합류 확정`,
+            desc1: req.targetProjectTitle ? `${req.targetProjectTitle} 팀 합류 확정` : '자유 매칭 팀 합류 확정',
             desc2: '이제 팀 채팅방을 개설해보세요!',
             time: new Date(req.createdAt).toLocaleString(),
             actions: [
