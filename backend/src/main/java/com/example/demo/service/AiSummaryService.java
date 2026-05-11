@@ -38,16 +38,22 @@ public class AiSummaryService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(openAiApiKey);
 
-        String prompt = "다음은 팀 프로젝트 회의를 위한 카카오톡 대화 내용입니다. 이 대화 내용을 분석하여 다음 3가지를 추출해주세요.\n" +
-                "1. 확정된 다음 회의 일정 (schedule)\n" +
+        String today = java.time.LocalDate.now().toString(); // 예: 2026-05-12
+
+        String prompt = "오늘 날짜는 " + today + "입니다.\n" +
+                "다음은 팀 프로젝트 회의를 위한 카카오톡 대화 내용입니다. 이 대화 내용을 분석하여 다음 3가지를 추출해주세요.\n" +
+                "1. 확정된 다음 회의 일정 (schedule) - 오늘 날짜를 기준으로 '이번주 토요일' 등의 상대적 표현을 실제 날짜로 변환해주세요.\n" +
                 "2. 확정된 장소 (location)\n" +
                 "3. 팀원별로 분담된 역할과 해야 할 일 (roles: name, role, task)\n\n" +
-                "반드시 아래 JSON 형식으로만 응답해주세요. 절대 마크다운 코드블록(```)을 포함하지 마세요. 순수 JSON만 출력하세요.\n" +
+                "주의사항:\n" +
+                "- 대화에 언급되지 않은 내용은 절대 지어내지 마세요.\n" +
+                "- 일정이 명확하지 않으면 대화에 나온 표현을 그대로 사용하세요.\n" +
+                "- 반드시 아래 JSON 형식으로만 응답하세요. 마크다운 코드블록은 절대 포함하지 마세요.\n" +
                 "{\n" +
-                "  \"schedule\": \"2026년 4월 11일 (토) 오후 2:00\",\n" +
-                "  \"location\": \"강남역 스터디룸\",\n" +
+                "  \"schedule\": \"실제 대화에서 추출한 일정\",\n" +
+                "  \"location\": \"실제 대화에서 추출한 장소\",\n" +
                 "  \"roles\": [\n" +
-                "    { \"name\": \"김지원\", \"role\": \"백엔드 개발\", \"task\": \"DB 설계\" }\n" +
+                "    { \"name\": \"실제 이름\", \"role\": \"역할\", \"task\": \"할 일\" }\n" +
                 "  ]\n" +
                 "}\n\n" +
                 "대화 내용:\n" + chatText;
