@@ -118,6 +118,46 @@ function S4Board() {
     localStorage.setItem('gongmatch_posts', JSON.stringify(posts));
   }, [posts]);
 
+  // 백엔드에서 등록된 새 글 가져오기
+  useEffect(() => {
+    import('../api').then(module => {
+      const api = module.default;
+      api.get('/api/posts').then(res => {
+        if (res.data && res.data.length > 0) {
+          // 백엔드 글을 프론트엔드 형식으로 변환
+          const backendPosts = res.data.map(bp => ({
+            id: bp.id + 100000, // 로컬 ID와 겹치지 않게
+            type: 'NEW',
+            category: bp.category || '팀원 구해요',
+            region: bp.region || '전체',
+            typeColor: 'ac',
+            title: bp.title,
+            content: bp.content,
+            author: bp.author || '익명',
+            authorColor: 'purple',
+            authorIcon: (bp.author || '익').charAt(0),
+            date: bp.createdAt ? bp.createdAt.substring(0, 10).replace(/-/g, '.') : '방금 전',
+            views: bp.views || 0,
+            likes: bp.likes || 0,
+            isLiked: false,
+            comments: [],
+            isHot: false
+          }));
+
+          setPosts(prevPosts => {
+            // 이미 추가된 백엔드 글 중복 방지 로직 (간단히)
+            const existingBackendIds = prevPosts.map(p => p.id).filter(id => id > 100000);
+            const newBackendPosts = backendPosts.filter(bp => !existingBackendIds.includes(bp.id));
+            if (newBackendPosts.length > 0) {
+              return [...newBackendPosts, ...prevPosts];
+            }
+            return prevPosts;
+          });
+        }
+      }).catch(e => console.error('게시글 불러오기 실패', e));
+    });
+  }, []);
+
   const [activeCategory, setActiveCategory] = useState('전체');
   const [activeRegion, setActiveRegion] = useState('전체');
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
