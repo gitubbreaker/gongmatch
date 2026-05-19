@@ -12,7 +12,8 @@ import S6Profile from './pages/S6Profile';
 import S7Accept from './pages/S7Accept';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import S8Review from './pages/S8Review';
+import S8Summary from './pages/S8Summary';
+import S9Review from './pages/S9Review';
 import S9Write from './pages/S9Write';
 import ProjectListPage from './pages/ProjectListPage';
 import ContestDetailPage from './pages/ContestDetailPage';
@@ -138,6 +139,7 @@ function App() {
           <Route path="/community" element={<S4Board />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/summary" element={<S8Summary />} />
           <Route path="/write" element={<S9Write />} />
           <Route path="/announcements" element={<ProjectListPage />} />
           <Route path="/projects/:id" element={<ContestDetailPage />} />
@@ -151,7 +153,7 @@ function App() {
           <Route path="/profile" element={<PrivateRoute><S6Profile /></PrivateRoute>} />
           <Route path="/profile-detail" element={<PrivateRoute><ProfileDetailPage /></PrivateRoute>} />
           <Route path="/accept" element={<PrivateRoute><S7Accept /></PrivateRoute>} />
-          <Route path="/review" element={<PrivateRoute><S8Review /></PrivateRoute>} />
+          <Route path="/review" element={<PrivateRoute><S9Review /></PrivateRoute>} />
         </Routes>
       </div>
       <div className={`toast ${toastShow ? 'show' : ''}`}>{toastMsg}</div>

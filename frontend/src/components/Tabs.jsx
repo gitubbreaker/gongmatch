@@ -19,7 +19,8 @@ function Tabs() {
       <button className={getClassName('/candidates')} onClick={() => navigate('/candidates')}>S5 · 팀원 추천 목록</button>
       <button className={getClassName('/profile')} onClick={() => navigate('/profile')}>S6 · 프로필 상세</button>
       <button className={getClassName('/accept')} onClick={() => navigate('/accept')}>S7 · 매칭 수락</button>
-      <button className={getClassName('/review')} onClick={() => navigate('/review')}>S8 · 매칭 후기</button>
+      <button className={getClassName('/summary')} onClick={() => navigate('/summary')}>S8 · AI 회의록 요약</button>
+      <button className={getClassName('/review')} onClick={() => navigate('/review')}>S9 · 매칭 후기</button>
     </div>
   );
 }

@@ -8,20 +8,40 @@ const LoginContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - var(--navh) - var(--tabh));
   padding: 50px 20px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(200,242,38,0.06) 0%, transparent 60%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+  }
 `;
 
 const LoginCard = styled.div`
   width: 100%;
-  max-width: 420px;
-  background: #2b2d31;
-  border: 1px solid #3f4147;
-  border-radius: 16px;
-  padding: 50px 40px;
+  max-width: 400px;
+  background: rgba(20, 20, 46, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--brd3);
+  border-radius: 24px;
+  padding: 48px 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.5);
 `;
 
 const Links = styled.div`
@@ -30,16 +50,16 @@ const Links = styled.div`
   gap: 16px;
   margin-top: 24px;
   font-size: 13px;
-  color: #9da0a4;
+  color: var(--tx3);
   span {
     cursor: pointer;
     transition: color 0.2s;
-    &:hover { color: #ffffff; }
+    &:hover { color: var(--tx); }
   }
   .divider {
     width: 1px;
     height: 12px;
-    background: #3f4147;
+    background: var(--brd3);
   }
 `;
 
@@ -103,17 +123,17 @@ function LoginPage() {
   return (
       <LoginContainer>
         <LoginCard>
-          <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', marginBottom: '8px', cursor: 'pointer', color: 'white' }} onClick={() => navigate('/')}>
-            <span style={{ color: '#d4ff2a' }}>GONG</span>MATCH
+          <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', marginBottom: '8px', cursor: 'pointer', color: 'var(--tx)' }} onClick={() => navigate('/')}>
+            <span style={{ color: 'var(--ac)' }}>GONG</span>MATCH
           </div>
-          <p style={{ fontSize: '14px', color: '#9da0a4', marginBottom: '40px' }}>프로젝트 스터디 팀빌딩의 시작</p>
+          <p style={{ fontSize: '14px', color: 'var(--tx3)', marginBottom: '40px' }}>프로젝트 스터디 팀빌딩의 시작</p>
 
           <form style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }} onSubmit={handleLogin}>
-            <input className="field" type="text" placeholder="아이디 (이메일)" value={id} onChange={(e) => setId(e.target.value)} style={{ padding: '16px', fontSize: '14px' }} />
-            <input className="field" type="password" placeholder="비밀번호" value={pw} onChange={(e) => setPw(e.target.value)} style={{ padding: '16px', fontSize: '14px' }} />
+            <input className="field" type="text" placeholder="아이디 (이메일)" value={id} onChange={(e) => setId(e.target.value)} style={{ padding: '16px', fontSize: '14px', background: 'rgba(0,0,0,0.2)' }} />
+            <input className="field" type="password" placeholder="비밀번호" value={pw} onChange={(e) => setPw(e.target.value)} style={{ padding: '16px', fontSize: '14px', background: 'rgba(0,0,0,0.2)' }} />
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#9da0a4', cursor: 'pointer', marginTop: '4px', marginBottom: '12px' }}>
-              <input type="checkbox" style={{ accentColor: '#d4ff2a', width: '16px', height: '16px', cursor: 'pointer' }} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer', marginTop: '4px', marginBottom: '24px' }}>
+              <input type="checkbox" style={{ accentColor: 'var(--ac)', width: '16px', height: '16px', cursor: 'pointer' }} />
               로그인 상태 유지
             </label>
 
@@ -135,7 +155,7 @@ function LoginPage() {
                 <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px' }}>
                   {modalType === 'id' ? '아이디 찾기' : '비밀번호 찾기'}
                 </h3>
-                <p style={{ fontSize: '13px', color: '#9da0a4', marginBottom: '10px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--tx2)', marginBottom: '10px' }}>
                   {modalType === 'id' ? '가입하신 이름을 입력해주십시오.' : '가입하신 아이디(이메일)를 입력해주십시오.'}
                 </p>
                 <input
