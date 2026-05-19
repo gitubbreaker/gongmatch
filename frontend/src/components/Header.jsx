@@ -108,6 +108,15 @@ function Header() {
       <div className="nav-r">
         <div className="livepill">LIVE 업데이트 중</div>
 
+        <button 
+          className="btn-ghost" 
+          onClick={() => window.dispatchEvent(new CustomEvent('toggleTheme'))}
+          style={{ marginLeft: '10px', padding: '5px 10px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          data-tooltip-id="main-tooltip" data-tooltip-content="화면 테마 변경 (다크/라이트)"
+        >
+          🌓
+        </button>
+
         {/* 로그인하지 않았을 때: 로그인 버튼 표시 */}
         {!currentUser ? (
           <button className="btn-ghost" onClick={() => navigate('/login')} style={{ marginLeft: '10px', padding: '7px 16px' }}>
@@ -117,7 +126,7 @@ function Header() {
           /* 로그인했을 때: 알림 및 프로필 아이콘 표시 */
           <>
             <div className="notif-wrap" style={{ position: 'relative', marginLeft: '10px' }}>
-              <div className="notif-icon" onClick={() => navigate('/notifications')} style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', fontSize: '16px' }}>
+              <div className="notif-icon" onClick={() => navigate('/notifications')} data-tooltip-id="main-tooltip" data-tooltip-content="새로운 알림 확인" style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', fontSize: '16px' }}>
                 🔔
                 {notifications.length > 0 && (
                   <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '18px', height: '18px', background: 'var(--red)', borderRadius: '50%', fontSize: '10px', fontWeight: '700', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>
@@ -128,7 +137,7 @@ function Header() {
             </div>
 
             <div className="my-wrap" style={{ position: 'relative' }}>
-              <div className="my-av" onClick={() => toggleDrop('my')} style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--blue-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac)', fontSize: '14px', fontWeight: '900', cursor: 'pointer' }}>
+              <div className="my-av" onClick={() => toggleDrop('my')} data-tooltip-id="main-tooltip" data-tooltip-content="내 프로필 및 설정" style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--blue-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac)', fontSize: '14px', fontWeight: '900', cursor: 'pointer' }}>
                 {/* '나' 대신 사용자의 이름 첫 글자를 표시합니다 */}
                 {currentUser?.name?.charAt(0) ?? '?'}
               </div>
