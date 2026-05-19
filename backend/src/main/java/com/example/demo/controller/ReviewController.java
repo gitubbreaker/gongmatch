@@ -28,7 +28,7 @@ public class ReviewController {
     @GetMapping("/accepted-teams")
     public ResponseEntity<List<ProjectTeamDto>> getAcceptedTeams(Authentication auth) {
         String loginId = auth.getName();
-        Student me = studentRepository.findByLoginId(loginId).orElseThrow();
+        Student me = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId).orElseThrow();
 
         List<TeamRequest> acceptedRequests = teamRequestRepository.findAcceptedRequestsByStudent(me);
         
@@ -49,7 +49,7 @@ public class ReviewController {
                         .id(other.getId())
                         .name(other.getName())
                         .role((other.getRole() != null ? other.getRole() : "역할 미정") + " · " + (other.getMajor() != null ? other.getMajor() : "전공 미정"))
-                        .score(other.getTotalScore() != null ? other.getTotalScore() : 70)
+                        .score((int)(other.getRating() > 0 ? other.getRating() * 20 : 70))
                         .isReviewed(isReviewed)
                         .build();
             }).collect(Collectors.toList());
@@ -66,7 +66,7 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<?> submitReview(Authentication auth, @RequestBody ReviewSubmitDto dto) {
         String loginId = auth.getName();
-        Student me = studentRepository.findByLoginId(loginId).orElseThrow();
+        Student me = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId).orElseThrow();
         Student reviewee = studentRepository.findById(dto.getRevieweeId()).orElseThrow();
 
         if (reviewRepository.existsByReviewerAndRevieweeAndProjectName(me, reviewee, dto.getProjectName())) {
@@ -90,14 +90,9 @@ public class ReviewController {
 
         reviewRepository.save(review);
         
-        int avgRating = (dto.getTimeScore() + dto.getCommScore() + dto.getSkillScore() + dto.getMannerScore()) / 4;
-        if (avgRating >= 4) {
-             if (reviewee.getTotalScore() == null) reviewee.setTotalScore(70);
-             reviewee.setTotalScore(Math.min(100, reviewee.getTotalScore() + 2));
-        } else if (avgRating <= 2) {
-             if (reviewee.getTotalScore() == null) reviewee.setTotalScore(70);
-             reviewee.setTotalScore(Math.max(0, reviewee.getTotalScore() - 2));
-        }
+        float avgRating = (dto.getTimeScore() + dto.getCommScore() + dto.getSkillScore() + dto.getMannerScore()) / 4.0f;
+        float newRating = reviewee.getRating() > 0 ? (reviewee.getRating() + avgRating) / 2.0f : avgRating;
+        reviewee.setRating(newRating);
         studentRepository.save(reviewee);
 
         return ResponseEntity.ok(review);
