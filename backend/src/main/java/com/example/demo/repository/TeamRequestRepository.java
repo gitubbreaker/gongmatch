@@ -12,4 +12,7 @@ public interface TeamRequestRepository extends JpaRepository<TeamRequest, Long> 
     List<TeamRequest> findBySender(Student sender);
     List<TeamRequest> findByReceiver(Student receiver);
     List<TeamRequest> findByReceiverAndStatus(Student receiver, String status);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT t FROM TeamRequest t WHERE (t.sender = :student OR t.receiver = :student) AND t.status = 'ACCEPTED'")
+    List<TeamRequest> findAcceptedRequestsByStudent(@org.springframework.data.repository.query.Param("student") Student student);
 }
