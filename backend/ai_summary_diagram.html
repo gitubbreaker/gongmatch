@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>생성형 AI 기반 회의록 요약 및 달력 인젝션 흐름도</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .capture-box {
+            width: 1020px;
+            height: 520px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            padding: 30px 40px;
+            position: relative;
+            box-sizing: border-box;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        .flow-node {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            z-index: 10;
+        }
+        .node-tag {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            width: fit-content;
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
+        }
+        .flow-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-align: center;
+            z-index: 20;
+            position: absolute;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="capture-box">
+        
+        <!-- 상단 헤더 영역 -->
+        <div class="mb-8 border-b border-slate-100 pb-3">
+            <h2 class="text-lg font-extrabold text-slate-800">생성형 AI 기반 회의록 요약 및 달력 인젝션 흐름도</h2>
+        </div>
+
+        <!-- 메인 도식 영역 (1020x440 안에서 절대좌표 배치로 대칭 구조 구축) -->
+        <div class="relative w-full h-[380px]">
+            
+            <!-- SVG 화살표 레이어 (전체 화살표 색상 차분한 Slate-400으로 대통합) -->
+            <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 1;">
+                <defs>
+                    <marker id="arrow-slate" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8" />
+                    </marker>
+                </defs>
+
+                <!-- 1단계 -> 2단계 화살표 (수평 실선) -->
+                <path d="M 290 110 L 378 110" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow-slate)" />
+                
+                <!-- 2단계 -> 3단계 화살표 (우측하단 곡선) -->
+                <path d="M 640 110 C 690 110, 680 185, 718 185" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow-slate)" />
+
+                <!-- 3단계 -> 4단계 화살표 (좌측하단 곡선) -->
+                <path d="M 730 275 C 680 275, 690 350, 652 350" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow-slate)" />
+
+                <!-- 4단계 -> 5단계 화살표 (수평 실선) -->
+                <path d="M 390 350 L 302 350" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow-slate)" />
+            </svg>
+
+            <!-- 흐름 설명 라벨들 (곡선 화살표의 궤적을 침범하지 않도록 완전히 상하 영역 외곽으로 대피 조정) -->
+            <div class="flow-label" style="left: 290px; width: 100px; top: 82px;">
+                대화 내용 송신
+            </div>
+            <!-- 프롬프트 전송: 곡선 궤적(Y:110~185)보다 높은 Y:82px 지점으로 상단 대피 -->
+            <div class="flow-label" style="left: 635px; width: 90px; top: 82px;">
+                프롬프트 전송
+            </div>
+            <!-- 요약 결과 반환: 곡선 궤적(Y:275~350)보다 낮은 Y:358px 지점으로 하단 대피 -->
+            <div class="flow-label" style="left: 635px; width: 90px; top: 358px;">
+                요약 결과 반환
+            </div>
+            <div class="flow-label" style="left: 290px; width: 100px; top: 322px;">
+                요약 데이터 전달
+            </div>
+
+
+            <!-- [STEP 1] React 프론트엔드 (상단 좌측) -->
+            <div class="flow-node absolute shadow-sm" style="width: 250px; left: 40px; top: 40px; border-color: #cbd5e1;">
+                <div class="node-tag text-slate-600 bg-slate-100">STEP 1. 사용자 화면</div>
+                <h3 class="font-bold text-slate-800 text-xs mb-1">대화 기록 전송</h3>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    사용자가 오픈채팅방에서 복사한 대화 텍스트 원문을 백엔드 서버에 전달하여 요약을 요청함
+                </p>
+            </div>
+
+            <!-- [STEP 2] Spring Boot 백엔드 (상단 중앙) -->
+            <div class="flow-node absolute shadow-sm" style="width: 250px; left: 390px; top: 40px; border-color: #cbd5e1;">
+                <div class="node-tag text-slate-600 bg-slate-100">STEP 2. 백엔드 서버</div>
+                <h3 class="font-bold text-slate-800 text-xs mb-1">기준 일자 계산 및 달력 구성</h3>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    한국 표준시 기준으로 오늘의 정확한 날짜를 구하고, 환각 현상 방지용 요일 달력을 동적으로 조립하여 프롬프트에 주입함
+                </p>
+            </div>
+
+            <!-- [STEP 3] OpenAI gpt-4o-mini (우측 중앙 - Y축 완전 중앙 정렬) -->
+            <div class="flow-node absolute shadow-sm" style="width: 250px; left: 730px; top: 160px; border-color: #cbd5e1;">
+                <div class="node-tag text-slate-600 bg-slate-100">STEP 3. GENERATIVE AI</div>
+                <h3 class="font-bold text-slate-800 text-xs mb-1">안건 요약 및 시간 추론</h3>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    주입된 기준 달력을 참고해 "다음주", "내일" 등의 상대 시점을 실제 날짜로 추론하고, 안건별 맥락을 분리하여 응답을 구성함
+                </p>
+            </div>
+
+            <!-- [STEP 4] Spring Boot 백엔드 (하단 중앙) -->
+            <div class="flow-node absolute shadow-sm" style="width: 250px; left: 390px; top: 280px; border-color: #cbd5e1;">
+                <div class="node-tag text-slate-600 bg-slate-100">STEP 4. 백엔드 서버</div>
+                <h3 class="font-bold text-slate-800 text-xs mb-1">데이터 파싱 및 정합성 검증</h3>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    수신된 JSON 응답 데이터를 파싱하고, 미지정된 일정이나 정보 누락을 방지하기 위한 예외 가공 처리를 적용함
+                </p>
+            </div>
+
+            <!-- [STEP 5] React 프론트엔드 (하단 좌측) -->
+            <div class="flow-node absolute shadow-sm" style="width: 250px; left: 40px; top: 280px; border-color: #cbd5e1;">
+                <div class="node-tag text-slate-600 bg-slate-100">STEP 5. 사용자 화면</div>
+                <h3 class="font-bold text-slate-800 text-xs mb-1">분석 일정 카드 가시화</h3>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    백엔드에서 분석을 마친 일정, 회의 주제, 역할 분담 요약 데이터를 캘린더와 구조화된 카드 형태로 최종 출력함
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

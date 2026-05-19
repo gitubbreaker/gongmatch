@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알림 시스템 및 자유 매칭 API 페이로드 스키마 (v2.1)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .capture-box {
+            width: 1020px;
+            height: 480px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            padding: 24px 30px;
+            position: relative;
+            box-sizing: border-box;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .json-box {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 11px;
+            line-height: 1.5;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            height: 310px;
+            overflow-y: auto;
+            border: 1px solid #1e293b;
+        }
+        .hl-null {
+            color: #ef4444;
+            font-weight: 700;
+            background-color: rgba(239, 68, 68, 0.15);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        .hl-safe {
+            color: #10b981;
+            font-weight: 700;
+            background-color: rgba(16, 185, 129, 0.15);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        .hl-time {
+            color: #3b82f6;
+            font-weight: 700;
+            background-color: rgba(59, 130, 246, 0.15);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        .json-key { color: #f1f5f9; }
+        .json-string { color: #38bdf8; }
+        .json-number { color: #fbbf24; }
+        .json-boolean { color: #f43f5e; }
+        .json-comment { color: #64748b; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <!-- 가로 1020x480 화면에 100% 꽉 차는 REST API 데이터 흐름도 설계 -->
+    <div class="capture-box">
+        
+        <!-- 상단 헤더 영역 -->
+        <div class="mb-5 border-b border-slate-100 pb-2.5">
+            <h2 class="text-base font-extrabold text-slate-800">알림 시스템 및 자유 매칭 처리를 위한 REST API Payload Schema</h2>
+        </div>
+
+        <!-- 메인 데이터 가공 흐름 영역 -->
+        <div class="flex items-center justify-between gap-4">
+            
+            <!-- 왼쪽: DB 원본 데이터 (Before) -->
+            <div class="flex flex-col gap-2" style="width: 440px;">
+                <div class="flex items-center justify-between px-1">
+                    <span class="text-xs font-bold text-slate-500">1. DB 원본 응답 데이터 (Before)</span>
+                    <span class="text-[10px] font-extrabold text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100">자유 매칭 시 null 전달</span>
+                </div>
+                <div class="json-box">
+                    <span class="json-key">[</span><br>
+                    &nbsp;&nbsp;<span class="json-key">{</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"requestId":</span> <span class="json-number">42</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"sender":</span> <span class="json-key">{</span> <span class="json-key">"id":</span> <span class="json-number">12</span>, <span class="json-key">"name":</span> <span class="json-string">"황중경"</span> <span class="json-key">}</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"receiver":</span> <span class="json-key">{</span> <span class="json-key">"id":</span> <span class="json-number">15</span>, <span class="json-key">"name":</span> <span class="json-string">"정성원"</span> <span class="json-key">}</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"status":</span> <span class="json-string">"PENDING"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"targetProjectTitle":</span> <span class="hl-null">null</span>, <span class="json-comment">// 공모전 미지정</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"message":</span> <span class="json-string">"같이 프로젝트 진행해요!"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"createdAt":</span> <span class="json-string">"2026-05-11T15:12:00Z"</span><br>
+                    &nbsp;&nbsp;<span class="json-key">}</span><br>
+                    <span class="json-key">]</span>
+                    
+                    <div class="mt-8 pt-4 border-t border-slate-800 text-[10px] text-slate-400 font-medium">
+                        ※ 설명: 특정 프로젝트 공모를 거치지 않고 사용자 간 직접 매칭을 시도할 경우, 데이터베이스의 프로젝트 식별키가 비어 있게 됩니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 중앙: 백엔드 변환 연산 (Spring Boot) -->
+            <div class="flex flex-col items-center justify-center gap-3" style="width: 80px;">
+                <!-- 화살표와 톱니바퀴 이모지 -->
+                <div class="text-3xl animate-spin" style="animation-duration: 10s;">⚙️</div>
+                <svg class="w-12 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3" class="stroke-slate-400"></path>
+                </svg>
+                <span class="text-[10px] font-extrabold text-slate-500 text-center leading-snug">
+                    Null-Safety<br>데이터 변환<br>파이프라인
+                </span>
+            </div>
+
+            <!-- 오른쪽: 가공 및 정렬 처리된 DTO (After) -->
+            <div class="flex flex-col gap-2" style="width: 440px;">
+                <div class="flex items-center justify-between px-1">
+                    <span class="text-xs font-bold text-slate-500">2. 알림 센터 연계용 DTO (After)</span>
+                    <span class="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">결함 보정 및 정렬 추가</span>
+                </div>
+                <div class="json-box">
+                    <span class="json-key">{</span><br>
+                    &nbsp;&nbsp;<span class="json-key">"id":</span> <span class="json-string">"req_42"</span>,<br>
+                    &nbsp;&nbsp;<span class="json-key">"type":</span> <span class="json-string">"매칭"</span>,<br>
+                    &nbsp;&nbsp;<span class="json-key">"title":</span> <span class="json-string">"황중경님이 팀원 요청을 보냈어요"</span>,<br>
+                    &nbsp;&nbsp;<span class="json-key">"desc1":</span> <span class="hl-safe">"프로젝트 무관 (자유 매칭)"</span>, <span class="json-comment">// Null 보정</span><br>
+                    &nbsp;&nbsp;<span class="json-key">"desc2":</span> <span class="json-string">"\"같이 프로젝트 진행해요!\""</span>,<br>
+                    &nbsp;&nbsp;<span class="json-key">"_rawTime":</span> <span class="hl-time">1778512320000</span>, <span class="json-comment">// 최신순 정렬 보장</span><br>
+                    &nbsp;&nbsp;<span class="json-key">"time":</span> <span class="json-string">"2026. 5. 11. 오후 3:12:00"</span><br>
+                    <span class="json-key">}</span>
+                    
+                    <div class="mt-8 pt-4 border-t border-slate-800 text-[10px] text-slate-400 font-medium">
+                        ※ 해결: 백엔드에서 null 감지 시 한글 치환 처리를 실행하여 화면 렌더링 깨짐을 차단하고, Unix 밀리초 타임스탬프를 더해 최신순 정렬을 보장합니다.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
