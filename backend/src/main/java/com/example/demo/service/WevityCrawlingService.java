@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 public class WevityCrawlingService implements InitializingBean {
 
     private final ProjectRepository projectRepository;
+    private final AiParsingService aiParsingService; // AI 파싱 서비스 주입
     private static final String BASE_URL = "https://www.wevity.com";
     private final Random random = new Random();
 
@@ -156,6 +157,16 @@ public class WevityCrawlingService implements InitializingBean {
                             project.setCategory("IT/해커톤");
                             if (posterUrl != null) project.setPosterImageUrl(posterUrl);
                             project.setOfficialUrl(officialUrl != null ? officialUrl : detailUrl);
+
+                            // 6. AI 분석 연동 (아직 분석되지 않은 프로젝트인 경우에만)
+                            if (project.getAiFeatures() == null || project.getAiFeatures().isEmpty()) {
+                                // 위비티 본문 영역 텍스트 추출 (보통 .cd-body 클래스에 존재)
+                                Element bodyEl = detailDoc.selectFirst(".cd-body");
+                                String rawText = bodyEl != null ? bodyEl.text() : detailDoc.body().text();
+                                
+                                // AI에게 분석 요청 및 결과 저장
+                                aiParsingService.analyzeAndEnrichProject(project, rawText);
+                            }
 
                             projectRepository.save(project);
                             Thread.sleep(600 + random.nextInt(400));

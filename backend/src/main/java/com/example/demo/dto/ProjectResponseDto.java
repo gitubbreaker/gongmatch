@@ -28,6 +28,12 @@ public class ProjectResponseDto {
     private java.time.LocalDateTime createdAt; // 추가
     private long dDay; // D-Day 계산 결과
 
+    // AI 분석 필드 추가
+    private String aiFeatures;
+    private String aiStudyMethod;
+    private String aiJudgingCriteria;
+    private String aiPastInsights;
+
     /**
      * Entity -> DTO 변환 및 D-Day 계산 로직
      */
@@ -51,6 +57,10 @@ public class ProjectResponseDto {
                 .category(project.getCategory()) // 추가
                 .createdAt(project.getCreatedAt()) // 추가
                 .dDay(dDay)
+                .aiFeatures(project.getAiFeatures())
+                .aiStudyMethod(project.getAiStudyMethod())
+                .aiJudgingCriteria(project.getAiJudgingCriteria())
+                .aiPastInsights(project.getAiPastInsights())
                 .build();
     }
 }

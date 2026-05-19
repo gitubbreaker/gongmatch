@@ -55,4 +55,17 @@ public class Project {
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+
+    // AI 분석 필드 추가
+    @Column(columnDefinition = "TEXT")
+    private String aiFeatures;        // AI가 분석한 대회 특징
+
+    @Column(columnDefinition = "TEXT")
+    private String aiStudyMethod;     // AI가 추천하는 공부법
+
+    @Column(columnDefinition = "TEXT")
+    private String aiJudgingCriteria; // AI가 분석한 심사 기준
+
+    @Column(columnDefinition = "TEXT")
+    private String aiPastInsights;    // AI가 분석한 과거 데이터/꿀팁
 }

@@ -178,20 +178,60 @@ function ContestDetailPage() {
       </div>
 
       {activeTab === 'info' && (
-        <div style={{ background: 'var(--card)', padding: '40px', borderRadius: '20px', border: '1px solid var(--brd)', color: 'var(--tx2)', lineHeight: '1.8' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>대회 소개</h3>
-          <p>이 대회는 <b>{project.host}</b>에서 주관하는 <b>{project.title}</b> 프로젝트입니다.</p>
-          <p style={{ marginTop: '8px' }}>
-            {project.title.includes('데이터') ? '데이터 분석과 활용을 통해 실생활의 문제를 해결하고 새로운 가치를 창출하는 것이 목표입니다.' : 
-             project.title.includes('창업') ? '혁신적인 비즈니스 모델과 IT 기술을 결합하여 성공적인 창업 아이템을 발굴하는 대회입니다.' :
-             project.title.includes('개발') || project.category === 'IT / 해커톤' ? '제한된 시간 내에 팀원들과 협력하여 기획, 디자인, 개발을 완수하고 동작하는 서비스를 구현하는 해커톤입니다.' : 
-             '팀원들과 협력하여 우수한 결과물을 만들어낼 수 있는 최고의 기회입니다.'}
-          </p>
-          <p style={{ marginTop: '8px' }}>공매치(GongMatch)의 팀 빌딩 시스템을 통해 역할을 분담하고 멋진 결과물을 완성해보세요!</p>
-          <div style={{ marginTop: '40px', padding: '32px', background: 'var(--bg)', borderRadius: '16px', border: '1px dashed var(--brd2)' }}>
-            <p style={{ fontWeight: '900', fontSize: '16px', color: 'var(--ac)', marginBottom: '12px' }}>💡 공매치 꿀팁</p>
-            <p style={{ fontSize: '15px' }}>우측 <b>'대회 전용 매칭룸'</b> 탭에서 나와 가용시간이 잘 맞고 필요한 기술스택을 가진 팀원을 찾아보세요.<br/>매칭 점수가 높은 사람에게 먼저 [합류 제안]을 보내면 팀 결성 확률이 매우 높아집니다.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* 기본 대회 소개 */}
+          <div style={{ background: 'var(--card)', padding: '40px', borderRadius: '20px', border: '1px solid var(--brd)', color: 'var(--tx2)', lineHeight: '1.8' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>대회 기본 소개</h3>
+            <p>이 대회는 <b>{project.host}</b>에서 주관하는 <b>{project.title}</b> 프로젝트입니다.</p>
+            <p style={{ marginTop: '8px' }}>
+              {project.title.includes('데이터') ? '데이터 분석과 활용을 통해 실생활의 문제를 해결하고 새로운 가치를 창출하는 것이 목표입니다.' : 
+               project.title.includes('창업') ? '혁신적인 비즈니스 모델과 IT 기술을 결합하여 성공적인 창업 아이템을 발굴하는 대회입니다.' :
+               project.title.includes('개발') || project.category === 'IT / 해커톤' ? '제한된 시간 내에 팀원들과 협력하여 기획, 디자인, 개발을 완수하고 동작하는 서비스를 구현하는 해커톤입니다.' : 
+               '팀원들과 협력하여 우수한 결과물을 만들어낼 수 있는 최고의 기회입니다.'}
+            </p>
+            <div style={{ marginTop: '32px', padding: '24px', background: 'var(--bg)', borderRadius: '16px', border: '1px dashed var(--brd2)' }}>
+              <p style={{ fontWeight: '900', fontSize: '15px', color: 'var(--tx)', marginBottom: '8px' }}>💡 공매치 기본 꿀팁</p>
+              <p style={{ fontSize: '14px', color: 'var(--tx3)' }}>우측 <b>'대회 전용 매칭룸'</b> 탭에서 나와 가용시간이 잘 맞고 필요한 기술스택을 가진 팀원을 찾아보세요.<br/>매칭 점수가 높은 사람에게 먼저 [합류 제안]을 보내면 팀 결성 확률이 매우 높아집니다.</p>
+            </div>
           </div>
+
+          {/* 🤖 AI 공모전 완전 분석 리포트 */}
+          {project.aiFeatures && (
+            <div style={{ background: 'linear-gradient(145deg, #1A1A24 0%, #111116 100%)', padding: '40px', borderRadius: '20px', border: '1px solid #333344', position: 'relative', overflow: 'hidden' }}>
+              {/* 장식용 배경 효과 */}
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'var(--ac)', filter: 'blur(100px)', opacity: '0.1', borderRadius: '50%' }}></div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+                <span style={{ fontSize: '28px' }}>🤖</span>
+                <div>
+                  <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'white', margin: '0 0 4px' }}>AI 공모전 완전 분석 리포트</h3>
+                  <p style={{ fontSize: '13px', color: '#888899', margin: 0 }}>GPT-4o-mini가 모집 요강 원문을 읽고 직접 분석한 결과입니다.</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--ac)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>📌</span> 대회의 핵심 특징</h4>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiFeatures}</p>
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#FFB800', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>📚</span> 이렇게 준비하세요!</h4>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiStudyMethod}</p>
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#00E5FF', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>⚖️</span> 중요 심사 기준</h4>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiJudgingCriteria}</p>
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#FF6B6B', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>🕵️‍♂️</span> AI의 과거 데이터 인사이트</h4>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiPastInsights}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
