@@ -191,7 +191,30 @@ function S7Accept() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--blue-dim)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '900' }}>{getOtherPerson(activeChat)?.name?.charAt(0) || '?'}</div>
                   <div>
-                    <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--tx)', marginBottom: '6px' }}>{getOtherPerson(activeChat)?.name || '알 수 없음'}</h2>
+                    <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--tx)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {getOtherPerson(activeChat)?.name || '알 수 없음'}
+                      {(() => {
+                        const recItem = recommendations.find(r => r.id === getOtherPerson(activeChat)?.id);
+                        const avgRating = recItem ? recItem.averageRating : null;
+                        return (
+                          <span style={{ 
+                            fontSize: '11px', 
+                            background: avgRating ? 'rgba(255, 184, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+                            color: avgRating ? '#FFB800' : 'var(--tx3)', 
+                            padding: '2px 6px', 
+                            borderRadius: '4px', 
+                            fontWeight: '800', 
+                            border: avgRating ? '1px solid rgba(255, 184, 0, 0.3)' : '1px solid var(--brd2)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}>
+                            <span>★</span>
+                            {avgRating !== null && avgRating !== undefined ? avgRating.toFixed(1) : '없음'}
+                          </span>
+                        );
+                      })()}
+                    </h2>
                     <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>{getOtherPerson(activeChat)?.major || '학과 미기재'} · 가입 {new Date(getOtherPerson(activeChat)?.createdAt || Date.now()).toLocaleDateString()}</p>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: '#000', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>✓ 학교인증</span>

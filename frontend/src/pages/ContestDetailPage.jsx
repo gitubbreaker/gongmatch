@@ -285,7 +285,25 @@ function ContestDetailPage() {
                         <div style={{display:'flex', gap:'16px', alignItems: 'center'}}>
                           <div style={{width:'56px', height:'56px', background:`var(--bg)`, color: 'var(--ac)', border: `2px solid var(--ac)`, borderRadius:'16px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', fontSize:'20px'}}>{u.name?.charAt(0) || 'U'}</div>
                           <div>
-                            <p style={{fontWeight:'900', color: 'var(--tx)', marginBottom: '6px', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '4px'}}>{u.name} <span style={{fontSize:'13px'}}>✅</span></p>
+                            <p style={{fontWeight:'900', color: 'var(--tx)', marginBottom: '6px', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                              {u.name} <span style={{fontSize:'13px'}}>✅</span>
+                              <span style={{ 
+                                fontSize: '11px', 
+                                background: u.averageRating ? 'rgba(255, 184, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+                                color: u.averageRating ? '#FFB800' : 'var(--tx3)', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                fontWeight: '800', 
+                                border: u.averageRating ? '1px solid rgba(255, 184, 0, 0.3)' : '1px solid var(--brd2)',
+                                marginLeft: '6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}>
+                                <span>★</span>
+                                {u.averageRating !== null && u.averageRating !== undefined ? u.averageRating.toFixed(1) : '없음'}
+                              </span>
+                            </p>
                             <p style={{fontSize:'13px', color:'var(--tx3)', fontWeight:'600'}}>{u.role || '포지션 미정'} · {u.major || '전공 미상'}</p>
                           </div>
                         </div>

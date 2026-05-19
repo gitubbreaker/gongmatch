@@ -296,6 +296,21 @@ function S5Candidates() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                     <span style={{ fontSize: '20px', fontWeight: '900' }}>{c.name}</span>
+                    <span style={{ 
+                      fontSize: '12px', 
+                      background: c.averageRating ? 'rgba(255, 184, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+                      color: c.averageRating ? '#FFB800' : 'var(--tx3)', 
+                      padding: '3px 8px', 
+                      borderRadius: '6px', 
+                      fontWeight: '800', 
+                      border: c.averageRating ? '1px solid rgba(255, 184, 0, 0.3)' : '1px solid var(--brd2)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <span style={{ color: c.averageRating ? '#FFB800' : 'var(--tx3)', fontSize: '11px' }}>★</span>
+                      {c.averageRating !== null && c.averageRating !== undefined ? c.averageRating.toFixed(1) : '없음'}
+                    </span>
                     {myRole && c.role && (
                       (() => {
                         const m = (myRole || '').replace(/\s/g, '').toLowerCase();

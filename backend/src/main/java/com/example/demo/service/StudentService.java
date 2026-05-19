@@ -7,6 +7,8 @@ import com.example.demo.entity.Tag;
 import com.example.demo.repository.AvailableTimeRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.StudentTagRepository;
+import com.example.demo.repository.ReviewRepository;
+import com.example.demo.entity.Review;
 import com.example.demo.security.JwtTokenProvider;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +29,7 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final StudentTagRepository studentTagRepository;
     private final AvailableTimeRepository availableTimeRepository;
+    private final ReviewRepository reviewRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -112,6 +115,21 @@ public class StudentService {
 
             // 겹치는 시간 정보 텍스트 생성 (간소화)
 
+            // 리뷰 평점 계산
+            List<Review> otherReviews = reviewRepository.findAll().stream()
+                    .filter(r -> r.getReviewee().getId().equals(other.getId()))
+                    .collect(Collectors.toList());
+            
+            Double averageRating = null;
+            if (!otherReviews.isEmpty()) {
+                double sum = 0;
+                for (Review r : otherReviews) {
+                    sum += (r.getTimeScore() + r.getCommScore() + r.getSkillScore() + r.getMannerScore()) / 4.0;
+                }
+                averageRating = sum / otherReviews.size();
+                averageRating = Math.round(averageRating * 10.0) / 10.0;
+            }
+
             results.add(RecommendationResponse.builder()
                     .id(other.getId())
                     .name(other.getName())
@@ -125,6 +143,7 @@ public class StudentService {
                     .tags(new ArrayList<>(otherTagNames))
                     .commonTags(myTagNames.stream().filter(otherTagNames::contains).collect(Collectors.toList()))
                     .role(other.getRole())
+                    .averageRating(averageRating)
                     .build());
         }
 
@@ -230,5 +249,6 @@ public class StudentService {
         private List<String> tags;
         private List<String> commonTags;
         private String role;
+        private Double averageRating;
     }
 }

@@ -210,7 +210,24 @@ function S1Home() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900', border: '2px solid var(--ac-brd)' }}>{bestMatch.name.charAt(0)}</div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx1)' }}>{bestMatch.name}</div>
+                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx1)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {bestMatch.name}
+                        <span style={{ 
+                          fontSize: '10px', 
+                          background: bestMatch.averageRating ? 'rgba(255, 184, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+                          color: bestMatch.averageRating ? '#FFB800' : 'var(--tx3)', 
+                          padding: '1px 5px', 
+                          borderRadius: '4px', 
+                          fontWeight: '800', 
+                          border: bestMatch.averageRating ? '1px solid rgba(255, 184, 0, 0.3)' : '1px solid var(--brd2)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '2px'
+                        }}>
+                          <span>★</span>
+                          {bestMatch.averageRating !== null && bestMatch.averageRating !== undefined ? bestMatch.averageRating.toFixed(1) : '없음'}
+                        </span>
+                      </div>
                       <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>{bestMatch.major}</div>
                     </div>
                   </div>
