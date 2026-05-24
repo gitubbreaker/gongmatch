@@ -368,7 +368,10 @@ function S5Candidates() {
                 {/* 오른쪽: 점수 및 액션 */}
                 <div style={{ borderLeft:'1px solid var(--brd)', paddingLeft:'24px', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', gap:'20px' }}>
                   <div style={{textAlign:'center', width:'100%'}}>
-                    <div style={{fontSize:'11px', fontWeight:'800', color:'var(--tx3)', marginBottom:'4px', letterSpacing:'1px'}}>MATCH SCORE</div>
+                    <div style={{fontSize:'11px', fontWeight:'800', color:'var(--tx3)', marginBottom:'4px', letterSpacing:'1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'}}>
+                      MATCH SCORE
+                      <span data-tooltip-id="main-tooltip" data-tooltip-content="매칭 점수 = 시간 일치도(50점) + 관심사 일치도(50점)" style={{cursor:'help', background:'var(--card2)', color:'var(--tx2)', width:'14px', height:'14px', borderRadius:'50%', fontSize:'10px', display:'inline-flex', alignItems:'center', justifyContent:'center'}}>?</span>
+                    </div>
                     <div style={{fontSize:'48px', fontWeight:'950', color:'var(--ac)', lineHeight:'1', marginBottom:'12px'}}>{c.totalScore}</div>
                     
                     <div style={{width:'100%', background:'var(--card2)', height:'8px', borderRadius:'4px', overflow:'hidden', marginBottom:'4px'}}>

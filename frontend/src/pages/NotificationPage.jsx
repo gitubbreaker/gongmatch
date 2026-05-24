@@ -11,49 +11,44 @@ function NotificationPage() {
     try { return new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]')); } catch { return new Set(); }
   });
 
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/api/notifications/${id}`);
+      setRealNotifs(realNotifs.filter(n => n.id !== id));
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const [receivedRes, sentRes] = await Promise.all([
-          api.get('/api/team-requests/received'),
-          api.get('/api/team-requests/sent')
-        ]);
-        
-        const pendingReceived = receivedRes.data
-          .filter(req => req.status === 'PENDING')
-          .map(req => ({
-            id: `req_${req.requestId || req.id}`,
-            type: '매칭',
-            icon: '⚡',
-            title: `${req.sender?.name || '익명'}님이 팀원 요청을 보냈어요`,
-            isNew: true,
-            desc1: req.targetProjectTitle || '프로젝트 무관 (자유 매칭)',
-            desc2: req.message ? `"${req.message}"` : '매칭 점수 기반 팀원 요청입니다.',
-            _rawTime: new Date(req.createdAt).getTime(),
-            time: new Date(req.createdAt).toLocaleString(),
-            actions: [
-              { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
-            ]
-          }));
+        const response = await api.get('/api/notifications');
+        const formattedNotifs = response.data.map(notif => {
+          const actions = [];
+          if (notif.targetUrl) {
+            actions.push({
+              label: notif.type === '매칭' ? '수락함으로 이동' : '이동하기',
+              style: 'btn-prim btn-sm',
+              onClick: () => navigate(notif.targetUrl)
+            });
+          }
+
+          return {
+            id: notif.id,
+            type: notif.type,
+            icon: notif.icon,
+            title: notif.title,
+            isNew: notif.isNew,
+            desc1: notif.desc1,
+            desc2: notif.desc2,
+            _rawTime: new Date(notif.createdAt).getTime(),
+            time: new Date(notif.createdAt).toLocaleString(),
+            actions
+          };
+        });
           
-        const acceptedSent = sentRes.data
-          .filter(req => req.status === 'ACCEPTED')
-          .map(req => ({
-            id: `acc_${req.requestId || req.id}`,
-            type: '매칭',
-            icon: '🎉',
-            title: `${req.receiver?.name || '익명'}님이 팀원 요청을 수락했어요`,
-            isNew: true,
-            desc1: req.targetProjectTitle ? `${req.targetProjectTitle} 팀 합류 확정` : '자유 매칭 팀 합류 확정',
-            desc2: '이제 팀 채팅방을 개설해보세요!',
-            _rawTime: new Date(req.createdAt).getTime(),
-            time: new Date(req.createdAt).toLocaleString(),
-            actions: [
-              { label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }
-            ]
-          }));
-          
-        setRealNotifs([...pendingReceived, ...acceptedSent]);
+        setRealNotifs(formattedNotifs);
       } catch (e) {
         console.error('알림 로딩 실패', e);
       }
@@ -61,57 +56,16 @@ function NotificationPage() {
     fetchNotifications();
   }, [navigate]);
 
-  const now = Date.now();
-  const dummyNotifs = [
-    {
-      id: 1, type: '매칭', icon: '⚡',
-      title: '김지원님이 팀원 요청을 보냈어요', isNew: true,
-      desc1: '2026 핀테크 아이디어 해커톤 - 매칭 점수 94점',
-      desc2: '겹치는 시간: 토 14-17시, 수 14-15시',
-      _rawTime: now - 600000, time: '10분 전',
-      actions: [{ label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }]
-    },
-    {
-      id: 2, type: '쪽지', icon: '💬',
-      title: '박도현님의 쪽지가 도착했어요', isNew: true,
-      desc1: '"안녕하세요! 데이터 분석 파트로 함께하고 싶습니다. 한번 이야기 나눠볼 수 있을까요?"',
-      _rawTime: now - 10800000, time: '3시간 전',
-      actions: [{ label: '프로필 보기', style: 'btn-ghost btn-sm', onClick: () => navigate('/profile-detail/1') }]
-    },
-    {
-      id: 3, type: '마감 임박', icon: '⏰',
-      title: '관심 공고 마감 3일 전이에요', isNew: true,
-      desc1: '2026 핀테크 아이디어 해커톤 · 2026.04.14 마감',
-      desc2: '아직 팀원 2명이 부족해요',
-      _rawTime: now - 18000000, time: '오전 9:00',
-      actions: [{ label: '팀원 더 찾기', style: 'btn-ghost btn-sm', onClick: () => navigate('/contest-detail') }]
-    },
-    {
-      id: 4, type: '매칭', icon: '⚡',
-      title: '이수현님이 팀원 요청을 수락했어요', isNew: true,
-      desc1: '2026 핀테크 아이디어 해커톤 팀 합류 확정',
-      desc2: '이제 팀 채팅방을 개설해보세요!',
-      _rawTime: now - 21600000, time: '오전 8:24',
-      actions: [{ label: '수락함으로 이동', style: 'btn-prim btn-sm', onClick: () => navigate('/accept') }]
-    },
-    {
-      id: 5, type: '커뮤니티', icon: '🤍',
-      title: '내 커뮤니티 글에 댓글이 달렸어요', isNew: false,
-      desc1: '박도현님: "저도 같은 고민이 있었는데 글에서 위안 얻고 갑니다!"',
-      _rawTime: now - 25200000, time: '오전 7:30',
-      actions: [{ label: '글 보러가기', style: 'btn-ghost btn-sm', onClick: () => navigate('/community') }]
+  const allNotifs = [...realNotifs];
+  const handleMarkAllRead = async () => {
+    try {
+      await api.patch('/api/notifications/read-all');
+      const updated = realNotifs.map(n => ({...n, isNew: false}));
+      setRealNotifs(updated);
+      window.dispatchEvent(new Event('notifRead'));
+    } catch(e) {
+      console.error(e);
     }
-  ];
-
-  const allNotifs = [...realNotifs, ...dummyNotifs];
-
-  const handleMarkAllRead = () => {
-    const allIds = allNotifs.map(n => n.id);
-    const newSet = new Set(allIds);
-    setReadNotifIds(newSet);
-    localStorage.setItem('readNotifIds', JSON.stringify([...newSet]));
-    // Header의 종 아이콘에도 알려줌
-    window.dispatchEvent(new Event('notifRead'));
   };
 
   const unreadCount = allNotifs.filter(n => !hiddenNotifIds.has(n.id) && n.isNew && !readNotifIds.has(n.id)).length;

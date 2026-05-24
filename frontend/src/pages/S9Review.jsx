@@ -24,7 +24,6 @@ function S9Review() {
   // Modal State
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
     api.get('/api/reviews/accepted-teams').then(res => {
       setProjects(res.data || []);
       if (res.data && res.data.length > 0) {
@@ -32,17 +31,7 @@ function S9Review() {
       }
     }).catch(e => {
       console.error('리뷰 대상 가져오기 실패', e);
-      // Fallback dummy for demonstration if API fails or empty
-      const dummy = [{
-        projectName: '2026 부산 공공데이터 활용 창업 경진대회',
-        members: [
-          { id: 'm1', name: '이수현', role: 'UI/UX 디자인 · 홍익대학교 시각디자인 4학년', score: 89, isReviewed: false },
-          { id: 'm2', name: '최민아', role: '기획·PM · 연세대학교 경영학과 3학년', score: 82, isReviewed: true },
-          { id: 'm3', name: '황중경', role: '백엔드 · 정보컴퓨터공학부 4학년', score: 95, isReviewed: false }
-        ]
-      }];
-      setProjects(dummy);
-      setSelectedProject(dummy[0]);
+      setProjects([]);
     });
   }, []);
 
@@ -163,75 +152,85 @@ function S9Review() {
           <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '12px' }}>함께한 팀원에게<br/>후기를 남겨주세요</h2>
           <p style={{ fontSize: '13px', color: 'var(--tx2)', marginBottom: '30px', lineHeight: '1.6' }}>후기는 상대방 프로필에 익명으로 반영되며,<br/>매칭 알고리즘 점수에도 활용됩니다.</p>
           
-          <div className="card" style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--tx2)', fontWeight: '700' }}>진행했던 프로젝트 (대회) 선택</div>
-            <select 
-              className="field" 
-              style={{ padding: '14px', borderRadius: '12px', border: '1px solid var(--brd)', background: 'var(--bg)', color: 'var(--tx)', fontSize: '15px', fontWeight: '800' }}
-              value={selectedProject ? selectedProject.projectName : ''}
-              onChange={(e) => {
-                const proj = projects.find(p => p.projectName === e.target.value);
-                setSelectedProject(proj);
-                setSelectedMember(null);
-              }}
-            >
-              {projects.map(p => (
-                <option key={p.projectName} value={p.projectName}>{p.projectName}</option>
-              ))}
-              {projects.length === 0 && <option value="">참여 완료된 프로젝트가 없습니다.</option>}
-            </select>
-          </div>
-
-          <div style={{ padding: '16px', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', borderRadius: '8px', marginBottom: '40px' }}>
-            <p style={{ fontSize: '12px', color: 'var(--ac)', lineHeight: '1.6' }}>
-              💡 <strong>후기 작성 안내</strong><br/>
-              후기를 남길 팀원을 선택하십시오. 한 명씩 개별로 작성합니다.<br/>
-              작성한 후기는 수정이 어려우니 신중하게 남겨주세요.
-            </p>
-          </div>
-
-          <p className="slabel">후기를 남길 팀원 선택 - {members.filter(m => m.isReviewed).length}명 완료 / 총 {members.length}명</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {members.map(m => (
-              <div 
-                key={m.id} 
-                onClick={() => !m.isReviewed && setSelectedMember(m.id)}
-                className="card" 
-                style={{ 
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-                  cursor: m.isReviewed ? 'default' : 'pointer',
-                  border: selectedMember === m.id ? '1px solid var(--ac)' : '1px solid var(--brd)',
-                  opacity: m.isReviewed ? 0.5 : 1
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: m.isReviewed ? 'var(--card2)' : 'var(--orange-dim)', color: m.isReviewed ? 'var(--tx3)' : 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800' }}>
-                    {m.name[0]}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {m.name} {selectedMember === m.id && <span className="tag" style={{ fontSize:'10px' }}>✓ 작성중</span>}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--tx2)', marginTop: '4px' }}>{m.role}</div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '900', color: m.isReviewed ? 'var(--tx3)' : 'var(--ac)' }}>{m.score}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>{m.isReviewed ? '✓ 후기 완료' : '매칭 점수'}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {selectedMember && (
-            <div style={{ marginTop: '40px', padding: '20px', background: 'var(--card)', border: '1px solid var(--ac)', borderRadius: '12px', textAlign: 'center' }}>
-              <div style={{ fontSize: '14px', color: 'var(--ac)', marginBottom: '16px', fontWeight: '700' }}>
-                ✓ {members.find(m => m.id === selectedMember).name} 님에 대한 후기를 작성합니다
-              </div>
-              <button className="btn-prim" style={{ width: '100%', padding: '16px', fontSize: '15px' }} onClick={handleNextStep1}>
-                다음 단계 — 평가 입력 →
-              </button>
+          {projects.length === 0 ? (
+            <div className="card" style={{ padding: '60px 20px', textAlign: 'center', border: '1px dashed var(--brd)', background: 'transparent' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>👻</div>
+              <p style={{ fontSize: '15px', color: 'var(--tx2)', fontWeight: '800', marginBottom: '8px' }}>아직 완료된 프로젝트가 없네요!</p>
+              <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>팀 매칭이 성사된 후 프로젝트를 진행하고 나면<br/>이곳에서 팀원들에게 후기를 남길 수 있어요.</p>
+              <button className="btn-ghost" style={{ marginTop: '24px' }} onClick={() => navigate('/announcements')}>공모전 보러가기</button>
             </div>
+          ) : (
+            <>
+              <div className="card" style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--tx2)', fontWeight: '700' }}>진행했던 프로젝트 (대회) 선택</div>
+                <select 
+                  className="field" 
+                  style={{ padding: '14px', borderRadius: '12px', border: '1px solid var(--brd)', background: 'var(--bg)', color: 'var(--tx)', fontSize: '15px', fontWeight: '800' }}
+                  value={selectedProject ? selectedProject.projectName : ''}
+                  onChange={(e) => {
+                    const proj = projects.find(p => p.projectName === e.target.value);
+                    setSelectedProject(proj);
+                    setSelectedMember(null);
+                  }}
+                >
+                  {projects.map(p => (
+                    <option key={p.projectName} value={p.projectName}>{p.projectName}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ padding: '16px', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', borderRadius: '8px', marginBottom: '40px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--ac)', lineHeight: '1.6' }}>
+                  💡 <strong>후기 작성 안내</strong><br/>
+                  후기를 남길 팀원을 선택하십시오. 한 명씩 개별로 작성합니다.<br/>
+                  작성한 후기는 수정이 어려우니 신중하게 남겨주세요.
+                </p>
+              </div>
+
+              <p className="slabel">후기를 남길 팀원 선택 - {members.filter(m => m.isReviewed).length}명 완료 / 총 {members.length}명</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {members.map(m => (
+                  <div 
+                    key={m.id} 
+                    onClick={() => !m.isReviewed && setSelectedMember(m.id)}
+                    className="card" 
+                    style={{ 
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+                      cursor: m.isReviewed ? 'default' : 'pointer',
+                      border: selectedMember === m.id ? '1px solid var(--ac)' : '1px solid var(--brd)',
+                      opacity: m.isReviewed ? 0.5 : 1
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: m.isReviewed ? 'var(--card2)' : 'var(--orange-dim)', color: m.isReviewed ? 'var(--tx3)' : 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800' }}>
+                        {m.name[0]}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {m.name} {selectedMember === m.id && <span className="tag" style={{ fontSize:'10px' }}>✓ 작성중</span>}
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--tx2)', marginTop: '4px' }}>{m.role}</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '900', color: m.isReviewed ? 'var(--tx3)' : 'var(--ac)' }}>{m.score}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>{m.isReviewed ? '✓ 후기 완료' : '매칭 점수'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {selectedMember && (
+                <div style={{ marginTop: '40px', padding: '20px', background: 'var(--card)', border: '1px solid var(--ac)', borderRadius: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '14px', color: 'var(--ac)', marginBottom: '16px', fontWeight: '700' }}>
+                    ✓ {members.find(m => m.id === selectedMember).name} 님에 대한 후기를 작성합니다
+                  </div>
+                  <button className="btn-prim" style={{ width: '100%', padding: '16px', fontSize: '15px' }} onClick={handleNextStep1}>
+                    다음 단계 — 평가 입력 →
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

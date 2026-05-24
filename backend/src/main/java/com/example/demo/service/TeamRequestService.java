@@ -4,10 +4,12 @@ import com.example.demo.entity.PublicProject;
 import com.example.demo.entity.Project;
 import com.example.demo.entity.Student;
 import com.example.demo.entity.TeamRequest;
+import com.example.demo.entity.Notification;
 import com.example.demo.repository.ProjectRepository;
 import com.example.demo.repository.PublicProjectRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeamRequestRepository;
+import com.example.demo.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class TeamRequestService {
     private final StudentRepository studentRepository;
     private final PublicProjectRepository publicProjectRepository;
     private final ProjectRepository projectRepository;
+    private final NotificationRepository notificationRepository;
 
     /**
      * 팀원 요청 보내기
@@ -55,7 +58,22 @@ public class TeamRequestService {
             );
         }
 
-        return teamRequestRepository.save(request);
+        }
+
+        TeamRequest saved = teamRequestRepository.save(request);
+
+        // 알림 생성 (수신자에게)
+        Notification notif = new Notification();
+        notif.setReceiver(receiver);
+        notif.setType("매칭");
+        notif.setIcon("⚡");
+        notif.setTitle(sender.getName() + "님이 팀원 요청을 보냈어요");
+        notif.setDesc1(request.getTargetProjectTitle() != null ? request.getTargetProjectTitle() : "자유 매칭");
+        notif.setDesc2("메시지: " + message);
+        notif.setTargetUrl("/accept");
+        notificationRepository.save(notif);
+
+        return saved;
     }
 
     /**
@@ -92,7 +110,22 @@ public class TeamRequestService {
         }
 
         request.setStatus(status);
-        return teamRequestRepository.save(request);
+        TeamRequest saved = teamRequestRepository.save(request);
+
+        if (status.equals("ACCEPTED")) {
+            // 알림 생성 (요청을 보냈던 사람에게 수락됨을 알림)
+            Notification notif = new Notification();
+            notif.setReceiver(request.getSender()); // 보낸 사람이 알림을 받음
+            notif.setType("매칭");
+            notif.setIcon("🎉");
+            notif.setTitle(request.getReceiver().getName() + "님이 팀원 요청을 수락했어요!");
+            notif.setDesc1(request.getTargetProjectTitle() != null ? request.getTargetProjectTitle() + " 합류 확정" : "자유 매칭 합류 확정");
+            notif.setDesc2("이제 팀 채팅방을 개설해보세요!");
+            notif.setTargetUrl("/accept");
+            notificationRepository.save(notif);
+        }
+
+        return saved;
     }
 
     /**

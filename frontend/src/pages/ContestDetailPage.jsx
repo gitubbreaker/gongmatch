@@ -92,13 +92,9 @@ function ContestDetailPage() {
       if(found) setProject(found);
       else throw new Error('Not found');
     }).catch(e => {
-      // Fallback dummy
-      setProject({ 
-        title: '2026 국토교통 데이터 활용 경진대회', 
-        category: 'IT / 해커톤', 
-        host: '국토교통부', 
-        endDate: '2026-05-29' 
-      });
+      // 더 이상 더미 데이터를 사용하지 않고 사용자에게 알림
+      showToast('공모전 정보를 불러올 수 없습니다.');
+      navigate(-1);
     });
 
     const userStr = localStorage.getItem('gongmatch_currentUser');

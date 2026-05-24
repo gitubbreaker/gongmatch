@@ -13,7 +13,8 @@ function S4Board() {
     import('../api').then(module => {
       const api = module.default;
       api.get('/api/posts').then(res => {
-        const backendPosts = res.data.map(bp => ({
+        let sorted = res.data.sort((a,b) => b.id - a.id);
+        sorted = sorted.map(bp => ({
           ...bp,
           type: '',
           typeColor: 'ac',
@@ -23,7 +24,8 @@ function S4Board() {
           isLiked: false,
           comments: bp.comments || [],
         }));
-        setPosts(backendPosts);
+        setPosts(sorted);
+        setVisibleCount(10);
       }).catch(e => console.error('게시글 불러오기 실패', e));
     });
   };
@@ -35,7 +37,9 @@ function S4Board() {
   const [activeCategory, setActiveCategory] = useState('전체');
   const [activeRegion, setActiveRegion] = useState('전체');
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
-  const [writeForm, setWriteForm] = useState({ title: '', category: '자유게시판', region: '전체', content: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [writeForm, setWriteForm] = useState({ title: '', category: '자유게시판', content: '', region: '전체' });
+  const [visibleCount, setVisibleCount] = useState(10);
   const [editingPostId, setEditingPostId] = useState(null);
   
   const [activePost, setActivePost] = useState(null);
@@ -83,13 +87,17 @@ function S4Board() {
         showToast('게시글이 성공적으로 등록되었습니다.');
       }
       setIsWriteModalOpen(false);
-      setEditingPostId(null);
-      setWriteForm({ title: '', category: '자유게시판', region: '전체', content: '' });
+      setSearchQuery('');
+      setWriteForm({ title: '', category: '자유게시판', content: '', region: '전체' });
       fetchPosts();
     } catch (e) {
       console.error('글 작성/수정 실패', e);
       showToast('처리 중 오류가 발생했습니다.');
     }
+  };
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 10);
   };
 
   const handleLike = async (e, id) => {
@@ -415,43 +423,50 @@ function S4Board() {
               <style>{`@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }`}</style>
             </div>
           ) : (
-            filteredPosts.map(post => (
-              <div className="card" key={post.id} onClick={() => handlePostClick(post)} style={{ position: 'relative', cursor: 'pointer', border: post.category === '운영' ? '1px solid var(--green)' : '' }}>
-                {post.category === '운영' && <div style={{ position: 'absolute', top: '0', left: '0', width: '4px', height: '100%', background: 'var(--green)', borderRadius: '16px 0 0 16px' }}></div>}
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  {post.type && <span style={{ fontSize: '11px', background: `var(--${post.typeColor}-dim)`, color: `var(--${post.typeColor})`, padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>{post.type}</span>}
-                  <span style={{ fontSize: '11px', background: 'var(--card2)', color: 'var(--tx3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '600' }}>{post.category}</span>
-                </div>
-                
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>{post.title}</h3>
-                <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px' }}>
-                  {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
-                </p>
-                
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: 'var(--tx3)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div onClick={(e) => handleProfileClick(e, post.author)} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: `var(--${post.authorColor}-dim)`, color: `var(--${post.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>{post.authorIcon}</div>
-                      <span style={{ fontWeight: '600', color: 'var(--tx)' }}>{post.author}</span>
-                    </div>
-                    <span style={{ margin: '0 4px' }}>·</span>
-                    <span>👀 {post.views}</span>
-                    <span>💬 {post.comments.length}</span>
-                    <span style={{ cursor: 'pointer', color: post.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: post.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, post.id)}>💛 {post.likes}</span>
+            <>
+              {filteredPosts.slice(0, visibleCount).map(post => (
+                <div className="card" key={post.id} onClick={() => handlePostClick(post)} style={{ position: 'relative', cursor: 'pointer', border: post.category === '운영' ? '1px solid var(--green)' : '' }}>
+                  {post.category === '운영' && <div style={{ position: 'absolute', top: '0', left: '0', width: '4px', height: '100%', background: 'var(--green)', borderRadius: '16px 0 0 16px' }}></div>}
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    {post.type && <span style={{ fontSize: '11px', background: `var(--${post.typeColor}-dim)`, color: `var(--${post.typeColor})`, padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>{post.type}</span>}
+                    <span style={{ fontSize: '11px', background: 'var(--card2)', color: 'var(--tx3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '600' }}>{post.category}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <span>{post.date}</span>
-                    {post.author === currentUser.name && (
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <span onClick={(e) => handleEditPost(e, post)} style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 'bold' }}>수정</span>
-                        <span onClick={(e) => handleDeletePost(e, post.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                  
+                  <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>{post.title}</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px' }}>
+                    {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
+                  </p>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: 'var(--tx3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div onClick={(e) => handleProfileClick(e, post.author)} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: `var(--${post.authorColor}-dim)`, color: `var(--${post.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>{post.authorIcon}</div>
+                        <span style={{ fontWeight: '600', color: 'var(--tx)' }}>{post.author}</span>
                       </div>
-                    )}
+                      <span style={{ margin: '0 4px' }}>·</span>
+                      <span>👀 {post.views}</span>
+                      <span>💬 {post.comments.length}</span>
+                      <span style={{ cursor: 'pointer', color: post.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: post.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, post.id)}>💛 {post.likes}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <span>{post.date}</span>
+                      {post.author === currentUser.name && (
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <span onClick={(e) => handleEditPost(e, post)} style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 'bold' }}>수정</span>
+                          <span onClick={(e) => handleDeletePost(e, post.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              ))}
+              {visibleCount < filteredPosts.length && (
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <button className="btn-ghost" onClick={handleLoadMore} style={{ padding: '12px 32px', borderRadius: '12px', fontSize: '14px', fontWeight: '800' }}>더보기</button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

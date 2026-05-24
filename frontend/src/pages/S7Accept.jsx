@@ -224,7 +224,10 @@ function S7Accept() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--ac)', lineHeight: '1' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.totalScore || 0}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>매칭 점수</div>
+                  <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                    매칭 점수
+                    <span data-tooltip-id="main-tooltip" data-tooltip-content="매칭 점수 = 시간 일치도(50점) + 관심사 일치도(50점)" style={{cursor:'help', background:'var(--card2)', color:'var(--tx2)', width:'14px', height:'14px', borderRadius:'50%', fontSize:'10px', display:'inline-flex', alignItems:'center', justifyContent:'center'}}>?</span>
+                  </div>
                 </div>
               </div>
 
