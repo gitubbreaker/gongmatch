@@ -35,7 +35,7 @@ public class ReviewController {
         Map<String, List<Student>> projectToMembers = new HashMap<>();
         
         for (TeamRequest req : acceptedRequests) {
-            String projName = req.getTargetProjectTitle() != null ? req.getTargetProjectTitle() : "기타 공모전";
+            String projName = req.getTargetProjectTitle() != null ? req.getTargetProjectTitle() : "자유 매칭";
             Student other = req.getSender().getId().equals(me.getId()) ? req.getReceiver() : req.getSender();
             
             projectToMembers.computeIfAbsent(projName, k -> new ArrayList<>()).add(other);
