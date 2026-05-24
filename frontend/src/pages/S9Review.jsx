@@ -23,7 +23,7 @@ function S9Review() {
   
   // Modal State
   const [showModal, setShowModal] = useState(false);
-
+  useEffect(() => {
     api.get('/api/reviews/accepted-teams').then(res => {
       setProjects(res.data || []);
       if (res.data && res.data.length > 0) {
