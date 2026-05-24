@@ -31,24 +31,26 @@ public class NotificationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
         String studentId = authentication.getName();
-        Student student = studentRepository.findByStudentId(studentId);
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(studentId).orElse(null);
         if (student == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("학생 정보를 찾을 수 없습니다.");
         }
 
         List<Notification> notifications = notificationRepository.findByReceiverIdOrderByCreatedAtDesc(student.getId());
 
-        List<Map<String, Object>> response = notifications.stream().map(n -> Map.of(
-            "id", n.getId(),
-            "type", n.getType(),
-            "icon", n.getIcon(),
-            "title", n.getTitle(),
-            "desc1", n.getDesc1() != null ? n.getDesc1() : "",
-            "desc2", n.getDesc2() != null ? n.getDesc2() : "",
-            "isNew", n.isNew(),
-            "targetUrl", n.getTargetUrl() != null ? n.getTargetUrl() : "",
-            "createdAt", n.getCreatedAt()
-        )).collect(Collectors.toList());
+        List<Map<String, Object>> response = notifications.stream().map(n -> {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", n.getId());
+            map.put("type", n.getType());
+            map.put("icon", n.getIcon());
+            map.put("title", n.getTitle());
+            map.put("desc1", n.getDesc1() != null ? n.getDesc1() : "");
+            map.put("desc2", n.getDesc2() != null ? n.getDesc2() : "");
+            map.put("isNew", n.isNew());
+            map.put("targetUrl", n.getTargetUrl() != null ? n.getTargetUrl() : "");
+            map.put("createdAt", n.getCreatedAt());
+            return map;
+        }).collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
@@ -59,7 +61,7 @@ public class NotificationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
         String studentId = authentication.getName();
-        Student student = studentRepository.findByStudentId(studentId);
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(studentId).orElse(null);
         if (student == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("학생 정보를 찾을 수 없습니다.");
         }

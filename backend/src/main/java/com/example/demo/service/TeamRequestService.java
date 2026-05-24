@@ -57,9 +57,6 @@ public class TeamRequestService {
                 }
             );
         }
-
-        }
-
         TeamRequest saved = teamRequestRepository.save(request);
 
         // 알림 생성 (수신자에게)
