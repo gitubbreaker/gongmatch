@@ -278,11 +278,7 @@ function S4Board() {
     }
   };
   
-  const handlePostClick = (post) => {
-    const updatedPost = { ...post, views: post.views + 1 };
-    setActivePost(updatedPost);
-    setPosts(posts.map(p => p.id === post.id ? updatedPost : p));
-  };
+
 
   // Dynamic recent activities related to the current user
   const recentActivities = [];
