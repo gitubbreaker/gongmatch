@@ -159,6 +159,7 @@ function Header() {
                     <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>{currentUser?.name ?? currentUser?.studentId ?? '사용자'}</div>
                     <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>{currentUser?.studentId ?? currentUser?.id ?? ''}</div>
                   </div>
+                  <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer' }} onClick={() => { navigate('/profile'); setOpenDrop(null); }}>내 프로필 설정</div>
                   <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer' }} onClick={() => { navigate('/time'); setOpenDrop(null); }}>가용시간 설정</div>
                   <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer' }} onClick={() => { navigate('/tags'); setOpenDrop(null); }}>관심사 관리</div>
                   <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--red)', cursor: 'pointer', marginTop: '4px', borderTop: '1px solid var(--brd)', paddingTop: '10px' }} onClick={handleLogout}>로그아웃</div>
