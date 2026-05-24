@@ -82,7 +82,7 @@ function ProfileDetailPage() {
         <Section style={{display:'flex', gap:'30px', alignItems:'center'}}>
           <div style={{width:'100px', height:'100px', background: profileColor, borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'40px', fontWeight:'bold', color: '#fff', overflow: 'hidden'}}>
             {profileImageUrl ? (
-              <img src={`http://localhost:8080${profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={`${api.defaults.baseURL}${profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               authorIcon
             )}
