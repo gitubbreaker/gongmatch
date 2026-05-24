@@ -31,24 +31,38 @@ function ProfileDetailPage() {
   const location = useLocation();
   const [reqMessage, setReqMessage] = React.useState('');
   const [kakaoLink, setKakaoLink] = React.useState('');
+  const [profileData, setProfileData] = React.useState(null);
 
-  // 동적 프로필 정보
-  const author = location.state?.author || '김지원';
-  const role = location.state?.role || '백엔드 개발';
-  const major = location.state?.major || '한양대학교 컴공';
-  const grade = location.state?.grade ? `${location.state.grade}학년` : '3학년';
-  const authorIcon = author.charAt(0);
-  const colorIndex = author.charCodeAt(0) % 5;
-  const colors = ['#5c7cfa', '#f06595', '#20c997', '#ff922b', '#845ef7'];
-  const profileColor = colors[colorIndex];
+  // 라우터 state로 넘어온 초기값 (fallback용)
+  const authorFromState = location.state?.author || '김지원';
 
   React.useEffect(() => {
+    // 본인의 오픈채팅 링크 가져오기 (팀원 요청 보낼 때 사용)
     api.get('/api/students/me').then(res => {
       if(res.data.openChatUrl) setKakaoLink(res.data.openChatUrl);
     }).catch(e => {
       setKakaoLink('https://open.kakao.com/o/gQtEJgpi');
     });
-  }, []);
+
+    // 상세 프로필 대상자의 실제 데이터 가져오기
+    if (authorFromState) {
+      api.get(`/api/students/profile/${encodeURIComponent(authorFromState)}`)
+        .then(res => setProfileData(res.data))
+        .catch(e => console.log('프로필을 찾을 수 없습니다.', e));
+    }
+  }, [authorFromState]);
+
+  // 동적 프로필 정보 (DB 데이터 최우선, 없으면 state, 둘다 없으면 기본값)
+  const author = profileData?.name || authorFromState;
+  const role = profileData?.role || location.state?.role || '백엔드 개발';
+  const major = profileData?.major || location.state?.major || '한양대학교 컴공';
+  const grade = profileData?.grade ? `${profileData.grade}학년` : (location.state?.grade ? `${location.state.grade}학년` : '3학년');
+  const intro = profileData?.introduction || `안녕하세요! ${role}에 관심이 많은 ${author}입니다. 성실하게 참여할 수 있습니다!`;
+  
+  const authorIcon = author.charAt(0);
+  const colorIndex = author.charCodeAt(0) % 5;
+  const colors = ['#5c7cfa', '#f06595', '#20c997', '#ff922b', '#845ef7'];
+  const profileColor = colors[colorIndex];
 
   const handleRequest = async () => {
     try {
@@ -70,13 +84,20 @@ function ProfileDetailPage() {
         </Section>
         <Section>
           <h3>자기소개</h3>
-          <p style={{color:'#8a8b91', marginTop:'15px', lineHeight:'1.8'}}>안녕하세요! {role}에 관심이 많은 {author}입니다. 성실하게 참여할 수 있습니다!</p>
+          <p style={{color:'#8a8b91', marginTop:'15px', lineHeight:'1.8'}}>{intro}</p>
         </Section>
         <Section>
           <h3>공모전 이력</h3>
           <Timeline style={{marginTop:'20px'}}>
-            <div className="item"><h4>🏆 공공데이터 앱 공모전 2024 (대상)</h4><p style={{color:'#666'}}>행안부 · 2024.11</p></div>
-            <div className="item"><h4>🥈 데이터 분석 챌린지 2024 (최우수)</h4><p style={{color:'#666'}}>행안부 · 2024.08</p></div>
+            {profileData?.contestCount > 0 ? (
+              <div className="item"><h4>🏆 총 {profileData.contestCount}회의 공모전 참가 경험</h4><p style={{color:'#666'}}>꾸준한 성장을 향해 나아가는 중</p></div>
+            ) : null}
+            {profileData?.awardCount > 0 ? (
+              <div className="item"><h4>🏅 {profileData.awardCount}회의 수상 내역</h4><p style={{color:'#666'}}>우수한 성과 입증</p></div>
+            ) : null}
+            {(!profileData || (profileData.contestCount === 0 && profileData.awardCount === 0)) && (
+              <div className="item"><h4>🌱 아직 등록된 공모전 이력이 없습니다</h4><p style={{color:'#666'}}>새로운 도전을 준비 중입니다!</p></div>
+            )}
           </Timeline>
         </Section>
       </div>

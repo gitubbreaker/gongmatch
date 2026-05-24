@@ -58,6 +58,16 @@ public class StudentController {
         return ResponseEntity.ok(updatedStudent);
     }
 
+    @GetMapping("/profile/{name}")
+    public ResponseEntity<Student> getProfileByName(@PathVariable String name) {
+        Student student = studentService.getStudentByName(name);
+        if (student != null) {
+            student.setPassword(null);
+            return ResponseEntity.ok(student);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     /**
      * [테스트용] 수동 데이터 생성 API
      * GET /api/students/seed-test

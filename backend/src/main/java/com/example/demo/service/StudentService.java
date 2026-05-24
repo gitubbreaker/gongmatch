@@ -65,6 +65,11 @@ public class StudentService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 
+    @Transactional(readOnly = true)
+    public Student getStudentByName(String name) {
+        return studentRepository.findFirstByName(name).orElse(null);
+    }
+
     @Transactional
     public Student updateStudentInfo(String loginId, String introduction, String major, Integer grade, String openChatUrl, String role) {
         Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)

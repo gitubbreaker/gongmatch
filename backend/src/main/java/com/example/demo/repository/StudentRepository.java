@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findFirstByLoginIdOrderByIdAsc(String loginId);
+    Optional<Student> findFirstByName(String name);
 }
