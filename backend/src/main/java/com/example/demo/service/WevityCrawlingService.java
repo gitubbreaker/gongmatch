@@ -88,10 +88,33 @@ public class WevityCrawlingService implements InitializingBean {
 
                             String detailUrl = titleTag.attr("href").startsWith("http") ? titleTag.attr("href") : BASE_URL + titleTag.attr("href");
                             
-                            Document detailDoc = Jsoup.connect(detailUrl)
-                                    .timeout(15000)
-                                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0")
-                                    .get();
+                            Document detailDoc = null;
+                            int retryCount = 0;
+                            while (retryCount < 3) {
+                                try {
+                                    detailDoc = Jsoup.connect(detailUrl)
+                                            .timeout(15000)
+                                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                                            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                                            .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
+                                            .referrer(BASE_URL)
+                                            .get();
+                                    break; // 성공 시 루프 탈출
+                                } catch (Exception e) {
+                                    retryCount++;
+                                    log.warn("상세 페이지 접속 실패 (재시도 {}/3): {} - {}", retryCount, detailUrl, e.getMessage());
+                                    if (retryCount >= 3) {
+                                        break;
+                                    }
+                                    Thread.sleep(1500); // 1.5초 후 재시도
+                                }
+                            }
+                            
+                            // 모든 재시도 후에도 실패하면 깔끔하게 스킵 (버림)
+                            if (detailDoc == null) {
+                                log.error("상세 페이지 최종 로드 실패. 해당 항목 저장을 건너뜁니다: {}", title);
+                                continue;
+                            }
                             
                             // OG 이미지 활용 (가장 정확)
                             String posterUrl = null;
@@ -109,7 +132,7 @@ public class WevityCrawlingService implements InitializingBean {
 
                             Elements infoLis = detailDoc.select(".cd-info-list li");
                             
-                            // 2. 상세 분야 검증
+                            // 2. 상세 분야 파싱 (필터링 용도가 아닌 확인용)
                             String field = "";
                             for (Element li : infoLis) {
                                 if (li.select(".tit").text().contains("분야")) {
@@ -117,9 +140,11 @@ public class WevityCrawlingService implements InitializingBean {
                                     break;
                                 }
                             }
-                            if (!isRelevantToIT(field) && !isRelevantToIT(title)) {
-                                continue;
-                            }
+                            
+                            // cidx=20 이므로 별도의 isRelevantToIT 검증을 무시하고 모두 통과시킵니다.
+                            // if (!isRelevantToIT(field) && !isRelevantToIT(title)) {
+                            //     continue;
+                            // }
 
                             // 3. 마감일 파싱 (정규식 강화)
                             String dateRange = "";
