@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from '../App';
 import api from '../api';
 
@@ -28,8 +28,19 @@ const Timeline = styled.div`
 
 function ProfileDetailPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [reqMessage, setReqMessage] = React.useState('');
   const [kakaoLink, setKakaoLink] = React.useState('');
+
+  // 동적 프로필 정보
+  const author = location.state?.author || '김지원';
+  const role = location.state?.role || '백엔드 개발';
+  const major = location.state?.major || '한양대학교 컴공';
+  const grade = location.state?.grade ? `${location.state.grade}학년` : '3학년';
+  const authorIcon = author.charAt(0);
+  const colorIndex = author.charCodeAt(0) % 5;
+  const colors = ['#5c7cfa', '#f06595', '#20c997', '#ff922b', '#845ef7'];
+  const profileColor = colors[colorIndex];
 
   React.useEffect(() => {
     api.get('/api/students/me').then(res => {
@@ -54,12 +65,12 @@ function ProfileDetailPage() {
     <Container>
       <div>
         <Section style={{display:'flex', gap:'30px', alignItems:'center'}}>
-          <div style={{width:'100px', height:'100px', background:'#5c7cfa', borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'40px', fontWeight:'bold'}}>김</div>
-          <div><h1 style={{fontSize:'30px'}}>김지원</h1><p style={{color:'#8a8b91'}}>백엔드 개발 · 한양대학교 컴공 3학년</p></div>
+          <div style={{width:'100px', height:'100px', background: profileColor, borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'40px', fontWeight:'bold', color: '#fff'}}>{authorIcon}</div>
+          <div><h1 style={{fontSize:'30px'}}>{author}</h1><p style={{color:'#8a8b91'}}>{role} · {major} {grade}</p></div>
         </Section>
         <Section>
           <h3>자기소개</h3>
-          <p style={{color:'#8a8b91', marginTop:'15px', lineHeight:'1.8'}}>안녕하세요! Python과 Django 백엔드 개발이 주특기입니다...</p>
+          <p style={{color:'#8a8b91', marginTop:'15px', lineHeight:'1.8'}}>안녕하세요! {role}에 관심이 많은 {author}입니다. 성실하게 참여할 수 있습니다!</p>
         </Section>
         <Section>
           <h3>공모전 이력</h3>

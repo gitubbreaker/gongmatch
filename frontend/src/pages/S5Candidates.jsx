@@ -377,7 +377,7 @@ function S5Candidates() {
                   </div>
                   <div style={{display:'flex', flexDirection:'column', gap:'8px', width:'100%'}}>
                     <button className="btn-prim" style={{width:'100%', padding:'12px', borderRadius:'10px', fontSize:'14px', fontWeight:'800'}} onClick={() => openModal(c.id, c.name, c.totalScore)}>팀원 요청하기</button>
-                    <button className="btn-ghost" style={{width:'100%', padding:'10px', fontSize:'12px'}} onClick={() => navigate(`/profile`)}>상세 프로필 보기</button>
+                    <button className="btn-ghost" style={{width:'100%', padding:'10px', fontSize:'12px'}} onClick={() => navigate(`/profile-detail`, { state: { author: c.name, role: c.role, major: c.major, grade: c.grade } })}>상세 프로필 보기</button>
                   </div>
                 </div>
               </div>

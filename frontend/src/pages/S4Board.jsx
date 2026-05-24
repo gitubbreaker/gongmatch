@@ -256,7 +256,7 @@ function S4Board() {
       showToast('운영팀 프로필입니다.');
     } else {
       showToast(`${author}님의 프로필 페이지로 이동합니다.`);
-      navigate('#'); 
+      navigate('/profile-detail', { state: { author } }); 
     }
   };
   
