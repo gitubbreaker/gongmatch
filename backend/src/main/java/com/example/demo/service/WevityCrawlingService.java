@@ -42,6 +42,7 @@ public class WevityCrawlingService implements InitializingBean {
         new Thread(() -> {
             try {
                 Thread.sleep(5000);
+                removeDuplicateProjects(); // 중복 데이터 우선 제거
                 cleanupJunkProjects();
                 Thread.sleep(1000);
                 crawlWevityProjects();
@@ -173,11 +174,11 @@ public class WevityCrawlingService implements InitializingBean {
                                 }
                             }
 
-                            Project project = projectRepository.findByDetailUrl(detailUrl)
-                                    .orElse(Project.builder().detailUrl(detailUrl).build());
+                            String hostName = item.select(".organ").text().trim();
+                            Project project = projectRepository.findFirstByTitleAndHost(title, hostName)
+                                    .orElse(Project.builder().title(title).host(hostName).build());
 
-                            project.setTitle(title);
-                            project.setHost(item.select(".organ").text().trim());
+                            project.setDetailUrl(detailUrl); // URL 파라미터가 갱신(gp=페이지 번호 변경)되었을 수 있으므로 덮어쓰기
                             project.setEndDate(endDate != null ? endDate : LocalDate.now().plusWeeks(2));
                             project.setCategory("IT/해커톤");
                             if (posterUrl != null) project.setPosterImageUrl(posterUrl);
@@ -252,5 +253,29 @@ public class WevityCrawlingService implements InitializingBean {
                 }
             });
         } catch (Exception ignored) {}
+    }
+
+    public void removeDuplicateProjects() {
+        try {
+            log.info("중복 데이터 청소 시작...");
+            java.util.List<Project> allProjects = projectRepository.findAllByOrderByIdDesc();
+            java.util.Set<String> uniqueKeys = new java.util.HashSet<>();
+            
+            for (Project p : allProjects) {
+                if (p.getTitle() == null || p.getHost() == null) continue;
+                String key = p.getTitle().trim() + "|" + p.getHost().trim();
+                
+                // 이미 발견된(최신) 공모전이면 기존(과거) 데이터는 삭제
+                if (uniqueKeys.contains(key)) {
+                    log.info("중복 공모전 삭제 처리: {}", p.getTitle());
+                    projectRepository.delete(p);
+                } else {
+                    uniqueKeys.add(key);
+                }
+            }
+            log.info("중복 데이터 청소 완료!");
+        } catch (Exception e) {
+            log.error("중복 데이터 청소 중 오류: {}", e.getMessage());
+        }
     }
 }
