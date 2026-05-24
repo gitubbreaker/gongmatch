@@ -45,6 +45,9 @@ public class Student {
     @Column(length = 255)
     private String openChatUrl; // 카카오톡 오픈채팅 URL 추가
 
+    @Column(length = 1000)
+    private String profileImageUrl; // 사용자 프로필 이미지 URL 추가
+
     @Column(name = "is_verified")
     private boolean isVerified = false;
 

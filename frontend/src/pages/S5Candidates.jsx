@@ -284,8 +284,12 @@ function S5Candidates() {
               }}>
                 {/* 왼쪽: 아바타 */}
                 <div style={{textAlign:'center'}}>
-                  <div style={{ width: '70px', height: '70px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', fontWeight:'900', borderRadius:'22px', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px' }}>
-                    {c.name.charAt(0)}
+                  <div style={{ width: '70px', height: '70px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', fontWeight:'900', borderRadius:'22px', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px', overflow:'hidden' }}>
+                    {c.profileImageUrl ? (
+                      <img src={`http://localhost:8080${c.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      c.name.charAt(0)
+                    )}
                   </div>
                   <div style={{fontSize:'12px', color:'var(--ac)', fontWeight:'800', border:'1px solid var(--ac-brd)', borderRadius:'4px', padding:'2px 4px', background:'var(--ac-dim)'}}>
                     {c.role || 'MEMBER'}

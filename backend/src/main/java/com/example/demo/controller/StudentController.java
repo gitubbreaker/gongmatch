@@ -10,8 +10,17 @@ import lombok.Setter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/students")
@@ -66,6 +75,49 @@ public class StudentController {
             return ResponseEntity.ok(student);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/profile-image")
+    public ResponseEntity<?> uploadProfileImage(@RequestParam("file") MultipartFile file, Authentication authentication) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "File is empty"));
+        }
+
+        try {
+            String loginId = authentication.getName();
+            Student student = studentService.getStudentByLoginId(loginId);
+            if (student == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+            }
+
+            // 폴더 생성
+            String uploadDir = "uploads/profiles/";
+            File dir = new File(uploadDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            // 파일명 중복 방지를 위한 UUID 사용
+            String originalFileName = file.getOriginalFilename();
+            String extension = "";
+            if (originalFileName != null && originalFileName.contains(".")) {
+                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            }
+            String fileName = UUID.randomUUID().toString() + extension;
+            Path filePath = Paths.get(uploadDir + fileName);
+
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // DB 업데이트
+            String fileUrl = "/uploads/profiles/" + fileName;
+            student.setProfileImageUrl(fileUrl);
+            studentService.updateStudentProfileImage(loginId, fileUrl); // 이 메서드는 Service에 만들어야 함
+
+            return ResponseEntity.ok(Map.of("profileImageUrl", fileUrl));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("message", "Could not store file"));
+        }
     }
 
     /**

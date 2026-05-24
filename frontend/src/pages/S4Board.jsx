@@ -5,157 +5,31 @@ import { showToast } from '../App';
 function S4Board() {
   const navigate = useNavigate();
 
-  const getInitialPosts = () => {
-    const saved = localStorage.getItem('gongmatch_posts');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: 1,
-        type: '📢 공지',
-        category: '운영',
-        region: '전체',
-        typeColor: 'green',
-        title: '공매치 매칭 알고리즘 v2.1 업데이트 안내 — 관심사 가중치 개선',
-        content: '이번 업데이트로 기술스택 해시태그의 가중치가 기존 대비 1.3배 상향 조정되었습니다. 동일 스택을 보유한 팀원과의 매칭 점수가 더 높아지니 프로필 해시태그를 더 상세하게 작성해 주세요.',
-        author: '공매치 운영팀',
-        authorColor: 'ac',
-        authorIcon: '공',
-        date: '2026.04.30',
-        views: 241,
-        likes: 34,
-        isLiked: false,
-        comments: [
-          { id: 101, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '좋은 업데이트네요! 확인했습니다.', date: '2026.04.30', replies: [] },
-          { id: 102, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '기대됩니다!', date: '2026.04.30', replies: [] }
-        ],
-        isHot: false
-      },
-      {
-        id: 2,
-        type: 'HOT',
-        category: '팀원 구해요',
-        region: '부산',
-        typeColor: 'red',
-        title: '부산 공공데이터 경진대회 백엔드 개발자 급구 — D-3, Python/Django',
-        content: '안녕하세요! 기획 PM 2명, 디자이너 1명 확정된 팀인데 백엔드 개발자 한 분이 개인 사정이 생겨서 급하게 구합니다. 공공데이터 API 연동 경험 있으신 분 우대해요.',
-        author: '권상아',
-        authorColor: 'blue',
-        authorIcon: '권',
-        date: '2시간 전',
-        views: 189,
-        likes: 65,
-        isLiked: false,
-        comments: [
-          { id: 201, author: '최유빈', authorIcon: '최', authorColor: 'purple', content: '백엔드 개발자 급구 아직 유효한가요?', date: '3시간 전', replies: [] },
-          { id: 202, author: '이수현', authorIcon: '이', authorColor: 'orange', content: '쪽지 드렸습니다.', date: '1시간 전', replies: [] }
-        ],
-        isHot: true
-      },
-      {
-        id: 3,
-        type: '',
-        category: '공모전 후기',
-        region: '온라인',
-        title: '2025 행안부 데이터 분석 챌린지 수상 후기 — 공매치로 팀 꾸린 썰',
-        content: '지난번 공매치로 팀 꾸려서 최우수 받았습니다! 알고리즘 추천으로 만난 팀원들인데 실제로 가용시간이 딱 맞아서 협업이 너무 편했고, 매너태그 덕에 소통도 잘 맞았습니다. 후기 공유해요.',
-        author: '박도현',
-        authorColor: 'green',
-        authorIcon: '박',
-        date: '어제',
-        views: 189,
-        likes: 65,
-        isLiked: false,
-        comments: [
-          { id: 301, author: '김지현', authorIcon: '김', authorColor: 'purple', content: '우와 축하드려요! 저도 얼른 좋은 팀 만나고 싶네요.', date: '어제', replies: [] }
-        ],
-        isHot: false
-      },
-      {
-        id: 4,
-        type: '',
-        category: '질문·고민',
-        region: '서울',
-        title: '처음 공모전 팀반인데 팀 꾸리는 게 너무 두려워요 — 조언 부탁드려요',
-        content: '비전공자인데 데이터 분석에 관심이 생겨서 공모전 참가해보고 싶은데 어떻게 팀을 찾아야 할지 모르겠어요. 공매치 처음 해보는데 매너태그를 어떻게 설정해야 매칭이 잘 될까요?',
-        author: '김지현',
-        authorColor: 'purple',
-        authorIcon: '김',
-        date: '2일 전',
-        views: 56,
-        likes: 5,
-        isLiked: false,
-        comments: [],
-        isHot: false
-      },
-      {
-        id: 5,
-        type: '',
-        category: '팀 참여 원해요',
-        region: '온라인',
-        title: 'UI/UX 디자이너 팀 참여 가능 — Figma 고급, 홍대 시각디자인 4학년',
-        content: '합류합니다. 광고/서비스 UX 개선 공모전 최우수 수상 경력 있고, Figma/Adobe XD 능숙합니다. 부산·온라인 모두 가능하고 주말 오후 가용시간 여유롭습니다.',
-        author: '이수현',
-        authorColor: 'orange',
-        authorIcon: '이',
-        date: '4일 전',
-        views: 124,
-        likes: 22,
-        isLiked: false,
-        comments: [
-          { id: 501, author: '권상아', authorIcon: '권', authorColor: 'blue', content: '혹시 프론트엔드도 구하시나요?', date: '3일 전', replies: [] }
-        ],
-        isHot: false
-      }
-    ];
-  };
-
-  const [posts, setPosts] = useState(getInitialPosts());
-  
+  const [posts, setPosts] = useState([]);
   const userStr = localStorage.getItem('gongmatch_currentUser');
   const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : { name: '익명' };
 
-  useEffect(() => {
-    localStorage.setItem('gongmatch_posts', JSON.stringify(posts));
-  }, [posts]);
-
-  // 백엔드에서 등록된 새 글 가져오기
-  useEffect(() => {
+  const fetchPosts = () => {
     import('../api').then(module => {
       const api = module.default;
       api.get('/api/posts').then(res => {
-        if (res.data && res.data.length > 0) {
-          // 백엔드 글을 프론트엔드 형식으로 변환
-          const backendPosts = res.data.map(bp => ({
-            id: bp.id + 100000, // 로컬 ID와 겹치지 않게
-            type: 'NEW',
-            category: bp.category || '팀원 구해요',
-            region: bp.region || '전체',
-            typeColor: 'ac',
-            title: bp.title,
-            content: bp.content,
-            author: bp.author || '익명',
-            authorColor: 'purple',
-            authorIcon: (bp.author || '익').charAt(0),
-            date: bp.createdAt ? bp.createdAt.substring(0, 10).replace(/-/g, '.') : '방금 전',
-            views: bp.views || 0,
-            likes: bp.likes || 0,
-            isLiked: false,
-            comments: [],
-            isHot: false
-          }));
-
-          setPosts(prevPosts => {
-            // 이미 추가된 백엔드 글 중복 방지 로직 (간단히)
-            const existingBackendIds = prevPosts.map(p => p.id).filter(id => id > 100000);
-            const newBackendPosts = backendPosts.filter(bp => !existingBackendIds.includes(bp.id));
-            if (newBackendPosts.length > 0) {
-              return [...newBackendPosts, ...prevPosts];
-            }
-            return prevPosts;
-          });
-        }
+        const backendPosts = res.data.map(bp => ({
+          ...bp,
+          type: '',
+          typeColor: 'ac',
+          authorColor: 'purple',
+          authorIcon: (bp.author || '익').charAt(0),
+          date: bp.createdAt ? new Date(bp.createdAt).toLocaleString() : '방금 전',
+          isLiked: false,
+          comments: bp.comments || [],
+        }));
+        setPosts(backendPosts);
       }).catch(e => console.error('게시글 불러오기 실패', e));
     });
+  };
+
+  useEffect(() => {
+    fetchPosts();
   }, []);
 
   const [activeCategory, setActiveCategory] = useState('전체');
@@ -193,60 +67,50 @@ function S4Board() {
     (activeRegion === '전체' || (p.region && p.region === activeRegion))
   );
 
-  const handleWrite = () => {
+  const handleWrite = async () => {
     if (!writeForm.title.trim() || !writeForm.content.trim()) {
       showToast('제목과 내용을 모두 입력해주세요.');
       return;
     }
     
-    if (editingPostId) {
-      const updatedPosts = posts.map(p => p.id === editingPostId ? { ...p, title: writeForm.title, category: writeForm.category, region: writeForm.region, content: writeForm.content } : p);
-      setPosts(updatedPosts);
-      if (activePost && activePost.id === editingPostId) {
-        setActivePost({ ...activePost, title: writeForm.title, category: writeForm.category, region: writeForm.region, content: writeForm.content });
+    try {
+      const api = (await import('../api')).default;
+      if (editingPostId) {
+        await api.put(`/api/posts/${editingPostId}`, writeForm);
+        showToast('게시글이 성공적으로 수정되었습니다.');
+      } else {
+        await api.post('/api/posts', { ...writeForm, author: currentUser.name });
+        showToast('게시글이 성공적으로 등록되었습니다.');
       }
       setIsWriteModalOpen(false);
       setEditingPostId(null);
       setWriteForm({ title: '', category: '자유게시판', region: '전체', content: '' });
-      showToast('게시글이 성공적으로 수정되었습니다.');
-      return;
+      fetchPosts();
+    } catch (e) {
+      console.error('글 작성/수정 실패', e);
+      showToast('처리 중 오류가 발생했습니다.');
     }
-    
-    const newPost = {
-      id: Date.now(),
-      type: 'NEW',
-      category: writeForm.category,
-      region: writeForm.region,
-      typeColor: 'ac',
-      title: writeForm.title,
-      content: writeForm.content,
-      author: currentUser.name || '익명',
-      authorColor: 'purple',
-      authorIcon: (currentUser.name || '익명').charAt(0),
-      date: '방금 전',
-      views: 0,
-      likes: 0,
-      isLiked: false,
-      comments: [],
-      isHot: false
-    };
-
-    setPosts([newPost, ...posts]);
-    setIsWriteModalOpen(false);
-    setWriteForm({ title: '', category: '자유게시판', region: '전체', content: '' });
-    showToast('게시글이 성공적으로 등록되었습니다.');
   };
 
-  const handleLike = (e, id) => {
+  const handleLike = async (e, id) => {
     e.stopPropagation();
-    setPosts(posts.map(p => {
-      if (p.id === id) {
-        return { ...p, likes: p.isLiked ? p.likes - 1 : p.likes + 1, isLiked: !p.isLiked };
+    try {
+      const api = (await import('../api')).default;
+      const post = posts.find(p => p.id === id);
+      const isLiked = post?.isLiked;
+      await api.patch(`/api/posts/${id}/like?increment=${!isLiked}`);
+      
+      setPosts(posts.map(p => {
+        if (p.id === id) {
+          return { ...p, likes: p.isLiked ? p.likes - 1 : p.likes + 1, isLiked: !p.isLiked };
+        }
+        return p;
+      }));
+      if (activePost && activePost.id === id) {
+        setActivePost({ ...activePost, likes: activePost.isLiked ? activePost.likes - 1 : activePost.likes + 1, isLiked: !activePost.isLiked });
       }
-      return p;
-    }));
-    if (activePost && activePost.id === id) {
-      setActivePost({ ...activePost, likes: activePost.isLiked ? activePost.likes - 1 : activePost.likes + 1, isLiked: !activePost.isLiked });
+    } catch (e) {
+      console.error('좋아요 실패', e);
     }
   };
 
@@ -260,48 +124,46 @@ function S4Board() {
     }
   };
   
-  const handleAddComment = () => {
-    if (!commentInput.trim()) return;
-    
-    const newComment = {
-      id: Date.now(),
-      author: currentUser.name || '익명',
-      authorIcon: (currentUser.name || '익명').charAt(0),
-      authorColor: 'ac',
-      content: commentInput,
-      date: '방금 전'
-    };
-    
-    const updatedPost = { ...activePost, comments: [...activePost.comments, newComment] };
-    setActivePost(updatedPost);
-    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
-    setCommentInput('');
+  const handleAddComment = async () => {
+    if (!commentInput.trim() || !activePost) return;
+    try {
+      const api = (await import('../api')).default;
+      await api.post(`/api/posts/${activePost.id}/comments`, { content: commentInput, author: currentUser.name });
+      setCommentInput('');
+      fetchPosts();
+      
+      // 낙관적 업데이트를 하거나, fetchPosts 후 activePost를 다시 찾아 업데이트합니다.
+      // fetchPosts가 비동기이므로 우선 여기서 모달을 닫거나, 아니면 모달은 유지하고 다시 fetch된 걸 기다립니다.
+      // 여기서는 간단히 다시 전체 게시글을 가져오고 activePost 갱신은 다음 렌더에서 자동 반영되도록 useEffect를 추가하는게 좋지만,
+      // 일단 간단히 알림을 띄우고 모달을 닫지 않고 fetchPosts를 합니다.
+      setTimeout(() => {
+        api.get('/api/posts').then(res => {
+          const updatedPost = res.data.find(p => p.id === activePost.id);
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+        });
+      }, 300);
+    } catch(e) {
+      console.error('댓글 작성 실패', e);
+    }
   };
   
-  const handleAddReply = (commentId) => {
-    if (!replyInput.trim()) return;
-    
-    const newReply = {
-      id: Date.now(),
-      author: currentUser.name || '익명',
-      authorIcon: (currentUser.name || '익명').charAt(0),
-      authorColor: 'ac',
-      content: replyInput,
-      date: '방금 전'
-    };
-    
-    const updatedComments = activePost.comments.map(c => {
-      if (c.id === commentId) {
-        return { ...c, replies: [...(c.replies || []), newReply] };
-      }
-      return c;
-    });
-
-    const updatedPost = { ...activePost, comments: updatedComments };
-    setActivePost(updatedPost);
-    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
-    setReplyInput('');
-    setReplyToCommentId(null);
+  const handleAddReply = async (commentId) => {
+    if (!replyInput.trim() || !activePost) return;
+    try {
+      const api = (await import('../api')).default;
+      await api.post(`/api/posts/${activePost.id}/comments/${commentId}/replies`, { content: replyInput, author: currentUser.name });
+      setReplyInput('');
+      setReplyToCommentId(null);
+      fetchPosts();
+      setTimeout(() => {
+        api.get('/api/posts').then(res => {
+          const updatedPost = res.data.find(p => p.id === activePost.id);
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+        });
+      }, 300);
+    } catch(e) {
+      console.error('대댓글 작성 실패', e);
+    }
   };
   
   const handleEditPost = (e, post) => {
@@ -311,64 +173,108 @@ function S4Board() {
     setIsWriteModalOpen(true);
   };
 
-  const handleSaveEditComment = (commentId) => {
-    if (!editInput.trim()) return;
-    const updatedComments = activePost.comments.map(c => c.id === commentId ? { ...c, content: editInput } : c);
-    const updatedPost = { ...activePost, comments: updatedComments };
-    setActivePost(updatedPost);
-    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
-    setEditingCommentId(null);
-    setEditInput('');
-    showToast('댓글이 수정되었습니다.');
+  const handleSaveEditComment = async (commentId) => {
+    if (!editInput.trim() || !activePost) return;
+    try {
+      const api = (await import('../api')).default;
+      await api.put(`/api/posts/${activePost.id}/comments/${commentId}`, { content: editInput });
+      setEditingCommentId(null);
+      setEditInput('');
+      showToast('댓글이 수정되었습니다.');
+      fetchPosts();
+      setTimeout(() => {
+        api.get('/api/posts').then(res => {
+          const updatedPost = res.data.find(p => p.id === activePost.id);
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+        });
+      }, 300);
+    } catch(e) {
+      console.error('댓글 수정 실패', e);
+    }
   };
 
-  const handleSaveEditReply = (commentId, replyId) => {
-    if (!editInput.trim()) return;
-    const updatedComments = activePost.comments.map(c => {
-      if (c.id === commentId) {
-        return { ...c, replies: c.replies.map(r => r.id === replyId ? { ...r, content: editInput } : r) };
-      }
-      return c;
-    });
-    const updatedPost = { ...activePost, comments: updatedComments };
-    setActivePost(updatedPost);
-    setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
-    setEditingReplyId(null);
-    setEditInput('');
-    showToast('답글이 수정되었습니다.');
+  const handleSaveEditReply = async (commentId, replyId) => {
+    if (!editInput.trim() || !activePost) return;
+    try {
+      const api = (await import('../api')).default;
+      await api.put(`/api/posts/${activePost.id}/comments/${replyId}`, { content: editInput });
+      setEditingReplyId(null);
+      setEditInput('');
+      showToast('답글이 수정되었습니다.');
+      fetchPosts();
+      setTimeout(() => {
+        api.get('/api/posts').then(res => {
+          const updatedPost = res.data.find(p => p.id === activePost.id);
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+        });
+      }, 300);
+    } catch(e) {
+      console.error('답글 수정 실패', e);
+    }
   };
   
-  const handleDeletePost = (e, postId) => {
+  const handleDeletePost = async (e, postId) => {
     if (e) e.stopPropagation();
     if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
-      setPosts(posts.filter(p => p.id !== postId));
-      if (activePost && activePost.id === postId) setActivePost(null);
-      showToast('게시글이 삭제되었습니다.');
+      try {
+        const api = (await import('../api')).default;
+        await api.delete(`/api/posts/${postId}`);
+        if (activePost && activePost.id === postId) setActivePost(null);
+        showToast('게시글이 삭제되었습니다.');
+        fetchPosts();
+      } catch (e) {
+        console.error('게시글 삭제 실패', e);
+      }
     }
   };
 
-  const handleDeleteComment = (commentId) => {
+  const handlePostClick = async (post) => {
+    try {
+      const api = (await import('../api')).default;
+      await api.patch(`/api/posts/${post.id}/view`);
+      const updatedPost = { ...post, views: post.views + 1 };
+      setActivePost(updatedPost);
+      setPosts(posts.map(p => p.id === post.id ? updatedPost : p));
+    } catch (e) {
+      setActivePost(post);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
     if (window.confirm('댓글을 삭제하시겠습니까?')) {
-      const updatedComments = activePost.comments.filter(c => c.id !== commentId);
-      const updatedPost = { ...activePost, comments: updatedComments };
-      setActivePost(updatedPost);
-      setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
-      showToast('댓글이 삭제되었습니다.');
+      try {
+        const api = (await import('../api')).default;
+        await api.delete(`/api/posts/${activePost.id}/comments/${commentId}`);
+        showToast('댓글이 삭제되었습니다.');
+        fetchPosts();
+        setTimeout(() => {
+          api.get('/api/posts').then(res => {
+            const updatedPost = res.data.find(p => p.id === activePost.id);
+            if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+          });
+        }, 300);
+      } catch(e) {
+        console.error('댓글 삭제 실패', e);
+      }
     }
   };
 
-  const handleDeleteReply = (commentId, replyId) => {
+  const handleDeleteReply = async (commentId, replyId) => {
     if (window.confirm('답글을 삭제하시겠습니까?')) {
-      const updatedComments = activePost.comments.map(c => {
-        if (c.id === commentId) {
-          return { ...c, replies: c.replies.filter(r => r.id !== replyId) };
-        }
-        return c;
-      });
-      const updatedPost = { ...activePost, comments: updatedComments };
-      setActivePost(updatedPost);
-      setPosts(posts.map(p => p.id === activePost.id ? updatedPost : p));
-      showToast('답글이 삭제되었습니다.');
+      try {
+        const api = (await import('../api')).default;
+        await api.delete(`/api/posts/${activePost.id}/comments/${replyId}`);
+        showToast('답글이 삭제되었습니다.');
+        fetchPosts();
+        setTimeout(() => {
+          api.get('/api/posts').then(res => {
+            const updatedPost = res.data.find(p => p.id === activePost.id);
+            if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+          });
+        }, 300);
+      } catch(e) {
+        console.error('답글 삭제 실패', e);
+      }
     }
   };
   

@@ -84,6 +84,14 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
+    @Transactional
+    public Student updateStudentProfileImage(String loginId, String profileImageUrl) {
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        student.setProfileImageUrl(profileImageUrl);
+        return studentRepository.save(student);
+    }
+
     /**
      * 알고리즘 기반 학생 추천 목록 조회
      */
@@ -149,6 +157,7 @@ public class StudentService {
                     .commonTags(myTagNames.stream().filter(otherTagNames::contains).collect(Collectors.toList()))
                     .role(other.getRole())
                     .averageRating(averageRating)
+                    .profileImageUrl(other.getProfileImageUrl())
                     .build());
         }
 
@@ -255,5 +264,6 @@ public class StudentService {
         private List<String> commonTags;
         private String role;
         private Double averageRating;
+        private String profileImageUrl;
     }
 }

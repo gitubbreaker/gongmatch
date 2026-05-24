@@ -57,6 +57,26 @@ function S6Profile() {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await api.post('/api/students/profile-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      // 업로드 성공 후 로컬 상태 즉시 반영
+      setStudent({ ...student, profileImageUrl: res.data.profileImageUrl });
+      showToast('프로필 이미지가 성공적으로 변경되었습니다.');
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error);
+      showToast('이미지 업로드에 실패했습니다.');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg)', color: 'var(--tx2)' }}>
@@ -75,8 +95,18 @@ function S6Profile() {
       <div className="prof-main" style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="card2">
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            <div className="av" style={{ width: '66px', height: '66px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px' }}>
-              {student?.name?.charAt(0) || 'U'}
+            <div style={{ position: 'relative' }}>
+              <div className="av" style={{ width: '66px', height: '66px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '22px' }}>
+                {student?.profileImageUrl ? (
+                  <img src={`http://localhost:8080${student.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  student?.name?.charAt(0) || 'U'
+                )}
+              </div>
+              <label style={{ position: 'absolute', bottom: '-5px', right: '-5px', background: 'var(--ac)', color: 'var(--bg)', width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.3)', fontSize: '12px' }}>
+                📷
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
+              </label>
             </div>
             <div style={{ flex: '1' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>

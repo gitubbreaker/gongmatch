@@ -36,6 +36,10 @@ public class Post {
     @Builder.Default
     private int likes = 0;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Comment> comments = new java.util.ArrayList<>();
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 }

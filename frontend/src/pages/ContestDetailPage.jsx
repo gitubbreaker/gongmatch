@@ -61,6 +61,7 @@ function ContestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isJoined, setIsJoined] = useState(() => {
     return localStorage.getItem(`gongmatch_joined_room_${id}`) === 'true';
   });
@@ -99,7 +100,32 @@ function ContestDetailPage() {
         endDate: '2026-05-29' 
       });
     });
+
+    const userStr = localStorage.getItem('gongmatch_currentUser');
+    const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    if (currentUser && currentUser.id) {
+      api.get(`/api/bookmarks?userId=${currentUser.id}`).then(res => {
+        setIsBookmarked(res.data.includes(parseInt(id, 10)));
+      }).catch(e => console.error('북마크 로드 실패', e));
+    }
   }, [id]);
+
+  const toggleBookmark = async () => {
+    const userStr = localStorage.getItem('gongmatch_currentUser');
+    const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    if (!currentUser || !currentUser.id) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    
+    try {
+      const res = await api.post(`/api/bookmarks/${id}?userId=${currentUser.id}`);
+      setIsBookmarked(res.data.bookmarked);
+      showToast(res.data.bookmarked ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+    } catch (err) {
+      console.error('북마크 토글 실패', err);
+    }
+  };
 
   const handleJoin = () => {
     setIsJoined(true);
@@ -147,13 +173,19 @@ function ContestDetailPage() {
               {project.category}
             </span>
             <h2 style={{fontSize:'32px', fontWeight:'900', color:'var(--tx)', marginBottom:'16px', lineHeight: '1.3'}}>{project.title}</h2>
-            <div style={{display:'flex', gap:'20px', color:'var(--tx2)', fontSize:'14px'}}>
+            <div style={{display:'flex', gap:'20px', color:'var(--tx2)', fontSize:'14px', marginBottom: '16px'}}>
               <span><b style={{color:'var(--tx)', fontWeight:'800'}}>주관:</b> {project.host}</span>
               <span><b style={{color:'var(--tx)', fontWeight:'800'}}>마감일:</b> <span style={{color:'var(--orange)'}}>{project.endDate}</span></span>
             </div>
+            <button onClick={() => window.open(project.officialUrl || project.detailUrl, '_blank')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', color: 'var(--tx)', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '800', cursor: 'pointer', transition: '0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }} onMouseOver={e=>e.target.style.background='var(--brd)'} onMouseOut={e=>e.target.style.background='var(--card2)'}>
+              {project.officialUrl && !project.officialUrl.includes('wevity.com') ? '🌐 공식 홈페이지 가기' : '🔗 원본 공고 가기'}
+            </button>
           </div>
         </div>
-        <div style={{textAlign:'right'}}>
+        <div style={{textAlign:'right', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-end'}}>
+          <button onClick={toggleBookmark} style={{ background: 'var(--card2)', border: '1px solid var(--brd)', width: '50px', height: '50px', borderRadius: '50%', fontSize: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} onMouseOver={e=>e.target.style.transform='scale(1.1)'} onMouseOut={e=>e.target.style.transform='scale(1)'}>
+            {isBookmarked ? '💖' : '🤍'}
+          </button>
           {!isJoined ? (
             <button onClick={handleJoin} className="btn-prim" style={{padding:'20px 32px', borderRadius:'16px', fontSize:'16px', fontWeight:'900', boxShadow: '0 8px 24px rgba(196,255,0,0.25)', transition: 'transform 0.1s'}}>
               🤝 팀 빌딩 대기실 입장하기
@@ -320,7 +352,7 @@ function ContestDetailPage() {
                       </div>
 
                       <div style={{ display: 'flex', gap: '12px' }}>
-                        <button onClick={() => navigate('/profile-detail')} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
+                        <button onClick={() => navigate('/profile-detail', { state: { author: u.name, role: u.role, major: u.major, grade: u.grade } })} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
                         <button onClick={() => setReqModal({ open: true, id: u.id, name: u.name })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
                     </UserCard>

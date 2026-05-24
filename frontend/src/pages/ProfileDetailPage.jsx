@@ -59,6 +59,7 @@ function ProfileDetailPage() {
   const grade = profileData?.grade ? `${profileData.grade}학년` : (location.state?.grade ? `${location.state.grade}학년` : '3학년');
   const intro = profileData?.introduction || `안녕하세요! ${role}에 관심이 많은 ${author}입니다. 성실하게 참여할 수 있습니다!`;
   
+  const profileImageUrl = profileData?.profileImageUrl;
   const authorIcon = author.charAt(0);
   const colorIndex = author.charCodeAt(0) % 5;
   const colors = ['#5c7cfa', '#f06595', '#20c997', '#ff922b', '#845ef7'];
@@ -79,7 +80,13 @@ function ProfileDetailPage() {
     <Container>
       <div>
         <Section style={{display:'flex', gap:'30px', alignItems:'center'}}>
-          <div style={{width:'100px', height:'100px', background: profileColor, borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'40px', fontWeight:'bold', color: '#fff'}}>{authorIcon}</div>
+          <div style={{width:'100px', height:'100px', background: profileColor, borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'40px', fontWeight:'bold', color: '#fff', overflow: 'hidden'}}>
+            {profileImageUrl ? (
+              <img src={`http://localhost:8080${profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              authorIcon
+            )}
+          </div>
           <div><h1 style={{fontSize:'30px'}}>{author}</h1><p style={{color:'#8a8b91'}}>{role} · {major} {grade}</p></div>
         </Section>
         <Section>

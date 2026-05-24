@@ -115,6 +115,29 @@ const Label = styled.span`
   min-width: 50px;
 `;
 
+const BookmarkBtn = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--card);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+  z-index: 10;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+`;
+
 const Footer = styled.div`
   margin-top: 24px;
   padding-top: 20px;
@@ -193,6 +216,7 @@ const SmartPoster = ({ src, title, category }) => {
 function ProjectListPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // 리얼타임 수집 상태 관리
@@ -204,8 +228,15 @@ function ProjectListPage() {
     try {
       const res = await api.get('/api/projects');
       setProjects(res.data);
+      
+      const userStr = localStorage.getItem('gongmatch_currentUser');
+      const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+      if (currentUser && currentUser.id) {
+        const bmRes = await api.get(`/api/bookmarks?userId=${currentUser.id}`);
+        setBookmarkedIds(bmRes.data);
+      }
     } catch (err) {
-      console.error('공고 로드 실패', err);
+      console.error('공고/북마크 로드 실패', err);
     } finally {
       setIsLoading(false);
     }
@@ -268,6 +299,27 @@ function ProjectListPage() {
     navigate(`/projects/${id}`);
   };
 
+  const toggleBookmark = async (e, projectId) => {
+    e.stopPropagation();
+    const userStr = localStorage.getItem('gongmatch_currentUser');
+    const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    if (!currentUser || !currentUser.id) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    
+    try {
+      const res = await api.post(`/api/bookmarks/${projectId}?userId=${currentUser.id}`);
+      if (res.data.bookmarked) {
+        setBookmarkedIds([...bookmarkedIds, projectId]);
+      } else {
+        setBookmarkedIds(bookmarkedIds.filter(id => id !== projectId));
+      }
+    } catch (err) {
+      console.error('북마크 토글 실패', err);
+    }
+  };
+
   // 대학생 맞춤 필터링 로직
   const filteredProjects = projects;
 
@@ -304,6 +356,9 @@ function ProjectListPage() {
           <Grid>
             {filteredProjects.map(project => (
               <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
+                <BookmarkBtn onClick={(e) => toggleBookmark(e, project.id)}>
+                  {bookmarkedIds.includes(project.id) ? '💖' : '🤍'}
+                </BookmarkBtn>
                 <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '18px', background: 'var(--bg2)', border: '1px solid var(--brd2)' }}>
                   <SmartPoster src={project.posterImageUrl} title={project.title} category={project.category} />
                 </div>
