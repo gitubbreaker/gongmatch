@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/projects", "/api/projects/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tags").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll() // 업로드된 정적 파일(이미지 등) 누구나 조회 가능
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 나머지 모든 요청은 인증 필요
