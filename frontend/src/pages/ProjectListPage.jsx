@@ -223,6 +223,7 @@ function ProjectListPage() {
   const [crawlingStatus, setCrawlingStatus] = useState({ isCrawling: false, lastStartTime: null });
   const [timeLeft, setTimeLeft] = useState(0); 
   const [showBanner, setShowBanner] = useState(false);
+  const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false); // 찜 필터 상태
 
   const fetchProjects = async () => {
     try {
@@ -345,7 +346,10 @@ function ProjectListPage() {
   };
 
   // 대학생 맞춤 필터링 로직
-  const filteredProjects = projects;
+  const filteredProjects = projects.filter(p => {
+    if (showBookmarkedOnly && !bookmarkedIds.includes(p.id)) return false;
+    return true;
+  });
 
   return (
     <Container>
@@ -373,10 +377,30 @@ function ProjectListPage() {
         </EmptyState>
       ) : (
         <>
-          <p style={{ fontSize: '13px', color: 'var(--tx3)', marginBottom: '24px', textAlign: 'center' }}>
-            현재 <b>{filteredProjects.length}건</b>의 IT 프로젝트가 당신을 기다리고 있습니다.
-            <span style={{ marginLeft: '12px', padding: '2px 8px', background: 'var(--ac-dim)', color: 'var(--ac)', borderRadius: '4px', fontSize: '11px', fontWeight: '800' }}>실시간 동기화 완료</span>
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '24px', gap: '16px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--tx3)', margin: 0 }}>
+              현재 <b>{filteredProjects.length}건</b>의 IT 프로젝트가 당신을 기다리고 있습니다.
+              <span style={{ marginLeft: '12px', padding: '2px 8px', background: 'var(--ac-dim)', color: 'var(--ac)', borderRadius: '4px', fontSize: '11px', fontWeight: '800' }}>실시간 동기화 완료</span>
+            </p>
+            <button 
+              onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
+              style={{
+                background: showBookmarkedOnly ? 'var(--ac-dim)' : 'var(--card)',
+                color: showBookmarkedOnly ? 'var(--ac)' : 'var(--tx2)',
+                border: showBookmarkedOnly ? '1px solid var(--ac)' : '1px solid var(--brd)',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+              {showBookmarkedOnly ? '💖 전체 공고 보기' : '🤍 내가 찜한 공고만 보기'}
+            </button>
+          </div>
           <Grid>
             {filteredProjects.map(project => (
               <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
