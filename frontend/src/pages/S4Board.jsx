@@ -407,43 +407,52 @@ function S4Board() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredPosts.map(post => (
-            <div key={post.id} onClick={() => handlePostClick(post)} style={{ background: 'var(--card)', borderRadius: '16px', border: post.category === '운영' ? '1px solid var(--green)' : '1px solid var(--brd)', padding: '24px', position: 'relative', cursor: 'pointer', transition: 'all 0.2s' }}>
-              {post.category === '운영' && <div style={{ position: 'absolute', top: '0', left: '0', width: '4px', height: '100%', background: 'var(--green)', borderRadius: '16px 0 0 16px' }}></div>}
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                {post.type && <span style={{ fontSize: '11px', background: `var(--${post.typeColor}-dim)`, color: `var(--${post.typeColor})`, padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>{post.type}</span>}
-                <span style={{ fontSize: '11px', background: 'var(--card2)', color: 'var(--tx3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '600' }}>{post.category}</span>
-              </div>
-              
-              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>{post.title}</h3>
-              <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px' }}>
-                {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
-              </p>
-              
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: 'var(--tx3)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div onClick={(e) => handleProfileClick(e, post.author)} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: `var(--${post.authorColor}-dim)`, color: `var(--${post.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>{post.authorIcon}</div>
-                    <span style={{ fontWeight: '600', color: 'var(--tx)' }}>{post.author}</span>
-                  </div>
-                  <span style={{ margin: '0 4px' }}>·</span>
-                  <span>👀 {post.views}</span>
-                  <span>💬 {post.comments.length}</span>
-                  <span style={{ cursor: 'pointer', color: post.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: post.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, post.id)}>💛 {post.likes}</span>
-                </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <span>{post.date}</span>
-                  {post.author === currentUser.name && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <span onClick={(e) => handleEditPost(e, post)} style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 'bold' }}>수정</span>
-                      <span onClick={(e) => handleDeletePost(e, post.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+          {filteredPosts.length === 0 ? (
+            <div style={{ padding: '60px 20px', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'float 3s ease-in-out infinite' }}>📭</div>
+              <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>아직 작성된 게시글이 없습니다.</h3>
+              <p style={{ fontSize: '14px', color: 'var(--tx3)' }}>첫 번째 게시글의 주인공이 되어보세요!</p>
+              <style>{`@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }`}</style>
             </div>
-          ))}
+          ) : (
+            filteredPosts.map(post => (
+              <div className="card" key={post.id} onClick={() => handlePostClick(post)} style={{ position: 'relative', cursor: 'pointer', border: post.category === '운영' ? '1px solid var(--green)' : '' }}>
+                {post.category === '운영' && <div style={{ position: 'absolute', top: '0', left: '0', width: '4px', height: '100%', background: 'var(--green)', borderRadius: '16px 0 0 16px' }}></div>}
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  {post.type && <span style={{ fontSize: '11px', background: `var(--${post.typeColor}-dim)`, color: `var(--${post.typeColor})`, padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>{post.type}</span>}
+                  <span style={{ fontSize: '11px', background: 'var(--card2)', color: 'var(--tx3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '600' }}>{post.category}</span>
+                </div>
+                
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>{post.title}</h3>
+                <p style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px' }}>
+                  {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
+                </p>
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: 'var(--tx3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div onClick={(e) => handleProfileClick(e, post.author)} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: `var(--${post.authorColor}-dim)`, color: `var(--${post.authorColor})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>{post.authorIcon}</div>
+                      <span style={{ fontWeight: '600', color: 'var(--tx)' }}>{post.author}</span>
+                    </div>
+                    <span style={{ margin: '0 4px' }}>·</span>
+                    <span>👀 {post.views}</span>
+                    <span>💬 {post.comments.length}</span>
+                    <span style={{ cursor: 'pointer', color: post.isLiked ? 'var(--yellow)' : 'inherit', fontWeight: post.isLiked ? '800' : '400' }} onClick={(e) => handleLike(e, post.id)}>💛 {post.likes}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span>{post.date}</span>
+                    {post.author === currentUser.name && (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <span onClick={(e) => handleEditPost(e, post)} style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 'bold' }}>수정</span>
+                        <span onClick={(e) => handleDeletePost(e, post.id)} style={{ cursor: 'pointer', color: 'var(--red)', fontWeight: 'bold' }}>삭제</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

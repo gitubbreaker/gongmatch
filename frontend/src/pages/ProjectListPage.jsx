@@ -371,9 +371,11 @@ function ProjectListPage() {
           ))}
         </Grid>
       ) : filteredProjects.length === 0 ? (
-        <EmptyState>
-          <h3>해당하는 공고가 없습니다.</h3>
-          <p>필터를 해제하거나 나중에 다시 확인해 주세요.</p>
+        <EmptyState style={{ padding: '60px 20px', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '40px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'float 3s ease-in-out infinite' }}>👻</div>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>해당하는 공고가 없습니다.</h3>
+          <p style={{ fontSize: '14px', color: 'var(--tx3)' }}>필터를 해제하거나 나중에 다시 확인해 주세요.</p>
+          <style>{`@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }`}</style>
         </EmptyState>
       ) : (
         <>

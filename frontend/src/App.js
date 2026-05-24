@@ -91,7 +91,7 @@ const GlobalStyle = createGlobalStyle`
   .tabs::-webkit-scrollbar { height: 0; }
   .tabbt { background: transparent; border: 1px solid transparent; color: var(--tx3); padding: 7px 15px; border-radius: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; transition: all .2s; }
   .tabbt:hover { color: var(--tx2); background: var(--card); }
-  .tabbt.on { background: var(--ac-dim); border-color: var(--ac-brd); color: var(--ac); font-weight: 700; }
+  .tabbt.on { background: var(--ac-dim); border-color: var(--ac); color: var(--ac); font-weight: 800; box-shadow: 0 0 10px rgba(200,242,38,0.2); }
 
   .main { padding-top: calc(var(--navh) + var(--tabh)); min-height: 100vh; }
 
@@ -105,9 +105,12 @@ const GlobalStyle = createGlobalStyle`
   .tag.purple { background: var(--purple-dim); color: var(--purple); border-color: rgba(167,140,248,.28); }
   .badge-hot { display: inline-flex; align-items: center; gap: 4px; background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(255,145,36,.28); border-radius: 5px; padding: 3px 9px; font-size: 10px; font-weight: 700; }
 
-  .card { background: var(--card); border: 1px solid var(--brd); border-radius: var(--r); padding: 18px; }
-  .card2 { background: var(--card2); border: 1px solid var(--brd2); border-radius: var(--r); padding: 18px; }
-  .card3 { background: var(--card3); border: 1px solid var(--brd3); border-radius: var(--r); padding: 18px; }
+  .card { background: var(--card); border: 1px solid var(--brd); border-radius: var(--r); padding: 18px; transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .card2 { background: var(--card2); border: 1px solid var(--brd2); border-radius: var(--r); padding: 18px; transition: transform 0.2s, box-shadow 0.2s; }
+  .card2:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .card3 { background: var(--card3); border: 1px solid var(--brd3); border-radius: var(--r); padding: 18px; transition: transform 0.2s, box-shadow 0.2s; }
+  .card3:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
   .av { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
   .bar-track { flex: 1; height: 5px; background: rgba(255,255,255,.07); border-radius: 3px; overflow: hidden; }
   .bar-fill { height: 100%; background: var(--ac); border-radius: 3px; transition: width .4s; }
@@ -118,11 +121,26 @@ const GlobalStyle = createGlobalStyle`
   .field::placeholder { color: var(--tx3); }
   textarea.field { resize: none; }
 
-  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card3); border: 1px solid var(--brd3); border-radius: 10px; padding: 13px 22px; font-size: 13px; color: var(--tx); z-index: 9999; transition: transform .3s cubic-bezier(.34,1.56,.64,1); white-space: nowrap; pointer-events: none; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: rgba(33, 33, 72, 0.95); backdrop-filter: blur(8px); border: 1px solid var(--ac-brd); border-radius: 12px; padding: 14px 24px; font-size: 14px; font-weight: 600; color: var(--tx); z-index: 9999; transition: transform .4s cubic-bezier(.34,1.56,.64,1); white-space: nowrap; pointer-events: none; box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; alignItems: center; gap: 8px; }
+  .toast::before { content: '🔔'; font-size: 16px; }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-  .modal { background: var(--card2); border: 1px solid var(--brd3); border-radius: 18px; padding: 32px; max-width: 460px; width: 90%; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.2s; }
+  .modal { background: var(--card2); border: 1px solid var(--brd3); border-radius: 18px; padding: 32px; max-width: 460px; width: 90%; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* 반응형 모바일 최적화 미디어 쿼리 */
+  @media (max-width: 768px) {
+    .nav { padding: 0 16px; }
+    .navlinks { display: none; } /* 모바일에서는 일단 숨김 또는 햄버거 메뉴 처리 */
+    .tabs { padding: 0 16px; }
+    .screen { display: flex !important; flex-direction: column !important; } /* Grid 레이아웃을 1열로 풀기 */
+    .board-main, .prof-main, .sidebar, .board-right, .prof-panel { padding: 16px !important; }
+    .statrow { flex-wrap: wrap; }
+    .stb { border-right: none !important; border-bottom: 1px solid var(--brd); width: 50%; }
+  }
+
 
 `;
 
