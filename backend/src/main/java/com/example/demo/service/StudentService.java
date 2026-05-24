@@ -55,7 +55,8 @@ public class StudentService {
         return new com.example.demo.controller.StudentController.LoginResponse(
                 token,
                 student.getName(),
-                student.getLoginId()
+                student.getLoginId(),
+                student.getId()
         );
     }
 

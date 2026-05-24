@@ -163,6 +163,7 @@ public class StudentController {
         private String token;
         private String name;
         private String loginId;
+        private Long id; // 프론트엔드에서 사용하기 위해 추가
     }
 
     @Getter @Setter

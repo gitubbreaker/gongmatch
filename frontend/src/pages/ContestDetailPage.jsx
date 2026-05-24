@@ -102,17 +102,41 @@ function ContestDetailPage() {
     });
 
     const userStr = localStorage.getItem('gongmatch_currentUser');
-    const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
-    if (currentUser && currentUser.id) {
-      api.get(`/api/bookmarks?userId=${currentUser.id}`).then(res => {
+    let currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    
+    const fetchBookmarks = (userId) => {
+      api.get(`/api/bookmarks?userId=${userId}`).then(res => {
         setIsBookmarked(res.data.includes(parseInt(id, 10)));
       }).catch(e => console.error('북마크 로드 실패', e));
+    };
+
+    if (currentUser) {
+      if (!currentUser.id) {
+        api.get('/api/students/me').then(meRes => {
+          currentUser = { id: meRes.data.id, name: meRes.data.name, loginId: meRes.data.loginId };
+          localStorage.setItem('gongmatch_currentUser', JSON.stringify(currentUser));
+          fetchBookmarks(currentUser.id);
+        }).catch(e => console.error(e));
+      } else {
+        fetchBookmarks(currentUser.id);
+      }
     }
   }, [id]);
 
   const toggleBookmark = async () => {
-    const userStr = localStorage.getItem('gongmatch_currentUser');
-    const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    let userStr = localStorage.getItem('gongmatch_currentUser');
+    let currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    
+    if (currentUser && !currentUser.id) {
+        try {
+          const meRes = await api.get('/api/students/me');
+          currentUser = { id: meRes.data.id, name: meRes.data.name, loginId: meRes.data.loginId };
+          localStorage.setItem('gongmatch_currentUser', JSON.stringify(currentUser));
+        } catch (error) {
+          console.error(error);
+        }
+    }
+
     if (!currentUser || !currentUser.id) {
       alert('로그인이 필요합니다.');
       return;

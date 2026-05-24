@@ -230,7 +230,19 @@ function ProjectListPage() {
       setProjects(res.data);
       
       const userStr = localStorage.getItem('gongmatch_currentUser');
-      const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+      let currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+      
+      // 하위 호환성 (id가 없는 구버전 로컬스토리지 유저)
+      if (currentUser && !currentUser.id) {
+        try {
+          const meRes = await api.get('/api/students/me');
+          currentUser = { id: meRes.data.id, name: meRes.data.name, loginId: meRes.data.loginId };
+          localStorage.setItem('gongmatch_currentUser', JSON.stringify(currentUser));
+        } catch (e) {
+          console.error('내 정보 갱신 실패', e);
+        }
+      }
+
       if (currentUser && currentUser.id) {
         const bmRes = await api.get(`/api/bookmarks?userId=${currentUser.id}`);
         setBookmarkedIds(bmRes.data);
@@ -301,8 +313,20 @@ function ProjectListPage() {
 
   const toggleBookmark = async (e, projectId) => {
     e.stopPropagation();
-    const userStr = localStorage.getItem('gongmatch_currentUser');
-    const currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    let userStr = localStorage.getItem('gongmatch_currentUser');
+    let currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+    
+    // 만약 currentUser가 있는데 id가 없다면 갱신 시도
+    if (currentUser && !currentUser.id) {
+        try {
+          const meRes = await api.get('/api/students/me');
+          currentUser = { id: meRes.data.id, name: meRes.data.name, loginId: meRes.data.loginId };
+          localStorage.setItem('gongmatch_currentUser', JSON.stringify(currentUser));
+        } catch (error) {
+          console.error(error);
+        }
+    }
+
     if (!currentUser || !currentUser.id) {
       alert('로그인이 필요합니다.');
       return;

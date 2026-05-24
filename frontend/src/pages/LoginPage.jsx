@@ -85,11 +85,11 @@ function LoginPage() {
       });
 
       if (response.status === 200) {
-        const { token, name, loginId } = response.data;
+        const { token, name, loginId, id: userId } = response.data;
         // JWT 토큰은 별도 키에 저장 (API 요청 시 Authorization 헤더에 사용)
         localStorage.setItem('gongmatch_token', token);
         // 사용자 정보는 currentUser 키에 저장 (Header 표시용)
-        localStorage.setItem('gongmatch_currentUser', JSON.stringify({ name, loginId }));
+        localStorage.setItem('gongmatch_currentUser', JSON.stringify({ id: userId, name, loginId }));
         showToast(`${name}님 환영합니다.`);
         // redirect 파라미터가 있으면 해당 경로로, 없으면 홈으로
         const redirectPath = searchParams.get('redirect') || '/';
