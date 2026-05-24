@@ -56,7 +56,8 @@ public class StudentService {
                 token,
                 student.getName(),
                 student.getLoginId(),
-                student.getId()
+                student.getId(),
+                student.getProfileImageUrl()
         );
     }
 

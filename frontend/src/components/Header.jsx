@@ -11,18 +11,26 @@ function Header() {
   const [notifications, setNotifications] = useState([]);
   const dropRef = useRef(null);
 
-  // 페이지(경로)가 바뀔 때마다 로그인 상태 확인
+  // 페이지(경로)가 바뀔 때마다, 그리고 프로필 업데이트 이벤트 시 로그인 상태 확인
   useEffect(() => {
-    const userStr = localStorage.getItem('gongmatch_currentUser');
-    try {
-      if (userStr && userStr !== "undefined" && userStr !== "null") {
-        setCurrentUser(JSON.parse(userStr));
-      } else {
+    const loadUser = () => {
+      const userStr = localStorage.getItem('gongmatch_currentUser');
+      try {
+        if (userStr && userStr !== "undefined" && userStr !== "null") {
+          setCurrentUser(JSON.parse(userStr));
+        } else {
+          setCurrentUser(null);
+        }
+      } catch (e) {
         setCurrentUser(null);
       }
-    } catch (e) {
-      setCurrentUser(null);
-    }
+    };
+
+    loadUser();
+    
+    // 프로필 이미지 등이 업로드되어 로컬스토리지 정보가 바뀌었을 때 즉각 반영하기 위한 이벤트 리스너
+    window.addEventListener('userProfileUpdated', loadUser);
+    return () => window.removeEventListener('userProfileUpdated', loadUser);
   }, [location]);
 
   // 로그인 상태일 때 백엔드에서 받은 요청(알림) 주기적으로 조회
@@ -137,9 +145,13 @@ function Header() {
             </div>
 
             <div className="my-wrap" style={{ position: 'relative' }}>
-              <div className="my-av" onClick={() => toggleDrop('my')} data-tooltip-id="main-tooltip" data-tooltip-content="내 프로필 및 설정" style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--blue-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac)', fontSize: '14px', fontWeight: '900', cursor: 'pointer' }}>
-                {/* '나' 대신 사용자의 이름 첫 글자를 표시합니다 */}
-                {currentUser?.name?.charAt(0) ?? '?'}
+              <div className="my-av" onClick={() => toggleDrop('my')} data-tooltip-id="main-tooltip" data-tooltip-content="내 프로필 및 설정" style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--blue-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac)', fontSize: '14px', fontWeight: '900', cursor: 'pointer', overflow: 'hidden' }}>
+                {/* 프로필 이미지가 있으면 렌더링, 없으면 이름 첫 글자 */}
+                {currentUser?.profileImageUrl ? (
+                  <img src={`${api.defaults.baseURL}${currentUser.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  currentUser?.name?.charAt(0) ?? '?'
+                )}
               </div>
               {openDrop === 'my' && (
                 <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: '0', width: '200px', background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '12px', padding: '8px', zIndex: '300' }}>

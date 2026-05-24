@@ -69,7 +69,20 @@ function S6Profile() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       // 업로드 성공 후 로컬 상태 즉시 반영
-      setStudent({ ...student, profileImageUrl: res.data.profileImageUrl });
+      const newImageUrl = res.data.profileImageUrl;
+      setStudent({ ...student, profileImageUrl: newImageUrl });
+      
+      // Header 등 다른 컴포넌트에서도 실시간 반영되도록 localStorage 업데이트
+      const userStr = localStorage.getItem('gongmatch_currentUser');
+      if (userStr) {
+        const parsedUser = JSON.parse(userStr);
+        parsedUser.profileImageUrl = newImageUrl;
+        localStorage.setItem('gongmatch_currentUser', JSON.stringify(parsedUser));
+        // Header 리렌더링을 위해 이벤트 발생 (선택사항, 하지만 App이나 Header에 리스너가 필요하므로 일단 localStorage 업데이트만)
+        // location 변경 시 Header가 업데이트 되지만, 당장 이 페이지에서도 즉각 반영을 위해 window.dispatchEvent 사용
+        window.dispatchEvent(new Event('userProfileUpdated'));
+      }
+
       showToast('프로필 이미지가 성공적으로 변경되었습니다.');
     } catch (error) {
       console.error('이미지 업로드 실패:', error);
