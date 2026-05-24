@@ -326,12 +326,21 @@ function ProjectListPage() {
                   <DateBadge>
                     수집일: {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '최근 수집됨'}
                   </DateBadge>
-                  <MoreBtn>
-                    상세보기 
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </MoreBtn>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <MoreBtn onClick={(e) => {
+                      e.stopPropagation();
+                      const url = project.officialUrl || project.detailUrl;
+                      if (url) window.open(url, '_blank');
+                    }}>
+                      {project.officialUrl && !project.officialUrl.includes('wevity.com') ? '🌐 공식 홈페이지' : '🔗 원본 공고'}
+                    </MoreBtn>
+                    <MoreBtn>
+                      상세보기 
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </MoreBtn>
+                  </div>
                 </Footer>
               </ProjectCard>
             ))}
