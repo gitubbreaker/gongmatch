@@ -53,12 +53,12 @@ public class NotificationController {
                         return;
                     }
                     
-                    // 과거 버전에서 생성된 존재하지 않는 더미 데이터 강제 멸종
+                    // 과거 버전에서 생성된 존재하지 않는 더미 데이터 강제 멸종 (텍스트 의존 없이 URL로 판단)
                     if (target.equals("/") && "마감 임박".equals(n.getType())) {
                         notificationRepository.delete(n);
                         return;
                     }
-                    if (target.equals("/community") && n.getTitle() != null && n.getTitle().contains("부산 공공데이터")) {
+                    if (target.equals("/community") && "커뮤니티".equals(n.getType())) {
                         notificationRepository.delete(n);
                         return;
                     }
