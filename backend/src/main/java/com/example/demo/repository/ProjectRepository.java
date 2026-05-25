@@ -12,6 +12,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     Optional<Project> findFirstByTitleAndHost(String title, String host);
     boolean existsByDetailUrl(String detailUrl);
     Optional<Project> findByDetailUrl(String detailUrl);
+    Optional<Project> findFirstByDetailUrlContaining(String ixParam);
     java.util.List<Project> findAllByOrderByIdDesc();
     
     // 마감일이 특정 날짜 이전인 데이터 삭제

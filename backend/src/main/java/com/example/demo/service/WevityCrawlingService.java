@@ -176,8 +176,29 @@ public class WevityCrawlingService implements InitializingBean {
                             }
 
                             String hostName = item.select(".organ").text().trim();
-                            Project project = projectRepository.findFirstByTitleAndHost(title, hostName)
-                                    .orElse(Project.builder().title(title).host(hostName).build());
+                            
+                            // [중복 방지 강화] detailUrl에서 위비티 고유 식별자(ix=번호) 추출
+                            String ixParam = null;
+                            if (detailUrl != null && detailUrl.contains("ix=")) {
+                                int ixIndex = detailUrl.indexOf("ix=");
+                                int endIndex = detailUrl.indexOf("&", ixIndex);
+                                if (endIndex == -1) endIndex = detailUrl.length();
+                                ixParam = detailUrl.substring(ixIndex, endIndex);
+                            }
+                            
+                            Project project = null;
+                            if (ixParam != null) {
+                                project = projectRepository.findFirstByDetailUrlContaining(ixParam).orElse(null);
+                            }
+                            
+                            // ix로 못 찾았거나 ix가 없는 경우 제목+주최로 2차 검색
+                            if (project == null) {
+                                project = projectRepository.findFirstByTitleAndHost(title, hostName)
+                                        .orElse(Project.builder().title(title).host(hostName).build());
+                            } else {
+                                // 기존 프로젝트를 찾았는데 주최측이 제목을 수정한 경우 최신 제목으로 덮어쓰기
+                                project.setTitle(title);
+                            }
 
                             project.setDetailUrl(detailUrl); // URL 파라미터가 갱신(gp=페이지 번호 변경)되었을 수 있으므로 덮어쓰기
                             project.setEndDate(endDate != null ? endDate : LocalDate.now().plusWeeks(2));
@@ -247,7 +268,24 @@ public class WevityCrawlingService implements InitializingBean {
 
     public void cleanupJunkProjects() {
         try {
-            log.info("기간 만료 공모전 및 불량 데이터 청소 시작...");
+            log.info("기간 만료 공모전 및 불량/중복 데이터 청소 시작...");
+            
+            // 1. 고유번호(ix=...) 기준 중복 데이터 완전히 싹쓸이
+            java.util.List<Project> allProjects = projectRepository.findAll();
+            java.util.Set<String> seenIxs = new java.util.HashSet<>();
+            for (Project p : allProjects) {
+                String url = p.getDetailUrl();
+                if (url != null && url.contains("ix=")) {
+                    int ixIndex = url.indexOf("ix=");
+                    int endIndex = url.indexOf("&", ixIndex);
+                    if (endIndex == -1) endIndex = url.length();
+                    String ixParam = url.substring(ixIndex, endIndex);
+                    if (!seenIxs.add(ixParam)) {
+                        projectRepository.delete(p);
+                        log.info("🗑️ 중복 공모전 강제 삭제 완료 (ix 기준): {}", p.getTitle());
+                    }
+                }
+            }
             projectRepository.findAll().forEach(p -> {
                 if (p.getDetailUrl() != null && p.getDetailUrl().contains("wevity.com")) {
                     boolean isBad = (p.getEndDate() != null && p.getEndDate().isBefore(LocalDate.now()));
