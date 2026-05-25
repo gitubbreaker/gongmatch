@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 public class WevityCrawlingService implements InitializingBean {
 
     private final ProjectRepository projectRepository;
+    private final com.example.demo.repository.BookmarkRepository bookmarkRepository; // 북마크 리포지토리 추가
     private final AiParsingService aiParsingService; // AI 파싱 서비스 주입
     private static final String BASE_URL = "https://www.wevity.com";
     private final Random random = new Random();
@@ -246,12 +247,19 @@ public class WevityCrawlingService implements InitializingBean {
 
     public void cleanupJunkProjects() {
         try {
+            log.info("기간 만료 공모전 및 불량 데이터 청소 시작...");
             projectRepository.findAll().forEach(p -> {
                 if (p.getDetailUrl() != null && p.getDetailUrl().contains("wevity.com")) {
                     boolean isBad = (p.getEndDate() != null && p.getEndDate().isBefore(LocalDate.now()));
-                    if (isBad) projectRepository.delete(p);
+                    if (isBad) {
+                        log.info("기간 만료 공모전 삭제 처리: {}", p.getTitle());
+                        // 외래키 제약 방지를 위해 북마크(스크랩) 데이터 먼저 삭제
+                        bookmarkRepository.deleteByProjectId(p.getId());
+                        projectRepository.delete(p);
+                    }
                 }
             });
+            log.info("기간 만료 청소 완료!");
         } catch (Exception ignored) {}
     }
 
@@ -268,6 +276,7 @@ public class WevityCrawlingService implements InitializingBean {
                 // 이미 발견된(최신) 공모전이면 기존(과거) 데이터는 삭제
                 if (uniqueKeys.contains(key)) {
                     log.info("중복 공모전 삭제 처리: {}", p.getTitle());
+                    bookmarkRepository.deleteByProjectId(p.getId());
                     projectRepository.delete(p);
                 } else {
                     uniqueKeys.add(key);
