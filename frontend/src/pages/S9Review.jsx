@@ -134,13 +134,31 @@ function S9Review() {
     </div>
   );
 
-  const StarRating = ({ value, onChange }) => (
-    <div style={{ display: 'flex', gap: '4px' }}>
-      {[1, 2, 3, 4, 5].map(star => (
-        <span key={star} onClick={() => onChange(star)} style={{ cursor: 'pointer', fontSize: '20px', color: star <= value ? 'var(--ac)' : 'var(--brd3)' }}>★</span>
-      ))}
-    </div>
-  );
+  const StarRating = ({ value, onChange }) => {
+    const [hover, setHover] = React.useState(0);
+    return (
+      <div style={{ display: 'flex', gap: '8px' }}>
+        {[1, 2, 3, 4, 5].map(star => (
+          <span
+            key={star}
+            onClick={() => onChange(star)}
+            onMouseEnter={() => setHover(star)}
+            onMouseLeave={() => setHover(0)}
+            style={{
+              cursor: 'pointer',
+              fontSize: '28px',
+              color: star <= (hover || value) ? 'var(--ac)' : 'var(--brd3)',
+              transform: star <= (hover || value) ? 'scale(1.2)' : 'scale(1)',
+              transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              display: 'inline-block'
+            }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div style={{ padding: '60px 40px', maxWidth: '800px', margin: '0 auto', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>

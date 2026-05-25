@@ -35,7 +35,7 @@ function S8Summary() {
   };
 
   return (
-    <section className="screen on" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
+    <section className="screen on grid-2col">
       <div style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', gap: '20px', borderRight: '1px solid var(--brd)' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>AI 회의록 자동 요약</h2>

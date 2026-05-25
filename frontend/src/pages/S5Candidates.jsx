@@ -167,7 +167,7 @@ function S5Candidates() {
         </div>
       </div>
 
-      <div className="s5-body" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', flex: '1' }}>
+      <div className="s5-body grid-s5">
         {/* 필터 사이드바 */}
         <div className="sidebar" style={{ background: 'var(--bg2)', borderRight: '1px solid var(--brd)', padding: '32px 20px', display: 'flex', flexDirection: 'column', gap: '32px', overflowY:'auto', maxHeight:'calc(100vh - var(--navh) - 100px)' }}>
           <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
@@ -271,9 +271,11 @@ function S5Candidates() {
         {/* 메인 리스트 */}
         <div className="clist" style={{ padding: '32px 40px', display: 'flex', flexDirection: 'column', gap: '20px', background:'var(--bg)' }}>
           {filtered.length === 0 ? (
-            <div style={{padding:'100px', textAlign:'center', color:'var(--tx3)'}}>
-              <p style={{fontSize:'15px', marginBottom:'10px'}}>조건에 맞는 후보가 없습니다.</p>
-              <button className="btn-ghost btn-sm" onClick={resetFilters}>필터 초기화</button>
+            <div style={{ padding: '80px 20px', textAlign: 'center', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '20px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>조건에 맞는 팀원 후보가 없습니다.</h3>
+              <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>필터 조건(학년, 직무, 기술 등)을 완화하여 더 많은 후보를 찾아보세요.</p>
+              <button className="btn-ghost" style={{ marginTop: '24px', padding: '10px 20px' }} onClick={resetFilters}>필터 초기화</button>
             </div>
           ) : (
             filtered.map(c => (

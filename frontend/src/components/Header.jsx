@@ -7,12 +7,15 @@ function Header() {
   const navigate = useNavigate();
   const location = useLocation(); // 페이지 이동을 감지하기 위함
   const [openDrop, setOpenDrop] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const dropRef = useRef(null);
 
-  // 페이지(경로)가 바뀔 때마다, 그리고 프로필 업데이트 이벤트 시 로그인 상태 확인
+  // 페이지 이동 시 드롭다운과 모바일 메뉴를 닫습니다.
   useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setOpenDrop(null);
     const loadUser = () => {
       const userStr = localStorage.getItem('gongmatch_currentUser');
       try {
@@ -151,7 +154,22 @@ function Header() {
             </div>
           </>
         )}
+
+        {/* 햄버거 메뉴 버튼 (모바일 해상도에서만 표시됨) */}
+        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          {isMobileMenuOpen ? '✕' : '☰'}
+        </button>
       </div>
+
+      {/* 모바일 햄버거 메뉴 오버레이 */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-overlay">
+          <a onClick={() => navigate('/')} className={location.pathname === '/' ? 'on' : ''}>프로젝트 찾기</a>
+          <a onClick={() => navigate('/candidates')} className={location.pathname === '/candidates' ? 'on' : ''}>팀원 찾기</a>
+          <a onClick={() => navigate('/community')} className={location.pathname === '/community' ? 'on' : ''}>커뮤니티</a>
+          <a onClick={() => navigate('/notice')} className={location.pathname === '/notice' ? 'on' : ''}>공지사항</a>
+        </div>
+      )}
     </nav>
   );
 }

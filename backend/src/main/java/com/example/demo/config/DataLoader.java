@@ -182,8 +182,11 @@ public class DataLoader implements CommandLineRunner {
 
         // 4. 매칭 및 알림 샘플 데이터 (정성원님 기준)
         Student sungwon = studentRepository.findFirstByLoginIdOrderByIdAsc("sungwon3049@naver.com").orElse(null);
-        if (sungwon != null && teamRequestRepository.count() == 0) {
-            System.out.println("🌱 매칭 및 알림 샘플 데이터를 생성하는 중...");
+        if (sungwon != null && notificationRepository.count() == 0) {
+            System.out.println("🌱 매칭 및 알림 샘플 데이터를 새롭게 생성하는 중...");
+            
+            // 기존 낡은 매칭 데이터가 있다면 삭제 (중복 방지)
+            teamRequestRepository.deleteAll();
             
             Student suhyun = studentRepository.findFirstByLoginIdOrderByIdAsc("suhyun@test.com").orElse(null);
             Student gaeun = studentRepository.findFirstByLoginIdOrderByIdAsc("gaeun@test.com").orElse(null);

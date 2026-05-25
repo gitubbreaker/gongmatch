@@ -84,7 +84,7 @@ function S1Home() {
   const latestProject = projects.length > 0 ? [...projects].sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] : null;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
+    <div className="grid-2col">
       <div className="s1-left" style={{ padding: '68px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <div className="s1-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(200,242,38,.08)', border: '1px solid var(--ac-brd)', color: 'var(--ac)', borderRadius: '20px', padding: '5px 14px', fontSize: '11px', fontWeight: '700', marginBottom: '28px', width: 'fit-content' }}>
           🏆 2026 프로젝트 시즌 오픈

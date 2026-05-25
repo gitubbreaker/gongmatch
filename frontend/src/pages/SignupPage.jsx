@@ -31,6 +31,12 @@ function SignupPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = formData.id.length === 0 || emailRegex.test(formData.id);
+  const isPwValid = formData.pw.length === 0 || formData.pw.length >= 8;
+  const isPwConfirmValid = formData.pwConfirm.length === 0 || formData.pw === formData.pwConfirm;
+  const isFormReady = formData.name && formData.id && formData.pw && formData.pwConfirm && emailRegex.test(formData.id) && formData.pw.length >= 8 && formData.pw === formData.pwConfirm;
+
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -92,22 +98,28 @@ function SignupPage() {
             </div>
             <div>
               <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>아이디 (이메일)</label>
-              <input className="field" type="email" name="id" placeholder="example@pusan.ac.kr" value={formData.id} onChange={handleChange} />
+              <input className="field" type="email" name="id" placeholder="example@pusan.ac.kr" value={formData.id} onChange={handleChange} style={{ borderColor: !isEmailValid ? 'var(--red)' : '' }} />
+              {!isEmailValid && <div style={{ fontSize: '11px', color: 'var(--red)', marginTop: '6px' }}>올바른 이메일 형식을 입력해주세요.</div>}
             </div>
             <div>
               <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>비밀번호</label>
-              <input className="field" type="password" name="pw" placeholder="비밀번호 입력" value={formData.pw} onChange={handleChange} />
+              <input className="field" type="password" name="pw" placeholder="비밀번호 입력 (8자 이상)" value={formData.pw} onChange={handleChange} style={{ borderColor: !isPwValid ? 'var(--red)' : '' }} />
+              {!isPwValid && <div style={{ fontSize: '11px', color: 'var(--red)', marginTop: '6px' }}>비밀번호는 8자 이상이어야 합니다.</div>}
+              {formData.pw.length >= 8 && <div style={{ fontSize: '11px', color: 'var(--green)', marginTop: '6px' }}>안전한 비밀번호입니다.</div>}
             </div>
             <div>
               <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>비밀번호 확인</label>
-              <input className="field" type="password" name="pwConfirm" placeholder="비밀번호 다시 입력" value={formData.pwConfirm} onChange={handleChange} />
+              <input className="field" type="password" name="pwConfirm" placeholder="비밀번호 다시 입력" value={formData.pwConfirm} onChange={handleChange} style={{ borderColor: !isPwConfirmValid ? 'var(--red)' : '' }} />
+              {!isPwConfirmValid && <div style={{ fontSize: '11px', color: 'var(--red)', marginTop: '6px' }}>비밀번호가 일치하지 않습니다.</div>}
             </div>
             <div>
               <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>카카오톡 오픈채팅방 링크 (선택)</label>
               <input className="field" type="url" name="openChatUrl" placeholder="https://open.kakao.com/..." value={formData.openChatUrl} onChange={handleChange} style={{ borderColor: 'var(--yellow)' }} />
             </div>
 
-            <button type="submit" className="btn-prim" style={{ padding: '16px', fontSize: '15px', marginTop: '16px' }}>가입 완료</button>
+            <button type="submit" className="btn-prim" style={{ padding: '16px', fontSize: '15px', marginTop: '16px', opacity: isFormReady ? 1 : 0.5, cursor: isFormReady ? 'pointer' : 'not-allowed' }} disabled={!isFormReady}>
+              가입 완료
+            </button>
           </form>
 
           <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: 'var(--tx3)' }}>

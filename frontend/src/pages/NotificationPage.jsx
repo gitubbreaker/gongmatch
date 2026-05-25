@@ -103,19 +103,32 @@ function NotificationPage() {
         <div>
           <h3 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>오늘</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {allNotifs
-              .map(n => ({ ...n, isNew: n.isNew && !readNotifIds.has(n.id) }))
-              .filter(n => !hiddenNotifIds.has(n.id))
-              .filter(n => {
-                if (activeTab === '전체') return true;
-                if (activeTab === '매칭 요청' && n.type === '매칭') return true;
-                if (activeTab === '쪽지' && n.type === '쪽지') return true;
-                if (activeTab === '마감 임박' && n.type === '마감 임박') return true;
-                if (activeTab === '시스템' && (n.type === '시스템' || n.type === '커뮤니티')) return true;
-                return false;
-              })
-              .sort((a, b) => (b._rawTime || 0) - (a._rawTime || 0))
-              .map(notif => (
+            {(() => {
+              const filtered = allNotifs
+                .map(n => ({ ...n, isNew: n.isNew && !readNotifIds.has(n.id) }))
+                .filter(n => !hiddenNotifIds.has(n.id))
+                .filter(n => {
+                  if (activeTab === '전체') return true;
+                  if (activeTab === '매칭 요청' && n.type === '매칭') return true;
+                  if (activeTab === '쪽지' && n.type === '쪽지') return true;
+                  if (activeTab === '마감 임박' && n.type === '마감 임박') return true;
+                  if (activeTab === '시스템' && (n.type === '시스템' || n.type === '커뮤니티')) return true;
+                  return false;
+                })
+                .sort((a, b) => (b._rawTime || 0) - (a._rawTime || 0));
+
+              if (filtered.length === 0) {
+                return (
+                  <div style={{ padding: '80px 20px', textAlign: 'center', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '20px' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
+                    <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>새로운 알림이 없습니다.</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>{activeTab === '전체' ? '새로운 매칭 요청이나 메시지가 오면 이곳에 표시됩니다.' : '선택한 카테고리의 알림이 없습니다.'}</p>
+                    <button className="btn-ghost" style={{ marginTop: '24px', padding: '10px 20px' }} onClick={() => navigate('/')}>홈으로 가기</button>
+                  </div>
+                );
+              }
+
+              return filtered.map(notif => (
               <div key={notif.id} style={{
                 background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', position: 'relative',
                 borderLeft: notif.isNew ? '3px solid var(--ac)' : '1px solid var(--brd2)'
@@ -148,7 +161,7 @@ function NotificationPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))})()}
           </div>
         </div>
       </div>
