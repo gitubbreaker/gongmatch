@@ -529,7 +529,7 @@ function ProjectListPage() {
             </button>
           </div>
           <Grid>
-            {filteredProjects.map(project => {
+            {filteredProjects.filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl)).map(project => {
               const dDay = calculateDDay(project.endDate);
               const isUrgent = dDay === 'D-DAY' || (dDay && dDay.startsWith('D-') && parseInt(dDay.split('-')[1]) <= 7);
               const shareUrl = project.officialUrl || project.detailUrl;
@@ -570,7 +570,7 @@ function ProjectListPage() {
                         e.stopPropagation();
                         if (shareUrl) window.open(shareUrl, '_blank');
                       }}>
-                        {project.officialUrl && !project.officialUrl.includes('wevity.com') ? '🌐 원본' : '🔗 상세보기'}
+                        🌐 원본
                       </MoreBtn>
                     </div>
                   </Footer>
