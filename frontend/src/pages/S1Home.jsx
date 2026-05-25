@@ -155,7 +155,7 @@ function S1Home() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginTop: '36px' }}>
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}><CountUpNumber end={stats.teamRequestCount} /></div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>활성화된 팀 모집글</div></div>
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}><CountUpNumber end={stats.projectCount} /></div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>현재 모집 중인 공모전</div></div>
-          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}><CountUpNumber end={stats.studentCount} /></div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>합류 대기 예비 팀원</div></div>
+          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}><CountUpNumber end={stats.studentCount} /></div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>공매치 활동 멤버</div></div>
         </div>
 
         {/* 내 매칭 현황 */}
