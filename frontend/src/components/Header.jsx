@@ -142,8 +142,8 @@ function Header() {
               {openDrop === 'my' && (
                 <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: '0', width: '200px', background: 'var(--card2)', border: '1px solid var(--brd3)', borderRadius: '12px', padding: '8px', zIndex: '300' }}>
                   <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--brd)', marginBottom: '6px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>{currentUser?.name ?? currentUser?.studentId ?? '사용자'}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>{currentUser?.studentId ?? currentUser?.id ?? ''}</div>
+                    <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>{currentUser?.name ?? '사용자'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>{currentUser?.loginId ?? ''}</div>
                   </div>
                   <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer' }} onClick={() => { navigate('/profile'); setOpenDrop(null); }}>내 프로필 설정</div>
                   <div style={{ padding: '9px 12px', fontSize: '13px', color: 'var(--tx2)', cursor: 'pointer' }} onClick={() => { navigate('/time'); setOpenDrop(null); }}>가용시간 설정</div>
