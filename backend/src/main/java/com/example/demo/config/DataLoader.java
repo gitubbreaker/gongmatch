@@ -49,13 +49,7 @@ public class DataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("🌱 샘플 데이터를 점검 및 생성하는 중...");
 
-        // 1. 공모전 데이터
-        if (publicProjectRepository.count() == 0) {
-            createProject("2026 부산 공공데이터 활용 창업 경진대회", "행정안전부", "총상금 5,000만원", 3, 5, "창업");
-            createProject("서울 스마트시티 앱 서비스 공모전", "서울시", "서울시장상 수여", 2, 4, "IT/서비스");
-        }
-
-        // [중요] 정성원님 본인 계정 복구 (데이터 분석가)
+        // 1. 공모전 데이터 (이제 크롤러가 전담하므로 하드코딩 샘플 주입은 제거됨)        // [중요] 정성원님 본인 계정 복구 (데이터 분석가)
         if (studentRepository.findFirstByLoginIdOrderByIdAsc("sungwon3049@naver.com").isEmpty()) {
             Student s = new Student();
             s.setLoginId("sungwon3049@naver.com");
@@ -107,8 +101,8 @@ public class DataLoader implements CommandLineRunner {
             System.out.println("🌱 커뮤니티 샘플 데이터를 생성하는 중...");
             
             Post p1 = new Post();
-            p1.setTitle("부산 공공데이터 공모전 백엔드/디자이너 구합니다! (현재 기획1, 데이터분석1)");
-            p1.setContent("안녕하세요! 부산 공공데이터 경진대회에 참여할 팀원을 모십니다. 현재 기획자 1명과 데이터 분석가 1명(성원님)이 합류한 상태이며, API 서버 구축 및 데이터 연동을 해주실 백엔드 개발자분과 UI/UX 시안을 설계해주실 디자이너분을 찾고 있습니다. 많은 관심 부탁드립니다!\n\n오픈채팅: https://open.kakao.com/o/gongmatch_busan");
+            p1.setTitle("교내 AI 데이터 해커톤 백엔드/디자이너 구합니다! (현재 기획1, 분석1)");
+            p1.setContent("안녕하세요! 교내 AI 데이터 해커톤에 참여할 팀원을 모십니다. 현재 기획자 1명과 데이터 분석가 1명(성원님)이 합류한 상태이며, API 서버 구축 및 데이터 연동을 해주실 백엔드 개발자분과 UI/UX 시안을 설계해주실 디자이너분을 찾고 있습니다. 많은 관심 부탁드립니다!\n\n오픈채팅: https://open.kakao.com/o/gongmatch_hackathon");
             p1.setAuthor("이수현");
             p1.setCategory("팀원 구해요");
             p1.setRegion("부산");
@@ -194,13 +188,8 @@ public class DataLoader implements CommandLineRunner {
             Student hyuna = studentRepository.findFirstByLoginIdOrderByIdAsc("hyuna@test.com").orElse(null);
             Student seungwoo = studentRepository.findFirstByLoginIdOrderByIdAsc("seungwoo@test.com").orElse(null);
 
-            PublicProject project1 = publicProjectRepository.findAll().stream()
-                    .filter(p -> p.getTitle().contains("부산 공공데이터"))
-                    .findFirst().orElse(null);
-
-            PublicProject project2 = publicProjectRepository.findAll().stream()
-                    .filter(p -> p.getTitle().contains("스마트시티"))
-                    .findFirst().orElse(null);
+            PublicProject project1 = publicProjectRepository.findAll().stream().findFirst().orElse(null);
+            PublicProject project2 = publicProjectRepository.findAll().stream().skip(1).findFirst().orElse(null);
 
             // Received (Pending) - gaeun to sungwon
             if (gaeun != null) {
@@ -208,8 +197,8 @@ public class DataLoader implements CommandLineRunner {
                 req.setSender(gaeun);
                 req.setReceiver(sungwon);
                 req.setProject(project1);
-                req.setTargetProjectTitle(project1 != null ? project1.getTitle() : "2026 부산 공공데이터 활용 창업 경진대회");
-                req.setMessage("안녕하세요! 정성원님, 데이터 분석 부분으로 부산 공공데이터 공모전 같이 나가고 싶어서 요청 드립니다. 특히 AI/통계 분석 부분이 훌륭하셔서 저희 팀에 꼭 필요합니다!");
+                req.setTargetProjectTitle(project1 != null ? project1.getTitle() : "제 3회 전국 AI 활용 창작 해커톤");
+                req.setMessage("안녕하세요! 정성원님, 데이터 분석 부분으로 AI 해커톤 대회 같이 나가고 싶어서 요청 드립니다. 특히 AI/통계 분석 부분이 훌륭하셔서 저희 팀에 꼭 필요합니다!");
                 req.setStatus("PENDING");
                 req.setCreatedAt(LocalDateTime.now().minusHours(2));
                 teamRequestRepository.save(req);
@@ -233,8 +222,8 @@ public class DataLoader implements CommandLineRunner {
                 req.setSender(suhyun);
                 req.setReceiver(sungwon);
                 req.setProject(project2);
-                req.setTargetProjectTitle(project2 != null ? project2.getTitle() : "서울 스마트시티 앱 서비스 공모전");
-                req.setMessage("안녕하세요! 서울 스마트시티 앱 서비스 공모전 준비중인 디자이너 이수현입니다. 기획 내용 분석 및 사용자 타겟 분석 데이터를 혹시 다뤄주실 수 있나요? 같이 포트폴리오 멋지게 만들어봐요!");
+                req.setTargetProjectTitle(project2 != null ? project2.getTitle() : "전국 IT 대학생 연합 서비스 기획전");
+                req.setMessage("안녕하세요! IT 서비스 기획전 준비중인 디자이너 이수현입니다. 기획 내용 분석 및 사용자 타겟 분석 데이터를 혹시 다뤄주실 수 있나요? 같이 포트폴리오 멋지게 만들어봐요!");
                 req.setStatus("PENDING");
                 req.setCreatedAt(LocalDateTime.now().minusDays(1));
                 teamRequestRepository.save(req);
@@ -320,8 +309,8 @@ public class DataLoader implements CommandLineRunner {
                 req.setSender(sungwon);
                 req.setReceiver(seungwoo);
                 req.setProject(project1);
-                req.setTargetProjectTitle(project1 != null ? project1.getTitle() : "2026 부산 공공데이터 활용 창업 경진대회");
-                req.setMessage("승우님! 풀스택 파트로 부산 공공데이터 대회 같이 참가하고 싶습니다. 데이터 시각화 라이브러리 연동 경험이 있으셔서 큰 도움이 될 것 같습니다!");
+                req.setTargetProjectTitle(project1 != null ? project1.getTitle() : "제 3회 전국 AI 활용 창작 해커톤");
+                req.setMessage("승우님! 풀스택 파트로 AI 해커톤 대회 같이 참가하고 싶습니다. 데이터 시각화 라이브러리 연동 경험이 있으셔서 큰 도움이 될 것 같습니다!");
                 req.setStatus("ACCEPTED");
                 req.setCreatedAt(LocalDateTime.now().minusDays(5));
                 teamRequestRepository.save(req);
@@ -368,7 +357,7 @@ public class DataLoader implements CommandLineRunner {
             n4.setReceiver(sungwon);
             n4.setType("커뮤니티");
             n4.setIcon("💬");
-            n4.setTitle("내가 쓴 글 '부산 공공데이터 대회 같이 하실 분!'에 새로운 댓글이 달렸습니다.");
+            n4.setTitle("내가 쓴 글 '교내 AI 데이터 해커톤 백엔드/디자이너 구합니다!'에 새로운 댓글이 달렸습니다.");
             n4.setDesc1("최지호: 저도 백엔드로 참여하고 싶습니다. 쪽지 드렸습니다!");
             n4.setDesc2("");
             n4.setTargetUrl("/community");
