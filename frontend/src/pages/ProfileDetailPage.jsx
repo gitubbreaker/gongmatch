@@ -111,7 +111,7 @@ function ProfileDetailPage() {
       </div>
       <aside>
         <Section>
-          <h3 style={{marginBottom:'20px', color:'var(--tx)'}}>이 공모전으로 팀원 요청</h3>
+          <h3 style={{marginBottom:'20px', color:'var(--tx)'}}>팀원 요청</h3>
           
           <div style={{ fontSize: '13px', color: 'var(--tx3)', marginBottom: '8px', fontWeight: '800' }}>제안 메시지</div>
           <textarea 
