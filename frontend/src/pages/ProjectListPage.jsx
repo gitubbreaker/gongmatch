@@ -324,7 +324,8 @@ function ProjectListPage() {
   const fetchProjects = async () => {
     try {
       const res = await api.get('/api/projects');
-      setProjects(res.data);
+      const validProjects = res.data.filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl) && !p.title.includes('피우다프로젝트'));
+      setProjects(validProjects);
       
       const userStr = localStorage.getItem('gongmatch_currentUser');
       let currentUser = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
@@ -529,10 +530,7 @@ function ProjectListPage() {
             </button>
           </div>
           <Grid>
-            {filteredProjects
-              .filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl))
-              .filter(p => !p.title.includes('피우다프로젝트'))
-              .map(project => {
+            {filteredProjects.map(project => {
               const dDay = calculateDDay(project.endDate);
               const isUrgent = dDay === 'D-DAY' || (dDay && dDay.startsWith('D-') && parseInt(dDay.split('-')[1]) <= 7);
               const shareUrl = project.officialUrl || project.detailUrl;

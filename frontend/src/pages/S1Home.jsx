@@ -49,10 +49,11 @@ function S1Home() {
   const fetchHomeData = async (hasToken) => {
     try {
       const projRes = await api.get('/api/projects');
-      setProjects(projRes.data);
+      const validProjects = projRes.data.filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl) && !p.title.includes('피우다프로젝트'));
+      setProjects(validProjects);
       
       const statsRes = await api.get('/api/stats');
-      setStats(statsRes.data);
+      setStats({ ...statsRes.data, projectCount: validProjects.length });
 
       if (hasToken) {
         const recoRes = await api.get('/api/students/recommendations');
