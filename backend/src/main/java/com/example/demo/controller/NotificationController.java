@@ -4,11 +4,14 @@ import com.example.demo.entity.Notification;
 import com.example.demo.entity.Student;
 import com.example.demo.repository.NotificationRepository;
 import com.example.demo.repository.StudentRepository;
+import com.example.demo.repository.ProjectRepository;
+import com.example.demo.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.annotation.PostConstruct;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,39 @@ public class NotificationController {
 
     @Autowired
     private StudentRepository studentRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @PostConstruct
+    public void cleanupInvalidNotifications() {
+        // 앱 실행 시 모든 알림을 스캔하여, 대상 객체(프로젝트, 커뮤니티 글 등)가 삭제되어 연결할 수 없는 불량 알림들을 영구 청소
+        notificationRepository.findAll().forEach(n -> {
+            String target = n.getTargetUrl();
+            if (target != null && !target.isEmpty()) {
+                try {
+                    boolean isValid = true;
+                    if (target.startsWith("/projects/")) {
+                        Long id = Long.parseLong(target.replace("/projects/", "").trim());
+                        isValid = projectRepository.existsById(id);
+                    } else if (target.startsWith("/board/")) {
+                        Long id = Long.parseLong(target.replace("/board/", "").trim());
+                        isValid = postRepository.existsById(id);
+                    }
+                    // 유효하지 않은 목적지를 가리키는 유령 알림은 즉시 삭제
+                    if (!isValid) {
+                        notificationRepository.delete(n);
+                    }
+                } catch (Exception e) {
+                    // ID 파싱 실패 등 예외 발생 시 삭제 처리
+                    notificationRepository.delete(n);
+                }
+            }
+        });
+    }
 
     @GetMapping
     public ResponseEntity<?> getMyNotifications(Authentication authentication) {
