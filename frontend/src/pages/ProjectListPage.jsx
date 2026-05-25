@@ -318,7 +318,7 @@ function ProjectListPage() {
     
     if (diffDays < 0) return '마감됨';
     if (diffDays === 0) return 'D-DAY';
-    return \`D-\${diffDays}\`;
+    return `D-${diffDays}`;
   };
 
   const fetchProjects = async () => {
