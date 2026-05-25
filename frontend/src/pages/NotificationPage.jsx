@@ -31,7 +31,17 @@ function NotificationPage() {
             actions.push({
               label: notif.type === '매칭' ? '수락함으로 이동' : '이동하기',
               style: 'btn-prim btn-sm',
-              onClick: () => navigate(notif.targetUrl)
+              onClick: () => {
+                if (notif.targetUrl.startsWith('/board/')) {
+                  const postId = notif.targetUrl.split('/').pop();
+                  navigate('/community', { state: { postId } });
+                } else if (notif.targetUrl === '/' && notif.type === '마감 임박') {
+                  // 더미 공모전 마감 알림이 메인 홈(/)을 가리킬 경우, 실제 공모전 리스트로 이동
+                  navigate('/announcements');
+                } else {
+                  navigate(notif.targetUrl);
+                }
+              }
             });
           }
 

@@ -48,7 +48,11 @@ public class NotificationController {
                     } else if (target.startsWith("/board/")) {
                         Long id = Long.parseLong(target.replace("/board/", "").trim());
                         isValid = postRepository.existsById(id);
+                    } else if (target.startsWith("/chat")) {
+                        notificationRepository.delete(n);
+                        return;
                     }
+                    
                     // 유효하지 않은 목적지를 가리키는 유령 알림은 즉시 삭제
                     if (!isValid) {
                         notificationRepository.delete(n);

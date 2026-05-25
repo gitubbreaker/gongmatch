@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from '../App';
 
 function S4Board() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [posts, setPosts] = useState([]);
   const userStr = localStorage.getItem('gongmatch_currentUser');
@@ -26,6 +27,12 @@ function S4Board() {
         }));
         setPosts(sorted);
         setVisibleCount(10);
+        
+        // 알림 클릭 등 외부에서 postId를 들고 온 경우 자동 팝업 열기
+        if (location.state && location.state.postId) {
+          const targetPost = sorted.find(p => p.id === Number(location.state.postId));
+          if (targetPost) setActivePost(targetPost);
+        }
       }).catch(e => console.error('게시글 불러오기 실패', e));
     });
   };
