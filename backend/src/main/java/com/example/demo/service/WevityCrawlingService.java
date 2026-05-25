@@ -57,12 +57,11 @@ public class WevityCrawlingService implements InitializingBean {
         this.isCrawling = true;
         this.lastStartTime = java.time.LocalDateTime.now();
         
-        log.info("위비티 IT 공모전(cidx=20) 정밀 수집 프로세스 시작 (1~8페이지)...");
+        log.info("위비티 IT 공모전(cidx=20) 정밀 수집 프로세스 시작 (1~5페이지)...");
         
         int categoryIdx = 20;
         try {
-            // 기존 2페이지 -> 8페이지로 대폭 상향하여 풍부한 데이터 확보
-            for (int page = 1; page <= 8; page++) {
+            for (int page = 1; page <= 5; page++) {
                 String targetUrl = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=" + categoryIdx + "&gp=" + page;
                 
                 try {

@@ -3,7 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.ProjectResponseDto;
 import com.example.demo.entity.Project;
 import com.example.demo.repository.ProjectRepository;
-import com.example.demo.repository.ProjectRepository;
+import com.example.demo.repository.PublicProjectRepository;
 import com.example.demo.service.WevityCrawlingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +22,18 @@ import java.util.stream.Collectors;
 public class ProjectController {
 
     private final ProjectRepository projectRepository;
+    private final PublicProjectRepository publicProjectRepository; // 추가
     private final WevityCrawlingService wevityCrawlingService;
 
     @GetMapping
     public List<ProjectResponseDto> getAllProjects() {
-        // 1. 크롤링 데이터만 반환 (K-Startup 등 공공데이터 연동 폐기)
-        return projectRepository.findAllByOrderByIdDesc().stream()
+        // 1. 크롤링 데이터 가져오기
+        List<ProjectResponseDto> projects = projectRepository.findAllByOrderByIdDesc().stream()
                 .map(ProjectResponseDto::from)
                 .collect(Collectors.toList());
+
+        // 크롤링 데이터만 반환
+        return projects;
     }
 
     @GetMapping("/{id}")
