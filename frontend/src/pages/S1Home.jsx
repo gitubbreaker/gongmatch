@@ -3,6 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { showToast } from '../App';
 import api from '../api';
 
+// 숫자가 0부터 부드럽게 올라가는 애니메이션 컴포넌트
+function CountUpNumber({ end }) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (end === 0) return;
+    let start = null;
+    const duration = 1500; // 1.5초 동안 애니메이션
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      // easeOutExpo 효과 (빠르게 올라가다 끝에서 느려짐)
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.floor(easeProgress * end));
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [end]);
+  return <>{count.toLocaleString()}</>;
+}
+
 function S1Home() {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
@@ -10,6 +32,7 @@ function S1Home() {
   const [projects, setProjects] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [bestMatch, setBestMatch] = useState(null);
+  const [stats, setStats] = useState({ projectCount: 0, studentCount: 0, teamRequestCount: 0 });
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -27,6 +50,9 @@ function S1Home() {
     try {
       const projRes = await api.get('/api/projects');
       setProjects(projRes.data);
+      
+      const statsRes = await api.get('/api/stats');
+      setStats(statsRes.data);
 
       if (hasToken) {
         const recoRes = await api.get('/api/students/recommendations');
@@ -127,9 +153,9 @@ function S1Home() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginTop: '36px' }}>
-          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>1,248</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>매칭 성사</div></div>
-          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>342</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>진행 중인 공고</div></div>
-          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}>8,921</div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>활동 학생</div></div>
+          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}><CountUpNumber end={stats.teamRequestCount} /></div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>활성화된 팀 모집글</div></div>
+          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}><CountUpNumber end={stats.projectCount} /></div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>현재 모집 중인 공모전</div></div>
+          <div className="card" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '26px', fontWeight: '900', color: 'var(--ac)' }}><CountUpNumber end={stats.studentCount} /></div><div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '3px' }}>합류 대기 예비 팀원</div></div>
         </div>
 
         {/* 내 매칭 현황 */}
