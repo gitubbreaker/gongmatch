@@ -53,6 +53,16 @@ public class NotificationController {
                         return;
                     }
                     
+                    // 과거 버전에서 생성된 존재하지 않는 더미 데이터 강제 멸종
+                    if (target.equals("/") && "마감 임박".equals(n.getType())) {
+                        notificationRepository.delete(n);
+                        return;
+                    }
+                    if (target.equals("/community") && n.getTitle() != null && n.getTitle().contains("부산 공공데이터")) {
+                        notificationRepository.delete(n);
+                        return;
+                    }
+                    
                     // 유효하지 않은 목적지를 가리키는 유령 알림은 즉시 삭제
                     if (!isValid) {
                         notificationRepository.delete(n);
