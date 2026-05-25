@@ -111,7 +111,7 @@ function S6Profile() {
             <div style={{ position: 'relative' }}>
               <div className="av" style={{ width: '66px', height: '66px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '22px' }}>
                 {student?.profileImageUrl ? (
-                  <img src={`${api.defaults.baseURL}${student.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={student.profileImageUrl.startsWith('data:image') ? student.profileImageUrl : `${api.defaults.baseURL}${student.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   student?.name?.charAt(0) || 'U'
                 )}

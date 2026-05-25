@@ -134,7 +134,7 @@ function Header() {
               <div className="my-av" onClick={() => toggleDrop('my')} data-tooltip-id="main-tooltip" data-tooltip-content="내 프로필 및 설정" style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--blue-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac)', fontSize: '14px', fontWeight: '900', cursor: 'pointer', overflow: 'hidden' }}>
                 {/* 프로필 이미지가 있으면 렌더링, 없으면 이름 첫 글자 */}
                 {currentUser?.profileImageUrl ? (
-                  <img src={`${api.defaults.baseURL}${currentUser.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={currentUser.profileImageUrl.startsWith('data:image') ? currentUser.profileImageUrl : `${api.defaults.baseURL}${currentUser.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   currentUser?.name?.charAt(0) ?? '?'
                 )}

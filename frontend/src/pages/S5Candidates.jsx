@@ -288,7 +288,7 @@ function S5Candidates() {
                 <div style={{textAlign:'center'}}>
                   <div style={{ width: '70px', height: '70px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', fontWeight:'900', borderRadius:'22px', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px', overflow:'hidden' }}>
                     {c.profileImageUrl ? (
-                      <img src={`${api.defaults.baseURL}${c.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={c.profileImageUrl.startsWith('data:image') ? c.profileImageUrl : `${api.defaults.baseURL}${c.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       c.name.charAt(0)
                     )}
