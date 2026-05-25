@@ -49,7 +49,16 @@ public class DataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("🌱 샘플 데이터를 점검 및 생성하는 중...");
 
-        // 1. 공모전 데이터 (이제 크롤러가 전담하므로 하드코딩 샘플 주입은 제거됨)        // [중요] 정성원님 본인 계정 복구 (데이터 분석가)
+        // 1. 공모전 데이터 (이제 크롤러가 전담하므로 하드코딩 샘플 주입은 제거됨)
+        // [DB 클렌징] 예전에 하드코딩으로 들어간 부산 공공데이터, 스마트시티 샘플이 DB에 남아있다면 강제 삭제
+        publicProjectRepository.findAll().stream()
+            .filter(p -> p.getTitle().contains("부산 공공데이터") || p.getTitle().contains("스마트시티"))
+            .forEach(p -> {
+                System.out.println("🗑️ 불필요한 하드코딩 공모전 데이터 삭제: " + p.getTitle());
+                publicProjectRepository.delete(p);
+            });
+
+        // [중요] 정성원님 본인 계정 복구 (데이터 분석가)
         if (studentRepository.findFirstByLoginIdOrderByIdAsc("sungwon3049@naver.com").isEmpty()) {
             Student s = new Student();
             s.setLoginId("sungwon3049@naver.com");
