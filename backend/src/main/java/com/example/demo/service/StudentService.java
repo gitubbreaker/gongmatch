@@ -98,7 +98,7 @@ public class StudentService {
     public Student updateStudentProfileImageBase64(String loginId, String profileImageBase64) {
         Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        student.setProfileImageBase64(profileImageBase64);
+        student.setProfileImageBase64v2(profileImageBase64); // v2(LONGTEXT) 필드로 저장
         return studentRepository.save(student);
     }
 

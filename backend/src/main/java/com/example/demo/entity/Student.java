@@ -48,8 +48,8 @@ public class Student {
     @Column(length = 1000)
     private String profileImageUrl; // 사용자 프로필 이미지 URL 추가 (기존 호환용)
 
-    @Column(columnDefinition = "TEXT")
-    private String profileImageBase64; // 영구 보존용 Base64 이미지 추가
+    @Column(columnDefinition = "LONGTEXT")
+    private String profileImageBase64v2; // 4GB 영구 보존용 Base64 이미지 (용량 초과 방지)
 
     @Column(name = "is_verified")
     private boolean isVerified = false;
@@ -83,8 +83,8 @@ public class Student {
     
     // Base64 이미지가 있으면 프론트엔드에 URL 대신 반환 (하위 호환 및 영구보존 해결)
     public String getProfileImageUrl() {
-        if (this.profileImageBase64 != null && !this.profileImageBase64.isEmpty()) {
-            return this.profileImageBase64;
+        if (this.profileImageBase64v2 != null && !this.profileImageBase64v2.isEmpty()) {
+            return this.profileImageBase64v2;
         }
         return this.profileImageUrl;
     }

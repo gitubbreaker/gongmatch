@@ -96,7 +96,7 @@ public class StudentController {
             String dataUrl = "data:" + mimeType + ";base64," + base64Image;
 
             // DB 업데이트 로직 (기존 호환성을 위해 ImageUrl도 업데이트, Base64에 실제 저장)
-            student.setProfileImageBase64(dataUrl);
+            student.setProfileImageBase64v2(dataUrl);
             studentService.updateStudentProfileImageBase64(loginId, dataUrl); 
 
             return ResponseEntity.ok(Map.of("profileImageUrl", dataUrl));
