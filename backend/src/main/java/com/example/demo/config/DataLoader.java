@@ -350,34 +350,97 @@ public class DataLoader implements CommandLineRunner {
                 notificationRepository.save(n2);
             }
 
-            // Other sample notifications
-            Notification n3 = new Notification();
-            n3.setReceiver(sungwon);
-            n3.setType("마감 임박");
-            n3.setIcon("🚨");
-            n3.setTitle("서울 스마트시티 앱 서비스 공모전 마감 3일 전!");
-            n3.setDesc1("팀 매칭을 아직 완료하지 못했다면 서둘러보세요.");
-            n3.setDesc2("");
-            n3.setTargetUrl("/");
-            n3.setNew(true);
-            n3.setCreatedAt(LocalDateTime.now().minusHours(4));
-            notificationRepository.save(n3);
+            // 실제 공모전 데이터를 기반으로 마감 임박 알림 생성
+            PublicProject realProject = publicProjectRepository.findAll().stream().findFirst().orElse(null);
+            if (realProject != null) {
+                Notification n3 = new Notification();
+                n3.setReceiver(sungwon);
+                n3.setType("마감 임박");
+                n3.setIcon("🚨");
+                String shortTitle = realProject.getTitle().length() > 15 ? realProject.getTitle().substring(0, 15) + "..." : realProject.getTitle();
+                n3.setTitle("'" + shortTitle + "' 마감 임박!");
+                n3.setDesc1("팀 매칭을 아직 완료하지 못했다면 서둘러보세요.");
+                n3.setDesc2("");
+                n3.setTargetUrl("/projects/" + realProject.getId());
+                n3.setNew(true);
+                n3.setCreatedAt(LocalDateTime.now().minusHours(4));
+                notificationRepository.save(n3);
+            }
 
-            Notification n4 = new Notification();
-            n4.setReceiver(sungwon);
-            n4.setType("커뮤니티");
-            n4.setIcon("💬");
-            n4.setTitle("내가 쓴 글 '교내 AI 데이터 해커톤 백엔드/디자이너 구합니다!'에 새로운 댓글이 달렸습니다.");
-            n4.setDesc1("최지호: 저도 백엔드로 참여하고 싶습니다. 쪽지 드렸습니다!");
-            n4.setDesc2("");
-            n4.setTargetUrl("/community");
-            n4.setNew(true);
-            n4.setCreatedAt(LocalDateTime.now().minusDays(2));
-            notificationRepository.save(n4);
+            // 실제 커뮤니티 게시글 데이터를 기반으로 댓글 알림 생성
+            Post realPost = postRepository.findAll().stream().findFirst().orElse(null);
+            if (realPost != null) {
+                Notification n4 = new Notification();
+                n4.setReceiver(sungwon);
+                n4.setType("커뮤니티");
+                n4.setIcon("💬");
+                String shortPostTitle = realPost.getTitle().length() > 15 ? realPost.getTitle().substring(0, 15) + "..." : realPost.getTitle();
+                n4.setTitle("내가 쓴 글 '" + shortPostTitle + "'에 새로운 댓글이 달렸습니다.");
+                n4.setDesc1("최지호: 저도 백엔드로 참여하고 싶습니다. 쪽지 드렸습니다!");
+                n4.setDesc2("");
+                n4.setTargetUrl("/board/" + realPost.getId());
+                n4.setNew(true);
+                n4.setCreatedAt(LocalDateTime.now().minusDays(2));
+                notificationRepository.save(n4);
+            }
 
             // (n5 쪽지 더미 데이터는 프론트엔드 라우터 부재로 인해 완전히 제거됨)
 
-            System.out.println("✅ 매칭 및 알림 샘플 데이터 생성 완료!");
+            // ===== 🔔 모든 사용자에 대한 알림 생성 (실제 DB 데이터 기반) =====
+            // 실제 DB에서 공모전과 게시글 목록을 가져온다
+            List<PublicProject> allProjects = publicProjectRepository.findAll();
+            List<Post> allPosts = postRepository.findAll();
+
+            Student[] allSampleStudents = { suhyun, gaeun, jiho, hyuna, seungwoo };
+            Student minjun = studentRepository.findFirstByLoginIdOrderByIdAsc("minjun@test.com").orElse(null);
+            Student[] allStudentsIncMinjun = { suhyun, gaeun, jiho, hyuna, seungwoo, minjun };
+
+            for (Student user : allStudentsIncMinjun) {
+                if (user == null) continue;
+
+                // 1) 마감 임박 알림 — 실제 공모전 데이터에서 랜덤으로 하나 선택
+                if (!allProjects.isEmpty()) {
+                    // 각 유저마다 다른 공모전을 배정 (해시 기반 인덱스)
+                    int idx = Math.abs(user.getName().hashCode()) % allProjects.size();
+                    PublicProject userProject = allProjects.get(idx);
+                    String title = userProject.getTitle();
+                    String shortT = title.length() > 15 ? title.substring(0, 15) + "..." : title;
+
+                    Notification deadlineNotif = new Notification();
+                    deadlineNotif.setReceiver(user);
+                    deadlineNotif.setType("마감 임박");
+                    deadlineNotif.setIcon("🚨");
+                    deadlineNotif.setTitle("'" + shortT + "' 마감 임박!");
+                    deadlineNotif.setDesc1("팀 매칭을 아직 완료하지 못했다면 서둘러보세요.");
+                    deadlineNotif.setDesc2("");
+                    deadlineNotif.setTargetUrl("/projects/" + userProject.getId());
+                    deadlineNotif.setNew(true);
+                    deadlineNotif.setCreatedAt(LocalDateTime.now().minusHours(3 + idx));
+                    notificationRepository.save(deadlineNotif);
+                }
+
+                // 2) 커뮤니티 댓글 알림 — 실제 게시글 데이터에서 하나 선택
+                if (!allPosts.isEmpty()) {
+                    int idx = Math.abs(user.getLoginId().hashCode()) % allPosts.size();
+                    Post userPost = allPosts.get(idx);
+                    String postTitle = userPost.getTitle();
+                    String shortP = postTitle.length() > 15 ? postTitle.substring(0, 15) + "..." : postTitle;
+
+                    Notification commentNotif = new Notification();
+                    commentNotif.setReceiver(user);
+                    commentNotif.setType("커뮤니티");
+                    commentNotif.setIcon("💬");
+                    commentNotif.setTitle("'" + shortP + "' 게시글에 새로운 댓글이 달렸습니다.");
+                    commentNotif.setDesc1(userPost.getAuthor() + "님의 글에 관심을 가진 사용자가 있습니다.");
+                    commentNotif.setDesc2("");
+                    commentNotif.setTargetUrl("/board/" + userPost.getId());
+                    commentNotif.setNew(true);
+                    commentNotif.setCreatedAt(LocalDateTime.now().minusDays(1).minusHours(idx));
+                    notificationRepository.save(commentNotif);
+                }
+            }
+
+            System.out.println("✅ 매칭 및 알림 샘플 데이터 생성 완료! (모든 사용자 포함)");
         }
 
     }

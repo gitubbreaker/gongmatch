@@ -33,12 +33,23 @@ function NotificationPage() {
               style: 'btn-prim btn-sm',
               onClick: () => {
                 if (notif.targetUrl.startsWith('/board/')) {
+                  // 게시글 상세 → 커뮤니티 페이지에 postId를 전달하여 모달 열기
                   const postId = notif.targetUrl.split('/').pop();
                   navigate('/community', { state: { postId } });
+                } else if (notif.targetUrl.startsWith('/projects/')) {
+                  // 공모전 상세 페이지로 직접 이동
+                  navigate(notif.targetUrl);
+                } else if (notif.targetUrl === '/accept') {
+                  // 매칭 수락/거절 페이지로 이동
+                  navigate('/accept');
                 } else if (notif.targetUrl === '/' && notif.type === '마감 임박') {
-                  // 더미 공모전 마감 알림이 메인 홈(/)을 가리킬 경우, 실제 공모전 리스트로 이동
+                  // 레거시: 메인 홈(/)을 가리키는 마감 알림은 공모전 리스트로 리다이렉트
                   navigate('/announcements');
+                } else if (notif.targetUrl === '/community') {
+                  // 레거시: 커뮤니티 메인으로 이동
+                  navigate('/community');
                 } else {
+                  // 기타 경로는 그대로 이동
                   navigate(notif.targetUrl);
                 }
               }
