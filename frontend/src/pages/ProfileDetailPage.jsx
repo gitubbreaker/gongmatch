@@ -12,18 +12,19 @@ const Container = styled.div`
 `;
 
 const Section = styled.div`
-  background: #15161d;
+  background: var(--card);
   padding: 30px;
   border-radius: 20px;
   margin-bottom: 20px;
+  border: 1px solid var(--brd);
 `;
 
 const Timeline = styled.div`
-  border-left: 2px solid #2a2b36;
+  border-left: 2px solid var(--brd);
   padding-left: 20px;
   margin-left: 10px;
   .item { position: relative; margin-bottom: 30px; }
-  .item::before { content:''; position:absolute; left:-27px; top:0; width:12px; height:12px; border-radius:50%; background:#c4ff00; }
+  .item::before { content:''; position:absolute; left:-27px; top:0; width:12px; height:12px; border-radius:50%; background:var(--ac); }
 `;
 
 function ProfileDetailPage() {
@@ -87,52 +88,52 @@ function ProfileDetailPage() {
               authorIcon
             )}
           </div>
-          <div><h1 style={{fontSize:'30px'}}>{author}</h1><p style={{color:'#8a8b91'}}>{role} · {major} {grade}</p></div>
+          <div><h1 style={{fontSize:'30px', color:'var(--tx)'}}>{author}</h1><p style={{color:'var(--tx3)'}}>{role} · {major} {grade}</p></div>
         </Section>
         <Section>
-          <h3>자기소개</h3>
-          <p style={{color:'#8a8b91', marginTop:'15px', lineHeight:'1.8'}}>{intro}</p>
+          <h3 style={{color:'var(--tx)'}}>자기소개</h3>
+          <p style={{color:'var(--tx2)', marginTop:'15px', lineHeight:'1.8'}}>{intro}</p>
         </Section>
         <Section>
-          <h3>공모전 이력</h3>
+          <h3 style={{color:'var(--tx)'}}>공모전 이력</h3>
           <Timeline style={{marginTop:'20px'}}>
             {profileData?.contestCount > 0 ? (
-              <div className="item"><h4>🏆 총 {profileData.contestCount}회의 공모전 참가 경험</h4><p style={{color:'#666'}}>꾸준한 성장을 향해 나아가는 중</p></div>
+              <div className="item"><h4 style={{color:'var(--tx)'}}>🏆 총 {profileData.contestCount}회의 공모전 참가 경험</h4><p style={{color:'var(--tx3)'}}>꾸준한 성장을 향해 나아가는 중</p></div>
             ) : null}
             {profileData?.awardCount > 0 ? (
-              <div className="item"><h4>🏅 {profileData.awardCount}회의 수상 내역</h4><p style={{color:'#666'}}>우수한 성과 입증</p></div>
+              <div className="item"><h4 style={{color:'var(--tx)'}}>🏅 {profileData.awardCount}회의 수상 내역</h4><p style={{color:'var(--tx3)'}}>우수한 성과 입증</p></div>
             ) : null}
             {(!profileData || (profileData.contestCount === 0 && profileData.awardCount === 0)) && (
-              <div className="item"><h4>🌱 아직 등록된 공모전 이력이 없습니다</h4><p style={{color:'#666'}}>새로운 도전을 준비 중입니다!</p></div>
+              <div className="item"><h4 style={{color:'var(--tx)'}}>🌱 아직 등록된 공모전 이력이 없습니다</h4><p style={{color:'var(--tx3)'}}>새로운 도전을 준비 중입니다!</p></div>
             )}
           </Timeline>
         </Section>
       </div>
       <aside>
         <Section>
-          <h3 style={{marginBottom:'20px'}}>이 공모전으로 팀원 요청</h3>
+          <h3 style={{marginBottom:'20px', color:'var(--tx)'}}>이 공모전으로 팀원 요청</h3>
           
-          <div style={{ fontSize: '13px', color: '#8a8b91', marginBottom: '8px', fontWeight: '800' }}>제안 메시지</div>
+          <div style={{ fontSize: '13px', color: 'var(--tx3)', marginBottom: '8px', fontWeight: '800' }}>제안 메시지</div>
           <textarea 
-            style={{width:'100%', height:'120px', background:'#0b0c10', border:'1px solid #2a2b36', color:'#fff', padding:'15px', borderRadius:'10px', resize: 'none', marginBottom: '24px'}} 
+            style={{width:'100%', height:'120px', background:'var(--bg)', border:'1px solid var(--brd)', color:'var(--tx)', padding:'15px', borderRadius:'10px', resize: 'none', marginBottom: '24px'}} 
             placeholder="인사말과 팀 제안 이유를 적어주세요."
             value={reqMessage}
             onChange={e => setReqMessage(e.target.value)}
           />
 
-          <div style={{ fontSize: '13px', color: '#8a8b91', marginBottom: '8px', fontWeight: '800', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: '13px', color: 'var(--tx3)', marginBottom: '8px', fontWeight: '800', display: 'flex', justifyContent: 'space-between' }}>
             <span>나의 오픈채팅방 링크</span>
           </div>
           <input 
             type="text"
-            style={{width:'100%', background:'#0b0c10', border:'1px solid #2a2b36', color: kakaoLink ? '#c4ff00' : '#fff', padding:'15px', borderRadius:'10px', marginBottom: '8px'}} 
+            style={{width:'100%', background:'var(--bg)', border:'1px solid var(--brd)', color: kakaoLink ? 'var(--ac)' : 'var(--tx)', padding:'15px', borderRadius:'10px', marginBottom: '8px'}} 
             placeholder="https://open.kakao.com/o/..."
             value={kakaoLink}
             onChange={e => setKakaoLink(e.target.value)}
           />
-          <div style={{ fontSize: '11px', color: '#666', marginBottom: '24px', lineHeight: '1.4' }}>프로필에 등록된 연락처가 자동으로 입력됩니다.</div>
+          <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '24px', lineHeight: '1.4' }}>프로필에 등록된 연락처가 자동으로 입력됩니다.</div>
 
-          <button onClick={handleRequest} style={{width:'100%', background:'#c4ff00', color:'#000', padding:'18px', borderRadius:'12px', fontWeight:'900', marginTop:'10px', fontSize:'16px', border:'none', cursor:'pointer'}}>팀원 요청 보내기</button>
+          <button onClick={handleRequest} style={{width:'100%', background:'var(--ac)', color:'#000', padding:'18px', borderRadius:'12px', fontWeight:'900', marginTop:'10px', fontSize:'16px', border:'none', cursor:'pointer'}}>팀원 요청 보내기</button>
         </Section>
       </aside>
     </Container>

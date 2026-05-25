@@ -15,6 +15,7 @@ function NotificationPage() {
     try {
       await api.delete(`/api/notifications/${id}`);
       setRealNotifs(realNotifs.filter(n => n.id !== id));
+      window.dispatchEvent(new Event('notifRead'));
     } catch(e) {
       console.error(e);
     }

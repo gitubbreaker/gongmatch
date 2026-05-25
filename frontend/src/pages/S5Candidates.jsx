@@ -312,8 +312,8 @@ function S5Candidates() {
                       alignItems: 'center',
                       gap: '4px'
                     }}>
-                      <span style={{ color: c.averageRating ? '#FFB800' : 'var(--tx3)', fontSize: '11px' }}>★</span>
-                      {c.averageRating !== null && c.averageRating !== undefined ? c.averageRating.toFixed(1) : '없음'}
+                      <span style={{ fontSize: '11px' }}>⭐</span>
+                      {c.averageRating !== null && c.averageRating !== undefined ? `${c.averageRating.toFixed(1)}/5.0` : '평가 없음'}
                     </span>
                     {myRole && c.role && (
                       (() => {

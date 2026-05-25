@@ -44,6 +44,8 @@ public class TeamRequest {
     // 데이터베이스에 Insert 되기 직전에 현재 시간을 자동으로 세팅
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 }

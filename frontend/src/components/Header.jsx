@@ -38,26 +38,9 @@ function Header() {
     if (currentUser) {
       const fetchNotifications = async () => {
         try {
-          const [receivedRes, sentRes] = await Promise.all([
-            api.get('/api/team-requests/received'),
-            api.get('/api/team-requests/sent')
-          ]);
-          
-          const pendingReceived = receivedRes.data
-            .filter(req => req.status === 'PENDING')
-            .map(req => ({ ...req, notifType: 'RECEIVED', _id: `req_${req.requestId || req.id}` }));
-            
-          const acceptedSent = sentRes.data
-            .filter(req => req.status === 'ACCEPTED')
-            .map(req => ({ ...req, notifType: 'ACCEPTED_SENT', _id: `acc_${req.requestId || req.id}` }));
-            
-          // 최신순 정렬 + 읽음 상태 반영
-          const readIds = new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]'));
-          const combined = [...pendingReceived, ...acceptedSent]
-            .filter(n => !readIds.has(n._id))
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          
-          setNotifications(combined);
+          const res = await api.get('/api/notifications');
+          const unread = res.data.filter(n => n.isNew === true);
+          setNotifications(unread);
         } catch (e) {
           console.error('알림 로딩 실패', e);
         }

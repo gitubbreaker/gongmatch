@@ -140,8 +140,17 @@ function S8Summary() {
               ))}
 
               <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
-                <button className="btn-ghost" style={{ width: '100%', padding: '12px' }} onClick={() => navigate('/board')}>
-                  프로젝트 대시보드에 저장
+                <button 
+                  className="btn-ghost" 
+                  style={{ width: '100%', padding: '12px' }} 
+                  onClick={() => {
+                    const text = topics.map(t => 
+                      `[${t.title}]\n일정: ${t.schedule || '미정'}\n장소: ${t.location || '미정'}\n역할 분담:\n${t.roles && t.roles.length > 0 ? t.roles.map(r => `- ${r.name}(${r.role}): ${r.task}`).join('\n') : '없음'}`
+                    ).join('\n\n');
+                    navigator.clipboard.writeText(text).then(() => showToast('클립보드에 요약 내용이 복사되었습니다.'));
+                  }}
+                >
+                  요약 내용 클립보드에 복사하기
                 </button>
               </div>
             </>
