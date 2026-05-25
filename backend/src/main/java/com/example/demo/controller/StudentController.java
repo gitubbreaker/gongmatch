@@ -90,30 +90,16 @@ public class StudentController {
                 return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
             }
 
-            // 폴더 생성
-            String uploadDir = "uploads/profiles/";
-            File dir = new File(uploadDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
+            // 파일을 Base64 문자열로 변환 (영구 보존 목적)
+            String base64Image = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+            String mimeType = file.getContentType();
+            String dataUrl = "data:" + mimeType + ";base64," + base64Image;
 
-            // 파일명 중복 방지를 위한 UUID 사용
-            String originalFileName = file.getOriginalFilename();
-            String extension = "";
-            if (originalFileName != null && originalFileName.contains(".")) {
-                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            }
-            String fileName = UUID.randomUUID().toString() + extension;
-            Path filePath = Paths.get(uploadDir + fileName);
+            // DB 업데이트 로직 (기존 호환성을 위해 ImageUrl도 업데이트, Base64에 실제 저장)
+            student.setProfileImageBase64(dataUrl);
+            studentService.updateStudentProfileImageBase64(loginId, dataUrl); 
 
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // DB 업데이트
-            String fileUrl = "/uploads/profiles/" + fileName;
-            student.setProfileImageUrl(fileUrl);
-            studentService.updateStudentProfileImage(loginId, fileUrl); // 이 메서드는 Service에 만들어야 함
-
-            return ResponseEntity.ok(Map.of("profileImageUrl", fileUrl));
+            return ResponseEntity.ok(Map.of("profileImageUrl", dataUrl));
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("message", "Could not store file"));

@@ -94,6 +94,14 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
+    @Transactional
+    public Student updateStudentProfileImageBase64(String loginId, String profileImageBase64) {
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        student.setProfileImageBase64(profileImageBase64);
+        return studentRepository.save(student);
+    }
+
     /**
      * 알고리즘 기반 학생 추천 목록 조회
      */

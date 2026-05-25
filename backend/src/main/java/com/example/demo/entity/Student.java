@@ -46,7 +46,10 @@ public class Student {
     private String openChatUrl; // 카카오톡 오픈채팅 URL 추가
 
     @Column(length = 1000)
-    private String profileImageUrl; // 사용자 프로필 이미지 URL 추가
+    private String profileImageUrl; // 사용자 프로필 이미지 URL 추가 (기존 호환용)
+
+    @Column(columnDefinition = "TEXT")
+    private String profileImageBase64; // 영구 보존용 Base64 이미지 추가
 
     @Column(name = "is_verified")
     private boolean isVerified = false;
@@ -73,6 +76,16 @@ public class Student {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+    }
+    
+    // Base64 이미지가 있으면 프론트엔드에 URL 대신 반환 (하위 호환 및 영구보존 해결)
+    public String getProfileImageUrl() {
+        if (this.profileImageBase64 != null && !this.profileImageBase64.isEmpty()) {
+            return this.profileImageBase64;
+        }
+        return this.profileImageUrl;
     }
 }
