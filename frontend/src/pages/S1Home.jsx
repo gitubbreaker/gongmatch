@@ -103,11 +103,14 @@ function S1Home() {
   };
 
   const upcomingProjects = [...projects]
+    .filter(p => !p.title.includes('피우다프로젝트'))
     .filter(p => p.endDate && new Date(p.endDate) >= new Date())
     .sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
     .slice(0, 3);
     
-  const latestProject = projects.length > 0 ? [...projects].sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] : null;
+  const latestProject = projects.length > 0 
+    ? [...projects].filter(p => !p.title.includes('피우다프로젝트')).sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] 
+    : null;
 
   return (
     <div className="grid-2col">

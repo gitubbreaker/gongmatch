@@ -529,7 +529,10 @@ function ProjectListPage() {
             </button>
           </div>
           <Grid>
-            {filteredProjects.filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl)).map(project => {
+            {filteredProjects
+              .filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl))
+              .filter(p => !p.title.includes('피우다프로젝트'))
+              .map(project => {
               const dDay = calculateDDay(project.endDate);
               const isUrgent = dDay === 'D-DAY' || (dDay && dDay.startsWith('D-') && parseInt(dDay.split('-')[1]) <= 7);
               const shareUrl = project.officialUrl || project.detailUrl;
