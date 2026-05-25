@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.annotation.PostConstruct;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +25,20 @@ public class ProjectController {
     private final ProjectRepository projectRepository;
     private final PublicProjectRepository publicProjectRepository; // 추가
     private final WevityCrawlingService wevityCrawlingService;
+
+    @PostConstruct
+    public void cleanUpDummyProjects() {
+        // 앱 실행 시 불량 데이터를 DB에서 영구 삭제하여 통계 수치 동기화
+        projectRepository.findAll().forEach(p -> {
+            if (p.getTitle().contains("피우다프로젝트") || p.getPosterImageUrl() == null || p.getPosterImageUrl().trim().isEmpty() || p.getOfficialUrl() == null || p.getOfficialUrl().trim().isEmpty()) {
+                try {
+                    projectRepository.delete(p);
+                } catch (Exception e) {
+                    // 연관 관계 오류 등 무시
+                }
+            }
+        });
+    }
 
     @GetMapping
     public List<ProjectResponseDto> getAllProjects() {
