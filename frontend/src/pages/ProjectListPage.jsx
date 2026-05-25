@@ -10,8 +10,47 @@ const Container = styled.div`
 `;
 
 const HeaderSection = styled.div`
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   text-align: center;
+`;
+
+const SearchContainer = styled.div`
+  max-width: 500px;
+  margin: 0 auto 40px auto;
+  position: relative;
+
+  input {
+    width: 100%;
+    padding: 16px 24px;
+    border-radius: 30px;
+    border: 1px solid var(--brd);
+    background: var(--bg2);
+    color: var(--tx);
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+    &:focus {
+      border-color: var(--ac);
+      box-shadow: 0 4px 16px rgba(118, 92, 255, 0.2);
+    }
+    
+    &::placeholder {
+      color: var(--tx3);
+    }
+  }
+
+  svg {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tx3);
+    width: 20px;
+    height: 20px;
+  }
 `;
 
 const Title = styled.h1`
@@ -184,6 +223,42 @@ const EmptyState = styled.div`
   }
 `;
 
+const DDayBadge = styled.div`
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: ${props => props.$isUrgent ? 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)' : 'var(--bg)'};
+  color: ${props => props.$isUrgent ? '#fff' : 'var(--tx)'};
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10;
+  border: ${props => props.$isUrgent ? 'none' : '1px solid var(--brd)'};
+`;
+
+const Toast = styled.div`
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(${props => props.$show ? '0' : '100px'});
+  opacity: ${props => props.$show ? '1' : '0'};
+  background: var(--card);
+  color: var(--tx);
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 9999;
+  border: 1px solid var(--brd2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
 // 사진 부재 시 자동으로 제목을 넣어주는 스마트 포스터 컴포넌트
 const SmartPoster = ({ src, title, category }) => {
   const [error, setError] = React.useState(!src);
@@ -224,6 +299,27 @@ function ProjectListPage() {
   const [timeLeft, setTimeLeft] = useState(0); 
   const [showBanner, setShowBanner] = useState(false);
   const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false); // 찜 필터 상태
+  const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태
+  const [toastMsg, setToastMsg] = useState(""); // 토스트 메시지
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(""), 3000);
+  };
+
+  const calculateDDay = (endDateStr) => {
+    if (!endDateStr) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(endDateStr);
+    end.setHours(0, 0, 0, 0);
+    const diffTime = end - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return '마감됨';
+    if (diffDays === 0) return 'D-DAY';
+    return \`D-\${diffDays}\`;
+  };
 
   const fetchProjects = async () => {
     try {
@@ -337,17 +433,33 @@ function ProjectListPage() {
       const res = await api.post(`/api/bookmarks/${projectId}?userId=${currentUser.id}`);
       if (res.data.bookmarked) {
         setBookmarkedIds([...bookmarkedIds, projectId]);
+        showToast("💖 공모전을 찜 목록에 저장했습니다!");
       } else {
         setBookmarkedIds(bookmarkedIds.filter(id => id !== projectId));
+        showToast("🤍 찜 목록에서 제외되었습니다.");
       }
     } catch (err) {
       console.error('북마크 토글 실패', err);
     }
   };
 
-  // 대학생 맞춤 필터링 로직
+  const handleShare = (e, url) => {
+    e.stopPropagation();
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast("🔗 링크가 클립보드에 복사되었습니다!");
+    });
+  };
+
+  // 대학생 맞춤 필터링 및 검색 로직
   const filteredProjects = projects.filter(p => {
     if (showBookmarkedOnly && !bookmarkedIds.includes(p.id)) return false;
+    if (searchQuery.trim() !== "") {
+      const q = searchQuery.toLowerCase();
+      if (!(p.title?.toLowerCase().includes(q) || p.host?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q))) {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -359,6 +471,19 @@ function ProjectListPage() {
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
         <Subtitle>대학생 여러분을 위한 최신 IT 프로젝트 및 대외활동 정보를 실시간으로 수집합니다.</Subtitle>
       </HeaderSection>
+
+      <SearchContainer>
+        <input 
+          type="text" 
+          placeholder="공모전 제목이나 주관 기관을 검색해보세요..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </SearchContainer>
 
       {isLoading ? (
         <Grid>
@@ -404,54 +529,61 @@ function ProjectListPage() {
             </button>
           </div>
           <Grid>
-            {filteredProjects.map(project => (
-              <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
-                <BookmarkBtn onClick={(e) => toggleBookmark(e, project.id)}>
-                  {bookmarkedIds.includes(project.id) ? '💖' : '🤍'}
-                </BookmarkBtn>
-                <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '18px', background: 'var(--bg2)', border: '1px solid var(--brd2)' }}>
-                  <SmartPoster src={project.posterImageUrl} title={project.title} category={project.category} />
-                </div>
-                <CategoryTag>{project.category || 'IT / 해커톤'}</CategoryTag>
-                <ProjectTitle>{project.title}</ProjectTitle>
-                
-                <InfoRow>
-                  <Label>주관</Label>
-                  <span>{project.host}</span>
-                </InfoRow>
-                
-                <InfoRow>
-                  <Label>마감일</Label>
-                  <span style={{ color: 'var(--orange)', fontWeight: '700' }}>
-                    {project.endDate || '상시모집'}
-                  </span>
-                </InfoRow>
+            {filteredProjects.map(project => {
+              const dDay = calculateDDay(project.endDate);
+              const isUrgent = dDay === 'D-DAY' || (dDay && dDay.startsWith('D-') && parseInt(dDay.split('-')[1]) <= 7);
+              const shareUrl = project.officialUrl || project.detailUrl;
 
-                <Footer>
-                  <DateBadge>
-                    수집일: {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '최근 수집됨'}
-                  </DateBadge>
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <MoreBtn onClick={(e) => {
-                      e.stopPropagation();
-                      const url = project.officialUrl || project.detailUrl;
-                      if (url) window.open(url, '_blank');
-                    }}>
-                      {project.officialUrl && !project.officialUrl.includes('wevity.com') ? '🌐 공식 홈페이지' : '🔗 원본 공고'}
-                    </MoreBtn>
-                    <MoreBtn>
-                      상세보기 
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
-                    </MoreBtn>
+              return (
+                <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
+                  {dDay && <DDayBadge $isUrgent={isUrgent}>{dDay === 'D-DAY' ? '🔥 오늘 마감' : dDay}</DDayBadge>}
+                  <BookmarkBtn onClick={(e) => toggleBookmark(e, project.id)}>
+                    {bookmarkedIds.includes(project.id) ? '💖' : '🤍'}
+                  </BookmarkBtn>
+                  <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '18px', background: 'var(--bg2)', border: '1px solid var(--brd2)' }}>
+                    <SmartPoster src={project.posterImageUrl} title={project.title} category={project.category} />
                   </div>
-                </Footer>
-              </ProjectCard>
-            ))}
+                  <CategoryTag>{project.category || 'IT / 해커톤'}</CategoryTag>
+                  <ProjectTitle>{project.title}</ProjectTitle>
+                  
+                  <InfoRow>
+                    <Label>주관</Label>
+                    <span>{project.host}</span>
+                  </InfoRow>
+                  
+                  <InfoRow>
+                    <Label>마감일</Label>
+                    <span style={{ color: 'var(--orange)', fontWeight: '700' }}>
+                      {project.endDate || '상시모집'}
+                    </span>
+                  </InfoRow>
+
+                  <Footer>
+                    <DateBadge>
+                      수집: {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '최근'}
+                    </DateBadge>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <MoreBtn onClick={(e) => handleShare(e, shareUrl)}>
+                        공유하기
+                      </MoreBtn>
+                      <MoreBtn onClick={(e) => {
+                        e.stopPropagation();
+                        if (shareUrl) window.open(shareUrl, '_blank');
+                      }}>
+                        {project.officialUrl && !project.officialUrl.includes('wevity.com') ? '🌐 원본' : '🔗 상세보기'}
+                      </MoreBtn>
+                    </div>
+                  </Footer>
+                </ProjectCard>
+              );
+            })}
           </Grid>
         </>
       )}
+
+      <Toast $show={toastMsg !== ""}>
+        <span>✨</span> {toastMsg}
+      </Toast>
     </Container>
   );
 }
