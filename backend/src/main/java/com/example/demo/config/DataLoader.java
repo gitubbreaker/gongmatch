@@ -361,7 +361,7 @@ public class DataLoader implements CommandLineRunner {
                 n3.setTitle("'" + shortTitle + "' 마감 임박!");
                 n3.setDesc1("팀 매칭을 아직 완료하지 못했다면 서둘러보세요.");
                 n3.setDesc2("");
-                n3.setTargetUrl("/projects/" + realProject.getId());
+                n3.setTargetUrl("/projects/" + realProject.getProjectId());
                 n3.setNew(true);
                 n3.setCreatedAt(LocalDateTime.now().minusHours(4));
                 notificationRepository.save(n3);
@@ -413,7 +413,7 @@ public class DataLoader implements CommandLineRunner {
                     deadlineNotif.setTitle("'" + shortT + "' 마감 임박!");
                     deadlineNotif.setDesc1("팀 매칭을 아직 완료하지 못했다면 서둘러보세요.");
                     deadlineNotif.setDesc2("");
-                    deadlineNotif.setTargetUrl("/projects/" + userProject.getId());
+                    deadlineNotif.setTargetUrl("/projects/" + userProject.getProjectId());
                     deadlineNotif.setNew(true);
                     deadlineNotif.setCreatedAt(LocalDateTime.now().minusHours(3 + idx));
                     notificationRepository.save(deadlineNotif);
