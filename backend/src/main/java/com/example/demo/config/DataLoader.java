@@ -375,17 +375,7 @@ public class DataLoader implements CommandLineRunner {
             n4.setCreatedAt(LocalDateTime.now().minusDays(2));
             notificationRepository.save(n4);
 
-            Notification n5 = new Notification();
-            n5.setReceiver(sungwon);
-            n5.setType("쪽지");
-            n5.setIcon("✉️");
-            n5.setTitle("정가은님으로부터 새로운 쪽지가 도착했습니다.");
-            n5.setDesc1("가은: 성원님 피드백 감사드립니다! 말씀해주신 방향대로 피그마 시안 수정해볼게요.");
-            n5.setDesc2("");
-            n5.setTargetUrl("/chat");
-            n5.setNew(false);
-            n5.setCreatedAt(LocalDateTime.now().minusDays(2));
-            notificationRepository.save(n5);
+            // (n5 쪽지 더미 데이터는 프론트엔드 라우터 부재로 인해 완전히 제거됨)
 
             System.out.println("✅ 매칭 및 알림 샘플 데이터 생성 완료!");
         }
