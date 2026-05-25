@@ -570,7 +570,7 @@ function ProjectListPage() {
                         e.stopPropagation();
                         if (shareUrl) window.open(shareUrl, '_blank');
                       }}>
-                        🌐 원본
+                        {project.officialUrl && project.officialUrl.includes('wevity.com') ? '📎 위비티 공고' : '🌐 공식 홈페이지'}
                       </MoreBtn>
                     </div>
                   </Footer>
