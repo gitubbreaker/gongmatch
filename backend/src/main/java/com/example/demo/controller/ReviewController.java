@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -61,6 +62,30 @@ public class ReviewController {
         }
 
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/public/{name}")
+    public ResponseEntity<List<PublicReviewDto>> getPublicReviews(@PathVariable String name) {
+        Student reviewee = studentRepository.findFirstByName(name).orElse(null);
+        if (reviewee == null) return ResponseEntity.notFound().build();
+
+        List<Review> reviews = reviewRepository.findByRevieweeAndVisibilityOrderByCreatedAtDesc(reviewee, "public");
+        
+        List<PublicReviewDto> dtos = reviews.stream().map(r -> PublicReviewDto.builder()
+                .reviewerName(r.getReviewer().getName())
+                .projectName(r.getProjectName())
+                .timeScore(r.getTimeScore())
+                .commScore(r.getCommScore())
+                .skillScore(r.getSkillScore())
+                .mannerScore(r.getMannerScore())
+                .goodTags(r.getGoodTags())
+                .badTags(r.getBadTags())
+                .rematch(r.getRematch())
+                .reviewText(r.getReviewText())
+                .createdAt(r.getCreatedAt())
+                .build()).collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping
@@ -126,5 +151,20 @@ public class ReviewController {
         private String rematch;
         private String reviewText;
         private String visibility;
+    }
+
+    @Data @Builder
+    static class PublicReviewDto {
+        private String reviewerName;
+        private String projectName;
+        private int timeScore;
+        private int commScore;
+        private int skillScore;
+        private int mannerScore;
+        private String goodTags;
+        private String badTags;
+        private String rematch;
+        private String reviewText;
+        private LocalDateTime createdAt;
     }
 }

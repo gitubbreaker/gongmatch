@@ -33,6 +33,7 @@ function ProfileDetailPage() {
   const [reqMessage, setReqMessage] = React.useState('');
   const [kakaoLink, setKakaoLink] = React.useState('');
   const [profileData, setProfileData] = React.useState(null);
+  const [publicReviews, setPublicReviews] = React.useState([]);
 
   // 라우터 state로 넘어온 초기값 (fallback용)
   const authorFromState = location.state?.author || '김지원';
@@ -50,6 +51,10 @@ function ProfileDetailPage() {
       api.get(`/api/students/profile/${encodeURIComponent(authorFromState)}`)
         .then(res => setProfileData(res.data))
         .catch(e => console.log('프로필을 찾을 수 없습니다.', e));
+        
+      api.get(`/api/reviews/public/${encodeURIComponent(authorFromState)}`)
+        .then(res => setPublicReviews(res.data))
+        .catch(e => console.log('공개 후기를 가져올 수 없습니다.', e));
     }
   }, [authorFromState]);
 
@@ -107,6 +112,37 @@ function ProfileDetailPage() {
               <div className="item"><h4 style={{color:'var(--tx)'}}>🌱 아직 등록된 공모전 이력이 없습니다</h4><p style={{color:'var(--tx3)'}}>새로운 도전을 준비 중입니다!</p></div>
             )}
           </Timeline>
+        </Section>
+        <Section>
+          <h3 style={{color:'var(--tx)'}}>동료들의 추천 후기</h3>
+          {publicReviews.length > 0 ? (
+            <div style={{marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
+              {publicReviews.map((r, i) => (
+                <div key={i} style={{padding: '20px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--brd)'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
+                    <div style={{fontSize: '14px', fontWeight: '800', color: 'var(--tx)'}}>{r.projectName}</div>
+                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                  </div>
+                  {r.reviewText && (
+                    <p style={{fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px'}}>"{r.reviewText}"</p>
+                  )}
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px'}}>
+                    {r.goodTags && r.goodTags.split(',').filter(t=>t).map((t, idx) => (
+                      <span key={idx} style={{fontSize: '11px', padding: '4px 8px', borderRadius: '4px', background: 'var(--ac-dim)', color: 'var(--ac)'}}>{t}</span>
+                    ))}
+                  </div>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px'}}>
+                    <span style={{color: 'var(--yellow)', fontWeight: '800'}}>★ {((r.timeScore + r.commScore + r.skillScore + r.mannerScore)/4).toFixed(1)}</span>
+                    <span style={{color: 'var(--tx3)'}}>익명의 동료</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{marginTop: '20px', padding: '30px', textAlign: 'center', background: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--brd)'}}>
+              <p style={{color: 'var(--tx3)', fontSize: '13px'}}>아직 등록된 공개 후기가 없습니다.</p>
+            </div>
+          )}
         </Section>
       </div>
       <aside>
