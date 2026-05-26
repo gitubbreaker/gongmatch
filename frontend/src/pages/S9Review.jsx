@@ -437,7 +437,7 @@ function S9Review() {
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button className="btn-ghost" style={{ flex: 1, padding: '14px' }} onClick={() => navigate('/')}>홈으로</button>
-              <button className="btn-prim" style={{ flex: 1, padding: '14px' }} onClick={() => navigate('/profile')}>프로필 보러가기</button>
+              <button className="btn-prim" style={{ flex: 1, padding: '14px' }} onClick={() => navigate('/profile-detail', { state: { author: members.find(m => m.id === selectedMember)?.name } })}>프로필 보러가기</button>
             </div>
           </div>
         </div>
