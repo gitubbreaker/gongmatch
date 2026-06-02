@@ -69,21 +69,27 @@ public class ReviewController {
         Student reviewee = studentRepository.findFirstByName(name).orElse(null);
         if (reviewee == null) return ResponseEntity.notFound().build();
 
-        List<Review> reviews = reviewRepository.findByRevieweeAndVisibilityOrderByCreatedAtDesc(reviewee, "public");
+        List<Review> reviews = reviewRepository.findAll().stream()
+                .filter(r -> r.getReviewee().getId().equals(reviewee.getId()))
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(Collectors.toList());
         
-        List<PublicReviewDto> dtos = reviews.stream().map(r -> PublicReviewDto.builder()
-                .reviewerName(r.getReviewer().getName())
-                .projectName(r.getProjectName())
+        List<PublicReviewDto> dtos = reviews.stream().map(r -> {
+            boolean isPrivate = "private".equals(r.getVisibility());
+            return PublicReviewDto.builder()
+                .reviewerName(isPrivate ? "익명" : r.getReviewer().getName())
+                .projectName(isPrivate ? "비공개 팀 매칭 후기" : r.getProjectName())
                 .timeScore(r.getTimeScore())
                 .commScore(r.getCommScore())
                 .skillScore(r.getSkillScore())
                 .mannerScore(r.getMannerScore())
-                .goodTags(r.getGoodTags())
-                .badTags(r.getBadTags())
-                .rematch(r.getRematch())
-                .reviewText(r.getReviewText())
+                .goodTags(isPrivate ? "" : r.getGoodTags())
+                .badTags(isPrivate ? "" : r.getBadTags())
+                .rematch(isPrivate ? "" : r.getRematch())
+                .reviewText(isPrivate ? "이 후기는 비공개로 작성되어 점수만 반영되었습니다." : r.getReviewText())
                 .createdAt(r.getCreatedAt())
-                .build()).collect(Collectors.toList());
+                .build();
+        }).collect(Collectors.toList());
 
         return ResponseEntity.ok(dtos);
     }
