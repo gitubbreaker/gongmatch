@@ -13,6 +13,7 @@ function S6Profile() {
   const [student, setStudent] = useState(null);
   const [tags, setTags] = useState([]);
   const [times, setTimes] = useState([]);
+  const [publicReviews, setPublicReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // 카카오톡 링크 수정 모달 상태
@@ -30,6 +31,15 @@ function S6Profile() {
         setStudent(studentRes.data);
         setTags(tagRes.data);
         setTimes(timeRes.data);
+
+        if (studentRes.data?.name) {
+          try {
+            const reviewRes = await api.get(`/api/reviews/public/${encodeURIComponent(studentRes.data.name)}`);
+            setPublicReviews(reviewRes.data);
+          } catch (e) {
+            console.error('후기 로딩 실패:', e);
+          }
+        }
       } catch (error) {
         console.error('프로필 데이터 로딩 실패:', error);
         showToast('내 정보를 불러오는 데 실패했습니다.');
@@ -129,7 +139,6 @@ function S6Profile() {
                     {student.role}
                   </span>
                 )}
-                <span className="tag green">✓ 학교인증</span>
                 <span className="tag" style={{ fontSize: '13px', padding: '5px 13px', fontWeight: '800' }}>매칭 점수 {totalScore}점</span>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>
@@ -184,6 +193,38 @@ function S6Profile() {
               tags.map(t => <span key={t.id} className="tag gray">#{t.name}</span>)
             )}
           </div>
+        </div>
+
+        <div className="card">
+          <p className="slabel">동료들의 추천 후기</p>
+          {publicReviews.length > 0 ? (
+            <div style={{marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
+              {publicReviews.map((r, i) => (
+                <div key={i} style={{padding: '20px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--brd)'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
+                    <div style={{fontSize: '14px', fontWeight: '800', color: 'var(--tx)'}}>{r.projectName}</div>
+                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{new Date(r.createdAt + (r.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString()}</div>
+                  </div>
+                  {r.reviewText && (
+                    <p style={{fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px'}}>"{r.reviewText}"</p>
+                  )}
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px'}}>
+                    {r.goodTags && r.goodTags.split(',').filter(t=>t).map((t, idx) => (
+                      <span key={idx} style={{fontSize: '11px', padding: '4px 8px', borderRadius: '4px', background: 'var(--ac-dim)', color: 'var(--ac)'}}>{t}</span>
+                    ))}
+                  </div>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px'}}>
+                    <span style={{color: 'var(--yellow)', fontWeight: '800'}}>★ {((r.timeScore + r.commScore + r.skillScore + r.mannerScore)/4).toFixed(1)}</span>
+                    <span style={{color: 'var(--tx3)'}}>익명의 동료</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{marginTop: '16px', padding: '30px', textAlign: 'center', background: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--brd)'}}>
+              <p style={{color: 'var(--tx3)', fontSize: '13px'}}>아직 등록된 공개 후기가 없습니다.</p>
+            </div>
+          )}
         </div>
       </div>
 
