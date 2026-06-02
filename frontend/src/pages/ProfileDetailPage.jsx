@@ -93,7 +93,13 @@ function ProfileDetailPage() {
               authorIcon
             )}
           </div>
-          <div><h1 style={{fontSize:'30px', color:'var(--tx)'}}>{author}</h1><p style={{color:'var(--tx3)'}}>{role} · {major} {grade}</p></div>
+          <div>
+            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px'}}>
+              <h1 style={{fontSize:'30px', color:'var(--tx)'}}>{author}</h1>
+              <span style={{fontSize:'13px', color:'var(--yellow)', fontWeight:'800', border:'1px solid var(--yellow)', padding:'2px 8px', borderRadius:'12px', background:'rgba(255, 184, 0, 0.1)'}}>★ {profileData?.rating > 0 ? profileData.rating.toFixed(1) : '0.0'}</span>
+            </div>
+            <p style={{color:'var(--tx3)'}}>{role} · {major} {grade}</p>
+          </div>
         </Section>
         <Section>
           <h3 style={{color:'var(--tx)'}}>자기소개</h3>

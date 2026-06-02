@@ -115,8 +115,16 @@ public class ReviewController {
 
         reviewRepository.save(review);
         
-        float avgRating = (dto.getTimeScore() + dto.getCommScore() + dto.getSkillScore() + dto.getMannerScore()) / 4.0f;
-        float newRating = reviewee.getRating() > 0 ? (reviewee.getRating() + avgRating) / 2.0f : avgRating;
+        List<Review> allReviews = reviewRepository.findAll().stream()
+                .filter(r -> r.getReviewee().getId().equals(reviewee.getId()))
+                .collect(Collectors.toList());
+        double sum = 0;
+        for (Review r : allReviews) {
+            sum += (r.getTimeScore() + r.getCommScore() + r.getSkillScore() + r.getMannerScore()) / 4.0;
+        }
+        float newRating = (float) (sum / allReviews.size());
+        newRating = (float) (Math.round(newRating * 10.0) / 10.0);
+        
         reviewee.setRating(newRating);
         studentRepository.save(reviewee);
 
