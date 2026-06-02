@@ -121,7 +121,7 @@ function ProfileDetailPage() {
                 <div key={i} style={{padding: '20px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--brd)'}}>
                   <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
                     <div style={{fontSize: '14px', fontWeight: '800', color: 'var(--tx)'}}>{r.projectName}</div>
-                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{new Date(r.createdAt + (r.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString()}</div>
                   </div>
                   {r.reviewText && (
                     <p style={{fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px'}}>"{r.reviewText}"</p>

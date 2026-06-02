@@ -19,7 +19,7 @@ function S9Review() {
   
   // Step 3 State
   const [reviewText, setReviewText] = useState('');
-  const [visibility, setVisibility] = useState('private');
+  const [visibility, setVisibility] = useState('public');
   
   // Modal State
   const [showModal, setShowModal] = useState(false);

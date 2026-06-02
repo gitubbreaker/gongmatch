@@ -64,8 +64,8 @@ function NotificationPage() {
             isNew: notif.isNew,
             desc1: notif.desc1,
             desc2: notif.desc2,
-            _rawTime: new Date(notif.createdAt).getTime(),
-            time: new Date(notif.createdAt).toLocaleString(),
+            _rawTime: new Date(notif.createdAt + (notif.createdAt.endsWith('Z') ? '' : 'Z')).getTime(),
+            time: new Date(notif.createdAt + (notif.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString(),
             actions
           };
         });
@@ -151,11 +151,15 @@ function NotificationPage() {
 
               return filtered.map(notif => (
               <div key={notif.id} style={{
-                background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '16px', padding: '24px', position: 'relative',
-                borderLeft: notif.isNew ? '3px solid var(--ac)' : '1px solid var(--brd2)'
+                background: notif.isNew ? 'rgba(205, 255, 0, 0.03)' : 'var(--card2)', 
+                border: notif.isNew ? '1px solid rgba(205, 255, 0, 0.2)' : '1px solid var(--brd2)', 
+                borderRadius: '16px', padding: '24px', position: 'relative',
+                borderLeft: notif.isNew ? '4px solid var(--ac)' : '1px solid var(--brd2)',
+                boxShadow: notif.isNew ? '0 4px 20px rgba(205, 255, 0, 0.05)' : 'none',
+                transition: 'all 0.3s ease'
               }}>
-                {notif.isNew && <div style={{ position: 'absolute', top: '24px', right: '48px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>}
-                <button onClick={() => setHiddenNotifIds(prev => new Set([...prev, notif.id]))} style={{ position: 'absolute', top: '16px', right: '20px', background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '20px', cursor: 'pointer', padding: '4px' }}>&times;</button>
+                {notif.isNew && <div style={{ position: 'absolute', top: '20px', right: '40px', padding: '4px 10px', borderRadius: '20px', background: 'var(--ac)', color: '#000', fontSize: '11px', fontWeight: '900', boxShadow: '0 0 10px rgba(205, 255, 0, 0.4)' }}>NEW</div>}
+                <button onClick={() => setHiddenNotifIds(prev => new Set([...prev, notif.id]))} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '20px', cursor: 'pointer', padding: '4px', zIndex: 1 }}>&times;</button>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                     {notif.icon}
