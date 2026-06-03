@@ -533,8 +533,8 @@ function ProjectListPage() {
             {filteredProjects.map(project => {
               const dDay = calculateDDay(project.endDate);
               const isUrgent = dDay === 'D-DAY' || (dDay && dDay.startsWith('D-') && parseInt(dDay.split('-')[1]) <= 7);
-              // 공식 홈페이지(껍데기)보다 위비티 등 원본 상세 페이지(detailUrl)를 무조건 우선시함
-              const shareUrl = project.detailUrl || project.officialUrl;
+              // 원본 공고 링크(officialUrl)를 우선시하고, 없을 경우에만 위비티(detailUrl)로 연결
+              const shareUrl = project.officialUrl || project.detailUrl;
 
               return (
                 <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
@@ -572,7 +572,7 @@ function ProjectListPage() {
                         e.stopPropagation();
                         if (shareUrl) window.open(shareUrl, '_blank');
                       }}>
-                        {shareUrl && shareUrl.includes('wevity.com') ? '📎 위비티 공고' : '🌐 공식 홈페이지'}
+                        {project.officialUrl ? '🌐 원본 공고' : '📎 위비티 공고'}
                       </MoreBtn>
                     </div>
                   </Footer>

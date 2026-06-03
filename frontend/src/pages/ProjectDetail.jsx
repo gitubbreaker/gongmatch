@@ -269,11 +269,11 @@ function ProjectDetail() {
               🔥 이 공모전 팀원 구하기
             </PrimaryBtn>
             <SecondaryBtn onClick={() => {
-              const url = project.detailUrl || project.officialUrl;
+              const url = project.officialUrl || project.detailUrl;
               if (url) window.open(url, '_blank');
               else alert('링크를 찾을 수 없습니다.');
             }}>
-              {project.detailUrl || project.officialUrl ? ((project.detailUrl || project.officialUrl).includes('wevity.com') ? '📎 위비티 공고 가기' : '🌐 공식 홈페이지 가기') : '🔗 링크 열기'}
+              {project.officialUrl ? '🌐 원본 공고 가기' : (project.detailUrl ? '📎 위비티 공고 가기' : '🔗 링크 열기')}
             </SecondaryBtn>
           </ActionGroup>
         </InfoSection>
