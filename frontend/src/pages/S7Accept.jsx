@@ -336,83 +336,100 @@ function S7Accept() {
         )}
       </div>
 
-      {/* 오른쪽 사이드바 (팀 활동 기록 및 현황) - activeChat이 있을 때만 표시 */}
+      {/* 오른쪽 사이드바 (내 매칭 요약 및 현재 프로젝트 팀 현황) */}
       {activeChat && (
         <div style={{ width: '320px', background: 'var(--bg)', borderLeft: '1px solid var(--brd)', padding: '32px 24px', display: 'flex', flexDirection: 'column' }}>
+          
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-              <span style={{ fontSize: '16px' }}>📕</span>
-              <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>채팅 활동 기록</span>
+              <span style={{ fontSize: '16px' }}>📊</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>나의 매칭 요약</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative' }}>
-              {/* 타임라인 라인 */}
-              <div style={{ position: 'absolute', top: '10px', left: '11px', bottom: '10px', width: '2px', background: 'var(--brd)' }}></div>
-              
-              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card)', border: '2px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>📬</div>
-                <div>
-                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>김지원님이 팀원 요청을 보냈습니다</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>10분 전 · 부산 공공데이터 창업대회</div>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ background: 'var(--card2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--brd2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', color: 'var(--tx2)' }}>받은 요청 (대기중)</span>
+                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--ac)' }}>{receivedRequests.filter(r => r.status === 'PENDING').length}건</span>
               </div>
-
-              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>⚡</div>
-                <div>
-                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>이수현님에게 팀원 요청을 보냈습니다</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>어제 14:32 · 부산 공공데이터 창업대회</div>
-                </div>
+              <div style={{ background: 'var(--card2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--brd2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', color: 'var(--tx2)' }}>보낸 요청 (대기중)</span>
+                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--purple)' }}>{sentRequests.filter(r => r.status === 'PENDING').length}건</span>
               </div>
-
-              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--green-dim)', border: '2px solid var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>✅</div>
-                <div>
-                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>최민아님이 팀원 요청을 수락했습니다!</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>2일 전 · 청년 스타트업 해커톤</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card)', border: '2px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>👀</div>
-                <div>
-                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>박도현님이 프로필을 확인했습니다</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>3일 전</div>
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card)', border: '2px solid var(--brd2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>📬</div>
-                <div>
-                  <div style={{ fontSize: '13px', color: 'var(--tx)', fontWeight: '700', marginBottom: '4px' }}>박도현님이 팀원 요청을 보냈습니다</div>
-                  <div style={{ fontSize: '11px', color: 'var(--tx3)' }}>2시간 전 · 행안부 데이터 챌린지</div>
-                </div>
+              <div style={{ background: 'var(--card2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--brd2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', color: 'var(--tx2)' }}>성사된 매칭</span>
+                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--green)' }}>
+                  {receivedRequests.filter(r => r.status === 'ACCEPTED').length + sentRequests.filter(r => r.status === 'ACCEPTED').length}건
+                </span>
               </div>
             </div>
           </div>
 
-          {/* 현재 팀 구성 현황 (하단 고정) */}
-          <div style={{ background: 'var(--card2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--brd2)' }}>
+          {/* 현재 팀 구성 현황 (선택된 프로젝트 기준) */}
+          <div style={{ background: 'var(--card2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--brd2)', marginTop: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
               <span style={{ fontSize: '13px' }}>👥</span>
-              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>현재 팀 구성 현황 ({activeChat?.project?.title || '자유 모집'})</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>해당 프로젝트 팀 구성 현황</span>
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--ac)', fontWeight: '800', marginBottom: '16px', lineHeight: '1.4', wordBreak: 'keep-all' }}>
+              {activeChat.targetProjectTitle || activeChat.project?.title || '자유 매칭'}
             </div>
             
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>{currentUser.name.charAt(0)}</div>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }} title="나 (팀장/본인)">{currentUser.name.charAt(0)}</div>
               
-              {acceptedMembers.slice(0, 4).map((member, idx) => (
-                <div key={idx} style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }}>{member.name.charAt(0)}</div>
-              ))}
-              
-              {Array.from({ length: Math.max(0, 4 - acceptedMembers.length) }).map((_, idx) => (
-                <div key={`empty-${idx}`} style={{ width: '42px', height: '42px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
-              ))}
+              {(() => {
+                const getProjectTitle = (req) => req?.targetProjectTitle || req?.project?.title || '자유 매칭';
+                const currentProjectTitle = getProjectTitle(activeChat);
+                const projectAcceptedRequests = [
+                  ...receivedRequests.filter(r => r.status === 'ACCEPTED'),
+                  ...sentRequests.filter(r => r.status === 'ACCEPTED')
+                ].filter(r => getProjectTitle(r) === currentProjectTitle);
+                
+                const uniqueMembersMap = new Map();
+                projectAcceptedRequests.forEach(r => {
+                  const other = getOtherPerson(r);
+                  if (other && !uniqueMembersMap.has(other.id)) {
+                    uniqueMembersMap.set(other.id, other);
+                  }
+                });
+                const currentTeamMembers = Array.from(uniqueMembersMap.values());
+
+                return (
+                  <>
+                    {currentTeamMembers.slice(0, 4).map((member, idx) => (
+                      <div key={idx} style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }} title={member.name}>{member.name.charAt(0)}</div>
+                    ))}
+                    
+                    {Array.from({ length: Math.max(0, 4 - currentTeamMembers.length) }).map((_, idx) => (
+                      <div key={`empty-${idx}`} style={{ width: '42px', height: '42px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }} title="빈 자리">+</div>
+                    ))}
+                  </>
+                );
+              })()}
             </div>
 
-            <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--tx3)' }}>
-              {acceptedMembers.length + 1}/5명 확정 · {Math.max(0, 4 - acceptedMembers.length)}자리 남음
-            </div>
+            {(() => {
+                const getProjectTitle = (req) => req?.targetProjectTitle || req?.project?.title || '자유 매칭';
+                const currentProjectTitle = getProjectTitle(activeChat);
+                const projectAcceptedRequests = [
+                  ...receivedRequests.filter(r => r.status === 'ACCEPTED'),
+                  ...sentRequests.filter(r => r.status === 'ACCEPTED')
+                ].filter(r => getProjectTitle(r) === currentProjectTitle);
+                
+                const uniqueMembersMap = new Map();
+                projectAcceptedRequests.forEach(r => {
+                  const other = getOtherPerson(r);
+                  if (other && !uniqueMembersMap.has(other.id)) {
+                    uniqueMembersMap.set(other.id, other);
+                  }
+                });
+                const currentTeamMembers = Array.from(uniqueMembersMap.values());
+                return (
+                  <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--tx3)' }}>
+                    나 포함 {currentTeamMembers.length + 1}명 확정 · {Math.max(0, 4 - currentTeamMembers.length)}자리 남음
+                  </div>
+                )
+            })()}
           </div>
         </div>
       )}
