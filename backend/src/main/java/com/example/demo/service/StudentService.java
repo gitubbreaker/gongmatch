@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public com.example.demo.controller.StudentController.LoginResponse login(String loginId, String password) {
         Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
@@ -50,6 +51,10 @@ public class StudentService {
         if (!passwordEncoder.matches(password, student.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
+
+        // 최근 접속 시간 갱신
+        student.setLastLoginAt(LocalDateTime.now());
+        studentRepository.save(student);
 
         String token = jwtTokenProvider.createToken(student.getLoginId());
         return new com.example.demo.controller.StudentController.LoginResponse(
@@ -168,6 +173,7 @@ public class StudentService {
                     .role(other.getRole())
                     .averageRating(averageRating)
                     .profileImageUrl(other.getProfileImageUrl())
+                    .lastLoginAt(other.getLastLoginAt())
                     .build());
         }
 
@@ -275,5 +281,6 @@ public class StudentService {
         private String role;
         private Double averageRating;
         private String profileImageUrl;
+        private LocalDateTime lastLoginAt;
     }
 }

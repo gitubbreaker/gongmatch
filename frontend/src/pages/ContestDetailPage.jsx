@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
@@ -70,6 +70,84 @@ function ContestDetailPage() {
   const [reqMessage, setReqMessage] = useState('');
   const [kakaoLink, setKakaoLink] = useState('');
   const [candidates, setCandidates] = useState([]);
+  const [sortMode, setSortMode] = useState('score');
+  const [roleFilter, setRoleFilter] = useState(['전체']);
+  const [timeMatchPriority, setTimeMatchPriority] = useState(true);
+  const [tagMatchPriority, setTagMatchPriority] = useState(true);
+
+  // 역할 필터 토글
+  const toggleRole = (role) => {
+    if (role === '전체') {
+      setRoleFilter(['전체']);
+    } else {
+      setRoleFilter(prev => {
+        const without전체 = prev.filter(r => r !== '전체');
+        if (without전체.includes(role)) {
+          const next = without전체.filter(r => r !== role);
+          return next.length === 0 ? ['전체'] : next;
+        } else {
+          return [...without전체, role];
+        }
+      });
+    }
+  };
+
+  // 역할 매칭 헬퍼 (백엔드 role 값과 필터 라벨 매칭)
+  const matchesRole = (candidateRole, filterRole) => {
+    if (!candidateRole) return false;
+    const normalized = candidateRole.toLowerCase().replace(/[\s·]/g, '');
+    switch (filterRole) {
+      case '백엔드': return normalized.includes('백엔드') || normalized.includes('backend');
+      case '프론트엔드': return normalized.includes('프론트엔드') || normalized.includes('frontend');
+      case 'UI/UX 기획': return normalized.includes('ui') || normalized.includes('ux') || normalized.includes('기획') || normalized.includes('pm');
+      case '데이터분석': return normalized.includes('데이터') || normalized.includes('data');
+      default: return false;
+    }
+  };
+
+  // 필터링 + 정렬 적용
+  const filteredCandidates = useMemo(() => {
+    let result = [...candidates];
+
+    // 1. 역할 필터 적용
+    if (!roleFilter.includes('전체')) {
+      result = result.filter(u => roleFilter.some(rf => matchesRole(u.role, rf)));
+    }
+
+    // 2. 정렬 적용
+    if (sortMode === 'recent') {
+      result.sort((a, b) => {
+        const aTime = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
+        const bTime = b.lastLoginAt ? new Date(b.lastLoginAt).getTime() : 0;
+        return bTime - aTime;
+      });
+    } else {
+      // 매칭 점수 높은 순 (스마트 매칭 옵션 반영)
+      result.sort((a, b) => {
+        let scoreA = a.totalScore || 0;
+        let scoreB = b.totalScore || 0;
+
+        if (timeMatchPriority && !tagMatchPriority) {
+          // 가용시간만 우선: timeScore에 가중치
+          scoreA = (a.timeScore || 0) * 2 + (a.tagScore || 0);
+          scoreB = (b.timeScore || 0) * 2 + (b.tagScore || 0);
+        } else if (!timeMatchPriority && tagMatchPriority) {
+          // 해시태그만 우선: tagScore에 가중치
+          scoreA = (a.timeScore || 0) + (a.tagScore || 0) * 2;
+          scoreB = (b.timeScore || 0) + (b.tagScore || 0) * 2;
+        } else if (!timeMatchPriority && !tagMatchPriority) {
+          // 둘 다 해제: 기본 totalScore 사용
+          scoreA = a.totalScore || 0;
+          scoreB = b.totalScore || 0;
+        }
+        // 둘 다 켜져 있으면 기본 totalScore (균등 가중치)
+
+        return scoreB - scoreA;
+      });
+    }
+
+    return result;
+  }, [candidates, sortMode, roleFilter, timeMatchPriority, tagMatchPriority]);
 
   useEffect(() => {
     api.get('/api/students/me').then(res => {
@@ -305,33 +383,39 @@ function ContestDetailPage() {
               <aside style={{ background: 'var(--card)', padding: '28px', borderRadius: '20px', border: '1px solid var(--brd)', height: 'fit-content' }}>
                 <h4 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--tx)', marginBottom: '20px' }}>필요한 역할 필터</h4>
                 {['전체', '백엔드', '프론트엔드', 'UI/UX 기획', '데이터분석'].map(f => (
-                  <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', cursor: 'pointer', color: f === '전체' ? 'var(--ac)' : 'var(--tx2)', fontSize: '14px', fontWeight: f === '전체' ? '800' : '500' }}>
-                    <input type="checkbox" defaultChecked={f === '전체'} style={{ accentColor: 'var(--ac)', width: '16px', height: '16px' }} /> {f}
+                  <label key={f} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', cursor: 'pointer', color: (roleFilter.includes('전체') && f === '전체') || roleFilter.includes(f) ? 'var(--ac)' : 'var(--tx2)', fontSize: '14px', fontWeight: (roleFilter.includes('전체') && f === '전체') || roleFilter.includes(f) ? '800' : '500' }}>
+                    <input type="checkbox" checked={(roleFilter.includes('전체') && f === '전체') || roleFilter.includes(f)} onChange={() => toggleRole(f)} style={{ accentColor: 'var(--ac)', width: '16px', height: '16px' }} /> {f}
                   </label>
                 ))}
                 
                 <h4 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--tx)', margin: '40px 0 20px' }}>스마트 매칭 옵션</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: 'var(--ac)', fontSize: '14px', fontWeight: '800' }}>
-                    <input type="checkbox" defaultChecked style={{ accentColor: 'var(--ac)', width: '16px', height: '16px' }} /> ⏱️ 가용시간 겹치는 사람 우선
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: timeMatchPriority ? 'var(--ac)' : 'var(--tx2)', fontSize: '14px', fontWeight: timeMatchPriority ? '800' : '500' }}>
+                    <input type="checkbox" checked={timeMatchPriority} onChange={() => setTimeMatchPriority(v => !v)} style={{ accentColor: 'var(--ac)', width: '16px', height: '16px' }} /> ⏱️ 가용시간 겹치는 사람 우선
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: 'var(--ac)', fontSize: '14px', fontWeight: '800' }}>
-                    <input type="checkbox" defaultChecked style={{ accentColor: 'var(--ac)', width: '16px', height: '16px' }} /> 🏷️ 기술스택(해시태그) 일치 우선
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: tagMatchPriority ? 'var(--ac)' : 'var(--tx2)', fontSize: '14px', fontWeight: tagMatchPriority ? '800' : '500' }}>
+                    <input type="checkbox" checked={tagMatchPriority} onChange={() => setTagMatchPriority(v => !v)} style={{ accentColor: 'var(--ac)', width: '16px', height: '16px' }} /> 🏷️ 기술스택(해시태그) 일치 우선
                   </label>
                 </div>
               </aside>
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                  <p style={{ fontSize: '15px', color: 'var(--tx2)', fontWeight: '600' }}>나와 시너지가 높은 순서대로 추천합니다 <span style={{fontSize:'12px', color:'var(--tx3)'}}>(알고리즘 반영됨)</span></p>
-                  <select className="field" style={{ padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', border: '1px solid var(--brd2)', background: 'var(--bg)', color: 'var(--tx)' }}>
-                    <option>🔥 매칭 점수 높은 순</option>
-                    <option>⚡ 최근 접속 순</option>
+                  <p style={{ fontSize: '15px', color: 'var(--tx2)', fontWeight: '600' }}>
+                    {sortMode === 'score' 
+                      ? <>매칭 점수가 높은 순서대로 추천합니다 <span style={{fontSize:'12px', color:'var(--tx3)'}}>(알고리즘 반영됨)</span></>
+                      : <>최근에 접속한 활성 사용자 순서대로 표시합니다 <span style={{fontSize:'12px', color:'var(--tx3)'}}>(응답률 ↑)</span></>
+                    }
+                    {!roleFilter.includes('전체') && <span style={{fontSize:'12px', color:'var(--ac)', marginLeft:'8px'}}>필터: {roleFilter.join(', ')}</span>}
+                  </p>
+                  <select className="field" value={sortMode} onChange={e => setSortMode(e.target.value)} style={{ padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', border: '1px solid var(--brd2)', background: 'var(--bg)', color: 'var(--tx)' }}>
+                    <option value="score">🔥 매칭 점수 높은 순</option>
+                    <option value="recent">⚡ 최근 접속 순</option>
                   </select>
                 </div>
 
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px'}}>
-                  {candidates.map(u => (
+                  {filteredCandidates.length > 0 ? filteredCandidates.map(u => (
                     <UserCard key={u.id} rate={u.totalScore || 70}>
                       <div style={{display:'flex', justifyContent:'space-between'}}>
                         <div style={{display:'flex', gap:'16px', alignItems: 'center'}}>
@@ -376,7 +460,13 @@ function ContestDetailPage() {
                         <button onClick={() => setReqModal({ open: true, id: u.id, name: u.name })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
                     </UserCard>
-                  ))}
+                  )) : (
+                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', background: 'var(--card)', borderRadius: '16px', border: '1px dashed var(--brd2)' }}>
+                      <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔍</div>
+                      <p style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>조건에 맞는 팀원이 없습니다</p>
+                      <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>역할 필터를 변경하거나 '전체'를 선택해보세요</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </Layout>
