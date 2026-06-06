@@ -114,7 +114,17 @@ function ContestDetailPage() {
       result = result.filter(u => roleFilter.some(rf => matchesRole(u.role, rf)));
     }
 
-    // 2. 정렬 적용
+    // 2. 스마트 매칭 옵션 (실제 필터로 동작)
+    if (timeMatchPriority) {
+      // 가용시간이 겹치는 사람만 표시 (timeScore > 0)
+      result = result.filter(u => (u.timeScore || 0) > 0);
+    }
+    if (tagMatchPriority) {
+      // 기술스택/해시태그가 일치하는 사람만 표시 (tagScore > 0)
+      result = result.filter(u => (u.tagScore || 0) > 0);
+    }
+
+    // 3. 정렬 적용
     if (sortMode === 'recent') {
       result.sort((a, b) => {
         const aTime = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
@@ -122,28 +132,8 @@ function ContestDetailPage() {
         return bTime - aTime;
       });
     } else {
-      // 매칭 점수 높은 순 (스마트 매칭 옵션 반영)
-      result.sort((a, b) => {
-        let scoreA = a.totalScore || 0;
-        let scoreB = b.totalScore || 0;
-
-        if (timeMatchPriority && !tagMatchPriority) {
-          // 가용시간만 우선: timeScore에 가중치
-          scoreA = (a.timeScore || 0) * 2 + (a.tagScore || 0);
-          scoreB = (b.timeScore || 0) * 2 + (b.tagScore || 0);
-        } else if (!timeMatchPriority && tagMatchPriority) {
-          // 해시태그만 우선: tagScore에 가중치
-          scoreA = (a.timeScore || 0) + (a.tagScore || 0) * 2;
-          scoreB = (b.timeScore || 0) + (b.tagScore || 0) * 2;
-        } else if (!timeMatchPriority && !tagMatchPriority) {
-          // 둘 다 해제: 기본 totalScore 사용
-          scoreA = a.totalScore || 0;
-          scoreB = b.totalScore || 0;
-        }
-        // 둘 다 켜져 있으면 기본 totalScore (균등 가중치)
-
-        return scoreB - scoreA;
-      });
+      // 매칭 점수 높은 순
+      result.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
     }
 
     return result;
@@ -464,7 +454,7 @@ function ContestDetailPage() {
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', background: 'var(--card)', borderRadius: '16px', border: '1px dashed var(--brd2)' }}>
                       <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔍</div>
                       <p style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>조건에 맞는 팀원이 없습니다</p>
-                      <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>역할 필터를 변경하거나 '전체'를 선택해보세요</p>
+                      <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>역할 필터를 변경하거나, 스마트 매칭 옵션을 해제해보세요</p>
                     </div>
                   )}
                 </div>
