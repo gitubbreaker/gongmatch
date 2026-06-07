@@ -153,7 +153,7 @@ function S7Accept() {
                         {req.status === 'PENDING' && req.type === 'SENT' && <span style={{ fontSize: '10px', background: 'var(--card2)', border: '1px solid var(--purple)', color: 'var(--purple)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>수락 대기중</span>}
                         {req.status === 'ACCEPTED' && <span style={{ fontSize: '10px', background: 'var(--green-dim)', color: 'var(--green)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>수락완료</span>}
                       </div>
-                      <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{new Date(req.createdAt).toLocaleDateString()}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{req.createdAt ? new Date(req.createdAt + (req.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : ''}</span>
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
                       <div style={{color:'var(--ac)', fontSize: '11px', fontWeight:'800', marginBottom:'4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>🎯 {req.targetProjectTitle || req.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
@@ -215,7 +215,7 @@ function S7Accept() {
                         );
                       })()}
                     </h2>
-                    <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>{getOtherPerson(activeChat)?.major || '학과 미기재'} · 가입 {new Date(getOtherPerson(activeChat)?.createdAt || Date.now()).toLocaleDateString()}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>{getOtherPerson(activeChat)?.major || '학과 미기재'} · 가입 {getOtherPerson(activeChat)?.createdAt ? new Date(getOtherPerson(activeChat).createdAt + (getOtherPerson(activeChat).createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : new Date().toLocaleDateString()}</p>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: '#000', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>✓ 학교인증</span>
                       <span style={{ fontSize: '10px', background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>🏆 대상 수상</span>
@@ -374,9 +374,7 @@ function S7Accept() {
               {activeChat.targetProjectTitle || activeChat.project?.title || '자유 매칭'}
             </div>
             
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }} title="나 (팀장/본인)">{currentUser.name.charAt(0)}</div>
-              
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               {(() => {
                 const getProjectTitle = (req) => req?.targetProjectTitle || req?.project?.title || '자유 매칭';
                 const currentProjectTitle = getProjectTitle(activeChat);
@@ -393,43 +391,56 @@ function S7Accept() {
                   }
                 });
                 const currentTeamMembers = Array.from(uniqueMembersMap.values());
+                const totalConfirmed = 1 + currentTeamMembers.length;
 
                 return (
                   <>
-                    {currentTeamMembers.slice(0, 4).map((member, idx) => (
-                      <div key={idx} style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--ac-dim)', border: '2px solid var(--ac-brd)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900' }} title={member.name}>{member.name.charAt(0)}</div>
+                    {/* Me */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--brd2)' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px solid var(--ac-brd)' }}>{currentUser.name?.charAt(0) || '?'}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{currentUser.name} <span style={{fontSize:'10px', color:'var(--ac)', background:'var(--ac-dim)', padding:'2px 6px', borderRadius:'4px'}}>👑 본인</span></div>
+                        <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{currentUser.role || '직무 미기재'}</div>
+                      </div>
+                    </div>
+                    
+                    {/* Accepted Members */}
+                    {currentTeamMembers.map((member, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--brd2)' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--green-dim)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px solid rgba(0,255,0,0.2)' }}>{member.name?.charAt(0) || '?'}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{member.name} <span style={{fontSize:'10px', color:'var(--green)', background:'var(--green-dim)', padding:'2px 6px', borderRadius:'4px'}}>✅ 확정</span></div>
+                          <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{member.role || '직무 미기재'}</div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Pending active member if not accepted yet */}
+                    {activeChat.status === 'PENDING' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--ac-brd)', boxShadow: '0 0 0 1px var(--ac) inset' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--card2)', color: 'var(--tx2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px dashed var(--tx3)' }}>{getOtherPerson(activeChat)?.name?.charAt(0) || '?'}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{getOtherPerson(activeChat)?.name || '알 수 없음'} <span style={{fontSize:'10px', color:'var(--tx2)', background:'var(--card2)', border:'1px solid var(--brd)', padding:'2px 6px', borderRadius:'4px'}}>⏳ 검토중</span></div>
+                          <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{getOtherPerson(activeChat)?.role || '직무 미기재'}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Empty Slots */}
+                    {Array.from({ length: Math.max(0, 5 - (totalConfirmed + (activeChat.status === 'PENDING' ? 1 : 0))) }).map((_, idx) => (
+                      <div key={`empty-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '12px', border: '1px dashed var(--brd3)' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'transparent', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', border: '1px dashed var(--tx3)' }}>+</div>
+                        <div style={{ flex: 1, fontSize: '12px', color: 'var(--tx3)' }}>빈 자리 (역할 미정)</div>
+                      </div>
                     ))}
                     
-                    {Array.from({ length: Math.max(0, 4 - currentTeamMembers.length) }).map((_, idx) => (
-                      <div key={`empty-${idx}`} style={{ width: '42px', height: '42px', borderRadius: '50%', border: '2px dashed var(--brd3)', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }} title="빈 자리">+</div>
-                    ))}
+                    <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--tx3)', marginTop: '8px' }}>
+                      나 포함 {totalConfirmed}명 확정 · {Math.max(0, 5 - totalConfirmed)}자리 남음
+                    </div>
                   </>
                 );
               })()}
             </div>
-
-            {(() => {
-                const getProjectTitle = (req) => req?.targetProjectTitle || req?.project?.title || '자유 매칭';
-                const currentProjectTitle = getProjectTitle(activeChat);
-                const projectAcceptedRequests = [
-                  ...receivedRequests.filter(r => r.status === 'ACCEPTED'),
-                  ...sentRequests.filter(r => r.status === 'ACCEPTED')
-                ].filter(r => getProjectTitle(r) === currentProjectTitle);
-                
-                const uniqueMembersMap = new Map();
-                projectAcceptedRequests.forEach(r => {
-                  const other = getOtherPerson(r);
-                  if (other && !uniqueMembersMap.has(other.id)) {
-                    uniqueMembersMap.set(other.id, other);
-                  }
-                });
-                const currentTeamMembers = Array.from(uniqueMembersMap.values());
-                return (
-                  <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--tx3)' }}>
-                    나 포함 {currentTeamMembers.length + 1}명 확정 · {Math.max(0, 4 - currentTeamMembers.length)}자리 남음
-                  </div>
-                )
-            })()}
           </div>
         </div>
       )}

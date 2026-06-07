@@ -21,7 +21,7 @@ function S4Board() {
           typeColor: 'ac',
           authorColor: 'purple',
           authorIcon: (bp.author || '익').charAt(0),
-          date: bp.createdAt ? new Date(bp.createdAt).toLocaleString() : '방금 전',
+          date: bp.createdAt ? new Date(bp.createdAt + (bp.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : '방금 전',
           isLiked: false,
           comments: bp.comments || [],
         }));
@@ -154,7 +154,7 @@ function S4Board() {
       setTimeout(() => {
         api.get('/api/posts').then(res => {
           const updatedPost = res.data.find(p => p.id === activePost.id);
-          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt + (updatedPost.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
         });
       }, 300);
     } catch(e) {
@@ -173,7 +173,7 @@ function S4Board() {
       setTimeout(() => {
         api.get('/api/posts').then(res => {
           const updatedPost = res.data.find(p => p.id === activePost.id);
-          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt + (updatedPost.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
         });
       }, 300);
     } catch(e) {
@@ -200,7 +200,7 @@ function S4Board() {
       setTimeout(() => {
         api.get('/api/posts').then(res => {
           const updatedPost = res.data.find(p => p.id === activePost.id);
-          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt + (updatedPost.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
         });
       }, 300);
     } catch(e) {
@@ -220,7 +220,7 @@ function S4Board() {
       setTimeout(() => {
         api.get('/api/posts').then(res => {
           const updatedPost = res.data.find(p => p.id === activePost.id);
-          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+          if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt + (updatedPost.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
         });
       }, 300);
     } catch(e) {
@@ -265,7 +265,7 @@ function S4Board() {
         setTimeout(() => {
           api.get('/api/posts').then(res => {
             const updatedPost = res.data.find(p => p.id === activePost.id);
-            if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+            if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt + (updatedPost.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
           });
         }, 300);
       } catch(e) {
@@ -284,7 +284,7 @@ function S4Board() {
         setTimeout(() => {
           api.get('/api/posts').then(res => {
             const updatedPost = res.data.find(p => p.id === activePost.id);
-            if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
+            if (updatedPost) setActivePost({...updatedPost, type: '', typeColor: 'ac', authorColor: 'purple', authorIcon: (updatedPost.author || '익').charAt(0), date: updatedPost.createdAt ? new Date(updatedPost.createdAt + (updatedPost.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : '방금 전', comments: updatedPost.comments || []});
           });
         }, 300);
       } catch(e) {
@@ -608,7 +608,7 @@ function S4Board() {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                           <span onClick={(e) => handleProfileClick(e, c.author)} style={{ cursor: 'pointer', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>{c.author}</span>
-                          <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{c.date}</span>
+                          <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{c.createdAt ? new Date(c.createdAt + (c.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : c.date}</span>
                         </div>
                         {editingCommentId === c.id ? (
                           <div style={{ display: 'flex', gap: '8px', marginBottom: '6px', flexDirection: 'column' }}>
@@ -642,7 +642,7 @@ function S4Board() {
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                 <span onClick={(e) => handleProfileClick(e, r.author)} style={{ cursor: 'pointer', fontSize: '12px', fontWeight: '800', color: 'var(--tx)' }}>{r.author}</span>
-                                <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{r.date}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>{r.createdAt ? new Date(r.createdAt + (r.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString() : r.date}</span>
                                 {r.author === currentUser.name && editingReplyId !== r.id && (
                                   <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
                                     <span onClick={() => { setEditingReplyId(r.id); setEditInput(r.content); setEditingCommentId(null); setReplyToCommentId(null); }} style={{ fontSize: '10px', color: 'var(--blue)', cursor: 'pointer', fontWeight: '600' }}>수정</span>

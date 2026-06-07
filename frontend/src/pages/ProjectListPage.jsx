@@ -562,7 +562,7 @@ function ProjectListPage() {
 
                   <Footer>
                     <DateBadge>
-                      수집: {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '최근'}
+                      수집: {project.createdAt ? new Date(project.createdAt + (project.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : '최근'}
                     </DateBadge>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                       <MoreBtn onClick={(e) => handleShare(e, shareUrl)}>
