@@ -49,6 +49,7 @@ function S4Board() {
   const [visibleCount, setVisibleCount] = useState(10);
   const [editingPostId, setEditingPostId] = useState(null);
   
+  const [sortMode, setSortMode] = useState('최신순');
   const [activePost, setActivePost] = useState(null);
   const [commentInput, setCommentInput] = useState('');
   
@@ -76,7 +77,12 @@ function S4Board() {
   const filteredPosts = posts.filter(p => 
     (activeCategory === '전체' || p.category === activeCategory) &&
     (activeRegion === '전체' || (p.region && p.region === activeRegion))
-  );
+  ).sort((a, b) => {
+    if (sortMode === '인기순') {
+      return b.likes - a.likes || b.id - a.id;
+    }
+    return b.id - a.id;
+  });
 
   const handleWrite = async () => {
     if (!writeForm.title.trim() || !writeForm.content.trim()) {
@@ -415,9 +421,9 @@ function S4Board() {
       <div className="board-main" style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--tx)' }}>{activeCategory} 게시판</div>
-          <select className="field" style={{ width: '120px', padding: '0 16px', borderRadius: '12px', fontSize: '13px', border: '1px solid var(--brd2)', background: 'var(--card)' }}>
-            <option>최신순</option>
-            <option>인기순</option>
+          <select className="field" value={sortMode} onChange={e => setSortMode(e.target.value)} style={{ width: '120px', padding: '0 16px', borderRadius: '12px', fontSize: '13px', border: '1px solid var(--brd2)', background: 'var(--card)', color: 'var(--tx)' }}>
+            <option value="최신순">최신순</option>
+            <option value="인기순">인기순</option>
           </select>
         </div>
 
