@@ -329,7 +329,7 @@ function S5Candidates() {
                       </span>
                     )}
                     <span style={{ fontSize: '13px', color: 'var(--tx2)', fontWeight:'500' }}>{c.major} · {c.grade}학년</span>
-                    <span style={{fontSize:'10px', color:'#999', marginLeft:'auto'}}>#{c.id}</span>
+                    {/* <span style={{fontSize:'10px', color:'#999', marginLeft:'auto'}}>#{c.id}</span> */}
                   </div>
                   
                   <div style={{fontSize:'14px', color:'var(--tx2)', marginBottom:'18px', lineHeight:'1.5'}}>
