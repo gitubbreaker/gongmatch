@@ -4,46 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
 import { showToast } from '../App';
 
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px;
-`;
-
-const TopBanner = styled.div`
-  background: var(--card);
-  padding: 40px;
-  border-radius: 20px;
-  border: 1px solid var(--brd);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-`;
-
-const Layout = styled.div`
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 40px;
-`;
-
-const UserCard = styled.div`
-  background: var(--card);
-  padding: 24px;
-  border-radius: 16px;
-  border: 1px solid var(--brd);
-  transition: all 0.2s;
-  
-  &:hover {
-    transform: translateY(-4px);
-    border-color: var(--ac);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.2);
-  }
-
-  .progress { height: 6px; background: var(--bg2); border-radius: 4px; overflow:hidden; }
-  .bar { height: 100%; background: var(--ac); width: ${props => props.rate}%; border-radius: 4px; }
-`;
-
 const SmartPoster = ({ src, title, category }) => {
   const [error, setError] = React.useState(!src);
   if (error) {
@@ -250,8 +210,8 @@ function ContestDetailPage() {
   if(!project) return <div style={{padding: '100px', textAlign: 'center', color: 'var(--tx)'}}>Loading...</div>;
 
   return (
-    <Container>
-      <TopBanner>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ background: 'var(--card)', padding: '40px', borderRadius: '20px', border: '1px solid var(--brd)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
           <div style={{ width: '160px', height: '220px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--brd2)' }}>
             <SmartPoster src={project.posterImageUrl} title={project.title} category={project.category} />
@@ -287,7 +247,7 @@ function ContestDetailPage() {
             </div>
           )}
         </div>
-      </TopBanner>
+      </div>
 
       <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid var(--brd)', marginBottom: '40px' }}>
         <div onClick={() => setActiveTab('info')} style={{ padding: '16px 0', fontSize: '18px', fontWeight: '900', color: activeTab === 'info' ? 'var(--ac)' : 'var(--tx3)', cursor: 'pointer', borderBottom: activeTab === 'info' ? '3px solid var(--ac)' : '3px solid transparent' }}>대회 상세정보</div>
@@ -369,7 +329,7 @@ function ContestDetailPage() {
           )}
 
           {isJoined && (
-            <Layout>
+            <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '40px' }}>
               <aside style={{ background: 'var(--card)', padding: '28px', borderRadius: '20px', border: '1px solid var(--brd)', height: 'fit-content' }}>
                 <h4 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--tx)', marginBottom: '20px' }}>필요한 역할 필터</h4>
                 {['전체', '백엔드', '프론트엔드', 'UI/UX 기획', '데이터분석'].map(f => (
@@ -406,7 +366,7 @@ function ContestDetailPage() {
 
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px'}}>
                   {filteredCandidates.length > 0 ? filteredCandidates.map(u => (
-                    <UserCard key={u.id} rate={u.totalScore || 70}>
+                    <div className="user-card" key={u.id}>
                       <div style={{display:'flex', justifyContent:'space-between'}}>
                         <div style={{display:'flex', gap:'16px', alignItems: 'center'}}>
                           <div style={{width:'56px', height:'56px', background:`var(--bg)`, color: 'var(--ac)', border: `2px solid var(--ac)`, borderRadius:'16px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', fontSize:'20px'}}>{u.name?.charAt(0) || 'U'}</div>
@@ -439,7 +399,7 @@ function ContestDetailPage() {
                         </div>
                       </div>
                       
-                      <div className="progress" style={{ margin: '24px 0 20px', background: 'var(--bg)' }}><div className="bar" /></div>
+                      <div className="progress" style={{ margin: '24px 0 20px', background: 'var(--bg2)' }}><div className="bar" style={{ width: `${u.totalScore || 70}%` }} /></div>
                       
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', flexWrap: 'wrap' }}>
                         {(u.tags || ['#IT', '#개발']).map(t => <span key={t} style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)', background: 'var(--bg)', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--brd2)' }}>{t}</span>)}
@@ -449,7 +409,7 @@ function ContestDetailPage() {
                         <button onClick={() => navigate('/profile-detail', { state: { author: u.name, role: u.role, major: u.major, grade: u.grade } })} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
                         <button onClick={() => setReqModal({ open: true, id: u.id, name: u.name })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
-                    </UserCard>
+                    </div>
                   )) : (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', background: 'var(--card)', borderRadius: '16px', border: '1px dashed var(--brd2)' }}>
                       <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔍</div>
@@ -459,7 +419,7 @@ function ContestDetailPage() {
                   )}
                 </div>
               </div>
-            </Layout>
+            </div>
           )}
         </>
       )}
@@ -501,7 +461,7 @@ function ContestDetailPage() {
           </div>
         </div>
       )}
-    </Container>
+    </div>
   );
 }
 

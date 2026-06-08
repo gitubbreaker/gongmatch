@@ -168,7 +168,24 @@ const GlobalStyle = createGlobalStyle`
     .sidebar { border-left: none !important; border-top: 1px solid var(--brd); }
     .statrow { flex-wrap: wrap; }
     .stb { border-right: none !important; border-bottom: 1px solid var(--brd); width: 50%; }
+    .stb:nth-child(even) { border-right: none !important; }
   }
+
+  /* ContestDetailPage UserCard */
+  .user-card {
+    background: var(--card);
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid var(--brd);
+    transition: all 0.2s;
+  }
+  .user-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--ac);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+  }
+  .user-card .progress { height: 6px; background: var(--bg2); border-radius: 4px; overflow:hidden; }
+  .user-card .bar { height: 100%; background: var(--ac); border-radius: 4px; }
 `;
 
 export const showToast = (msg) => {
