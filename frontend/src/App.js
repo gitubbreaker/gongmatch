@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import { Tooltip } from 'react-tooltip';
 import Header from './components/Header';
@@ -176,6 +176,14 @@ export const showToast = (msg) => {
   window.dispatchEvent(event);
 };
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   const [toastMsg, setToastMsg] = useState('');
   const [toastShow, setToastShow] = useState(false);
@@ -215,6 +223,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <GlobalStyle />
       <Header />
       <Tabs />
