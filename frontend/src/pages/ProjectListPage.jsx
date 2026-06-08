@@ -299,6 +299,7 @@ function ProjectListPage() {
   const [timeLeft, setTimeLeft] = useState(0); 
   const [showBanner, setShowBanner] = useState(false);
   const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false); // 찜 필터 상태
+  const [showClosed, setShowClosed] = useState(false); // 마감 공고 보기 상태
   const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태
   const [toastMsg, setToastMsg] = useState(""); // 토스트 메시지
 
@@ -455,6 +456,13 @@ function ProjectListPage() {
   // 대학생 맞춤 필터링 및 검색 로직
   const filteredProjects = projects.filter(p => {
     if (showBookmarkedOnly && !bookmarkedIds.includes(p.id)) return false;
+    
+    // 마감된 공고 필터링 로직 추가
+    if (!showClosed) {
+      const dDay = calculateDDay(p.endDate);
+      if (dDay === '마감됨') return false;
+    }
+
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
       if (!(p.title?.toLowerCase().includes(q) || p.host?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q))) {
@@ -527,6 +535,24 @@ function ProjectListPage() {
                 gap: '6px'
               }}>
               {showBookmarkedOnly ? '💖 전체 공고 보기' : '🤍 내가 찜한 공고만 보기'}
+            </button>
+            <button 
+              onClick={() => setShowClosed(!showClosed)}
+              style={{
+                background: showClosed ? 'var(--card)' : 'var(--card2)',
+                color: showClosed ? 'var(--tx)' : 'var(--tx2)',
+                border: showClosed ? '1px solid var(--brd)' : '1px dashed var(--brd)',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+              {showClosed ? '👀 마감된 공고 숨기기' : '🙈 마감된 공고 포함하기'}
             </button>
           </div>
           <Grid>
