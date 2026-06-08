@@ -25,6 +25,7 @@ public class WevityCrawlingService implements InitializingBean {
 
     private final ProjectRepository projectRepository;
     private final com.example.demo.repository.BookmarkRepository bookmarkRepository; // 북마크 리포지토리 추가
+    private final com.example.demo.repository.NotificationRepository notificationRepository; // 알림 리포지토리 추가
     private final AiParsingService aiParsingService; // AI 파싱 서비스 주입
     private static final String BASE_URL = "https://www.wevity.com";
     private final Random random = new Random();
@@ -281,6 +282,8 @@ public class WevityCrawlingService implements InitializingBean {
                     if (endIndex == -1) endIndex = url.length();
                     String ixParam = url.substring(ixIndex, endIndex);
                     if (!seenIxs.add(ixParam)) {
+                        String targetUrl = "/projects/" + p.getId();
+                        notificationRepository.deleteByTargetUrl(targetUrl);
                         projectRepository.delete(p);
                         log.info("🗑️ 중복 공모전 강제 삭제 완료 (ix 기준): {}", p.getTitle());
                     }
@@ -293,6 +296,10 @@ public class WevityCrawlingService implements InitializingBean {
                         log.info("기간 만료 공모전 삭제 처리: {}", p.getTitle());
                         // 외래키 제약 방지를 위해 북마크(스크랩) 데이터 먼저 삭제
                         bookmarkRepository.deleteByProjectId(p.getId());
+                        // 알림 연쇄 삭제
+                        String targetUrl = "/projects/" + p.getId();
+                        notificationRepository.deleteByTargetUrl(targetUrl);
+                        
                         projectRepository.delete(p);
                     }
                 }
@@ -315,6 +322,8 @@ public class WevityCrawlingService implements InitializingBean {
                 if (uniqueKeys.contains(key)) {
                     log.info("중복 공모전 삭제 처리: {}", p.getTitle());
                     bookmarkRepository.deleteByProjectId(p.getId());
+                    String targetUrl = "/projects/" + p.getId();
+                    notificationRepository.deleteByTargetUrl(targetUrl);
                     projectRepository.delete(p);
                 } else {
                     uniqueKeys.add(key);

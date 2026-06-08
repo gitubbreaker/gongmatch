@@ -9,4 +9,9 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByReceiverIdOrderByCreatedAtDesc(Long receiverId);
+    
+    boolean existsByReceiverIdAndTypeAndTargetUrl(Long receiverId, String type, String targetUrl);
+    
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByTargetUrl(String targetUrl);
 }

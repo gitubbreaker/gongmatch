@@ -105,7 +105,7 @@ function NotificationPage() {
 
         {/* 탭 메뉴 */}
         <div style={{ display: 'flex', background: 'var(--card)', borderRadius: '12px', padding: '6px', marginBottom: '32px', border: '1px solid var(--brd)' }}>
-          {['전체', '매칭 요청', '쪽지', '마감 임박', '시스템'].map(tab => (
+          {['전체', '매칭 요청', '마감 임박'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -131,9 +131,7 @@ function NotificationPage() {
                 .filter(n => {
                   if (activeTab === '전체') return true;
                   if (activeTab === '매칭 요청' && n.type === '매칭') return true;
-                  if (activeTab === '쪽지' && n.type === '쪽지') return true;
                   if (activeTab === '마감 임박' && n.type === '마감 임박') return true;
-                  if (activeTab === '시스템' && (n.type === '시스템' || n.type === '커뮤니티')) return true;
                   return false;
                 })
                 .sort((a, b) => (b._rawTime || 0) - (a._rawTime || 0));
