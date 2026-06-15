@@ -77,6 +77,12 @@ public class Student {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
+    private java.util.Set<StudentTag> studentTags = new java.util.HashSet<>();
+
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
+    private java.util.Set<AvailableTime> availableTimes = new java.util.HashSet<>();
+
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) {

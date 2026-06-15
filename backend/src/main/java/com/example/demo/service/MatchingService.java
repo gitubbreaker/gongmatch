@@ -40,14 +40,14 @@ public class MatchingService {
                 .map(st -> st.getTag().getName())
                 .collect(Collectors.toSet());
 
-        List<Student> allStudents = studentRepository.findAll();
+        List<Student> allStudents = studentRepository.findAllWithTagsAndTimes();
 
         return allStudents.stream()
                 .filter(s -> !s.getId().equals(studentId))
                 .map(target -> {
                     MatchingResult result = calculateMatchingResult(target, requesterTimes, requesterTags);
                     
-                    List<StudentTag> targetTags = studentTagRepository.findByStudent(target);
+                    Set<StudentTag> targetTags = target.getStudentTags();
                     List<String> techStacks = targetTags.stream()
                             .filter(st -> st.getTag().getCategory() == TagCategory.TECH)
                             .map(st -> st.getTag().getName())
@@ -81,14 +81,14 @@ public class MatchingService {
 
     private MatchingResult calculateMatchingResult(
             Student target, 
-            List<AvailableTime> reqTimes, 
+            java.util.Collection<AvailableTime> reqTimes, 
             Set<String> reqTags
     ) {
         int score = 0;
         StringBuilder comment = new StringBuilder();
 
         // 1. 가용 시간 매칭 (최대 50점)
-        List<AvailableTime> targetTimes = availableTimeRepository.findByStudent(target);
+        java.util.Collection<AvailableTime> targetTimes = target.getAvailableTimes();
         int overlapHours = calculateOverlapHours(reqTimes, targetTimes);
         
         if (overlapHours > 0) {
@@ -100,7 +100,7 @@ public class MatchingService {
         }
 
         // 2. 관심사 해시태그 매칭 (최대 50점)
-        List<StudentTag> targetStudentTags = studentTagRepository.findByStudent(target);
+        Set<StudentTag> targetStudentTags = target.getStudentTags();
         Set<String> targetTags = targetStudentTags.stream()
                 .map(st -> st.getTag().getName())
                 .collect(Collectors.toSet());
@@ -117,7 +117,7 @@ public class MatchingService {
         return new MatchingResult(score, comment.toString().trim());
     }
 
-    private int calculateOverlapHours(List<AvailableTime> times1, List<AvailableTime> times2) {
+    private int calculateOverlapHours(java.util.Collection<AvailableTime> times1, java.util.Collection<AvailableTime> times2) {
         int totalOverlap = 0;
         for (AvailableTime t1 : times1) {
             for (AvailableTime t2 : times2) {
