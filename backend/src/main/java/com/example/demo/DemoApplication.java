@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableScheduling
 @EnableAsync
 @EnableTransactionManagement
+@org.springframework.cache.annotation.EnableCaching
 @SpringBootApplication(
         scanBasePackages = "com.example.demo",
         exclude = {UserDetailsServiceAutoConfiguration.class}

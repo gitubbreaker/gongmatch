@@ -27,6 +27,7 @@ public class MatchingService {
     private final StudentTagRepository studentTagRepository;
     private final AvailableTimeRepository availableTimeRepository;
 
+    @org.springframework.cache.annotation.Cacheable(value = "matchingResults", key = "#studentId", unless = "#result == null || #result.isEmpty()")
     public List<RecommendedPartnerDTO> recommendPartners(Long studentId) {
         Student requester = studentRepository.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid student ID"));
@@ -87,19 +88,19 @@ public class MatchingService {
         int score = 0;
         StringBuilder comment = new StringBuilder();
 
-        // 1. 가용 시간 매칭 (최대 50점)
+        // 1. 가용 시간 매칭 (최대 40점)
         java.util.Collection<AvailableTime> targetTimes = target.getAvailableTimes();
         int overlapHours = calculateOverlapHours(reqTimes, targetTimes);
         
         if (overlapHours > 0) {
-            int timeScore = Math.min(overlapHours * 10, 50); // 겹치는 1시간당 10점, 최대 50점
+            int timeScore = Math.min(overlapHours * 8, 40); // 겹치는 1시간당 8점, 최대 40점
             score += timeScore;
             comment.append(String.format("매주 %d시간의 가용 시간이 겹치며, ", overlapHours));
         } else {
             comment.append("가용 시간이 일치하지 않지만, ");
         }
 
-        // 2. 관심사 해시태그 매칭 (최대 50점)
+        // 2. 관심사 해시태그 매칭 (최대 30점)
         Set<StudentTag> targetStudentTags = target.getStudentTags();
         Set<String> targetTags = targetStudentTags.stream()
                 .map(st -> st.getTag().getName())
@@ -107,11 +108,28 @@ public class MatchingService {
         
         long tagOverlap = targetTags.stream().filter(reqTags::contains).count();
         if (tagOverlap > 0) {
-            int tagScore = (int) Math.min(tagOverlap * 10, 50); // 일치하는 해시태그 1개당 10점, 최대 50점
+            int tagScore = (int) Math.min(tagOverlap * 10, 30); // 일치하는 해시태그 1개당 10점, 최대 30점
             score += tagScore;
-            comment.append(String.format("%d개의 관심사 해시태그가 일치합니다.", tagOverlap));
+            comment.append(String.format("%d개의 관심사가 일치합니다. ", tagOverlap));
         } else {
-            comment.append("관심사 해시태그 일치 항목이 없습니다.");
+            comment.append("관심사 일치 항목이 없습니다. ");
+        }
+
+        // 3. 경험치 점수 산출 (최대 20점)
+        // 학년(x2) + 공모전 참여(x5) + 수상(x10)
+        int expScore = (target.getGrade() * 2) + (target.getContestCount() * 5) + (target.getAwardCount() * 10);
+        expScore = Math.min(expScore, 20);
+        if (expScore > 0) {
+            score += expScore;
+            comment.append(String.format("경험치 지수(+%d점). ", expScore));
+        }
+
+        // 4. 신뢰도 점수 산출 (최대 10점)
+        // 별점(5점 만점 x 2)
+        int relScore = (int) Math.min(target.getRating() * 2, 10);
+        if (relScore > 0) {
+            score += relScore;
+            comment.append(String.format("신뢰도 지수(+%d점).", relScore));
         }
 
         return new MatchingResult(score, comment.toString().trim());
