@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import api from '../api';
 import { showToast } from '../App';
-import { useUser } from '../UserContext';
 
 const Container = styled.div`
   padding: 40px 8%;
@@ -104,7 +103,7 @@ const RoleRow = styled.div`
 `;
 
 export default function TeamRoomDashboard() {
-  const { user } = useUser();
+  const currentUser = JSON.parse(localStorage.getItem('gongmatch_currentUser')) || {};
   const [rooms, setRooms] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', chatUrl: '', roles: [{ roleName: '백엔드', requiredCount: 1 }] });
@@ -184,7 +183,7 @@ export default function TeamRoomDashboard() {
                 ))}
               </div>
               {/* 모집 마감이거나, 내가 방장이거나, 내가 속해 있는 경우 채팅방 링크 공개 */}
-              {(room.status === 'CLOSED' || room.creatorName === user?.name || room.members.some(m => m.studentName === user?.name)) && (
+              {(room.status === 'CLOSED' || room.creatorName === currentUser?.name || room.members.some(m => m.studentName === currentUser?.name)) && (
                 <a href={room.chatUrl} target="_blank" rel="noreferrer" style={{display:'block', textAlign:'center', marginTop:'15px', background:'rgba(196,255,0,0.1)', color:'#c4ff00', padding:'10px', borderRadius:'8px', textDecoration:'none', fontSize:'14px', fontWeight:'bold'}}>
                   오픈채팅방 입장하기 💬
                 </a>
