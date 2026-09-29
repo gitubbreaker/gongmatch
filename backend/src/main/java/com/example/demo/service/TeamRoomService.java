@@ -24,7 +24,7 @@ public class TeamRoomService {
 
     @Transactional
     public TeamRoomDto.Response createRoom(String loginId, TeamRoomDto.CreateRequest request) {
-        Student creator = studentRepository.findByLoginId(loginId)
+        Student creator = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Project project = null;
@@ -107,7 +107,7 @@ public class TeamRoomService {
 
     @Transactional
     public void joinRoom(String loginId, Long roomId, TeamRoomDto.JoinRequest request) {
-        Student student = studentRepository.findByLoginId(loginId)
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         TeamRoom room = teamRoomRepository.findById(roomId)

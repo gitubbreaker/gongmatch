@@ -33,6 +33,7 @@ public class TeamRoom {
     @Column(nullable = false)
     private String title;
 
+    @Builder.Default
     @Column(length = 20)
     private String status = "OPEN"; // OPEN, CLOSED
 

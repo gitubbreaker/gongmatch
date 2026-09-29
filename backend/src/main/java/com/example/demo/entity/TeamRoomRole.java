@@ -29,6 +29,7 @@ public class TeamRoomRole {
     @Column(nullable = false)
     private int requiredCount; // 필요 인원 수
 
+    @Builder.Default
     @Column(nullable = false)
     private int currentCount = 0; // 현재 합류 인원 수
 }
