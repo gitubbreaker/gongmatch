@@ -17,6 +17,7 @@ function Tabs() {
       <button className={getClassName('/tags')} onClick={() => navigate('/tags')} data-tooltip-id="main-tooltip" data-tooltip-content="기술스택 및 직무">S3 · 관심사 해시태그</button>
       <button className={getClassName('/announcements')} onClick={() => navigate('/announcements')} data-tooltip-id="main-tooltip" data-tooltip-content="모집 공고 및 대회">S4 · 공모전 & 해커톤</button>
       <button className={getClassName('/candidates')} onClick={() => navigate('/candidates')} data-tooltip-id="main-tooltip" data-tooltip-content="AI 추천 팀원">S5 · 팀원 추천 목록</button>
+      <button className={getClassName('/team-rooms')} onClick={() => navigate('/team-rooms')} data-tooltip-id="main-tooltip" data-tooltip-content="방장 시스템">S5-2 · 방장 대시보드</button>
       <button className={getClassName('/profile')} onClick={() => navigate('/profile')} data-tooltip-id="main-tooltip" data-tooltip-content="팀원 상세 정보">S6 · 프로필 상세</button>
       <button className={getClassName('/accept')} onClick={() => navigate('/accept')} data-tooltip-id="main-tooltip" data-tooltip-content="받은 요청 확인">S7 · 매칭 수락</button>
       <button className={getClassName('/summary')} onClick={() => navigate('/summary')} data-tooltip-id="main-tooltip" data-tooltip-content="AI 회의록 생성">S8 · AI 회의록 요약</button>

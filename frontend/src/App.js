@@ -22,6 +22,7 @@ import PrivateRoute from './components/PrivateRoute';
 import NoticePage from './pages/NoticePage';
 import NotificationPage from './pages/NotificationPage';
 import ProfileDetailPage from './pages/ProfileDetailPage';
+import TeamRoomDashboard from './pages/TeamRoomDashboard';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
@@ -265,6 +266,7 @@ function App() {
           <Route path="/profile" element={<PrivateRoute><S6Profile /></PrivateRoute>} />
           <Route path="/profile-detail" element={<PrivateRoute><ProfileDetailPage /></PrivateRoute>} />
           <Route path="/accept" element={<PrivateRoute><S7Accept /></PrivateRoute>} />
+          <Route path="/team-rooms" element={<PrivateRoute><TeamRoomDashboard /></PrivateRoute>} />
           <Route path="/review" element={<PrivateRoute><S9Review /></PrivateRoute>} />
         </Routes>
       </div>
