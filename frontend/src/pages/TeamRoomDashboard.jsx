@@ -143,7 +143,7 @@ export default function TeamRoomDashboard() {
     <Container>
       <Header>
         <div>
-          <h1>팀 모집방 대시보드</h1>
+          <h1>팀 모집</h1>
           <p>필요한 직무를 설정하여 팀원을 모집하거나, 다른 팀의 빈 자리에 합류해 보세요.</p>
         </div>
         <CreateBtn onClick={() => setIsModalOpen(true)}>+ 새 모집방 만들기</CreateBtn>
