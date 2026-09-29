@@ -1,65 +1,132 @@
 import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import api from '../api';
 import { showToast } from '../App';
+
+const Container = styled.div`
+  padding: 40px 8%;
+  background: #0b0c10;
+  min-height: 100vh;
+  color: #fff;
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+  p { color: #8a8b91; font-size: 16px; }
+`;
+
+const CreateBtn = styled.button`
+  background: #c4ff00;
+  color: #0b0c10;
+  padding: 15px 25px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  &:hover { background: #b0e600; }
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+`;
+
+const Card = styled.div`
+  background: #15161d;
+  border-radius: 15px;
+  padding: 25px;
+  border: 1px solid #2a2b36;
+  opacity: ${props => props.isClosed ? 0.6 : 1};
+  transition: transform 0.2s;
+  &:hover { transform: translateY(-5px); }
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  h3 { font-size: 20px; font-weight: 700; color: #fff; margin: 0; line-height: 1.4; word-break: keep-all; }
+`;
+
+const Badge = styled.span`
+  background: ${props => props.isClosed ? '#2a2b36' : 'rgba(196, 255, 0, 0.1)'};
+  color: ${props => props.isClosed ? '#8a8b91' : '#c4ff00'};
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  margin-left: 15px;
+`;
+
+const RoleItem = styled.div`
+  margin-bottom: 15px;
+  .info { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: #d0d0d5; }
+  .bar-bg { width: 100%; height: 8px; background: #2a2b36; border-radius: 4px; overflow: hidden; display: flex; }
+  .bar-fill { height: 100%; background: ${props => props.isFull ? '#444' : '#c4ff00'}; width: ${props => props.progress}%; }
+  .action { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .join-btn { background: transparent; border: 1px solid #c4ff00; color: #c4ff00; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+  .join-btn:hover { background: rgba(196,255,0,0.1); }
+  .full-text { color: #8a8b91; font-size: 12px; font-weight: bold; }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 100;
+`;
+
+const ModalContent = styled.div`
+  background: #15161d;
+  width: 500px;
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid #2a2b36;
+  h2 { font-size: 24px; margin-bottom: 25px; color: #fff; }
+  label { display: block; color: #8a8b91; font-size: 14px; margin-bottom: 8px; }
+  input { width: 100%; padding: 12px; background: #0b0c10; border: 1px solid #2a2b36; color: #fff; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; }
+  input:focus { outline: none; border-color: #c4ff00; }
+`;
+
+const RoleRow = styled.div`
+  display: flex; gap: 10px; margin-bottom: 10px;
+  input { margin-bottom: 0; }
+  .remove { background: transparent; border: none; color: #ff4b4b; cursor: pointer; font-size: 18px; font-weight: bold; }
+`;
 
 export default function TeamRoomDashboard() {
   const [rooms, setRooms] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    chatUrl: '',
-    roles: [{ roleName: '백엔드', requiredCount: 1 }],
-  });
+  const [formData, setFormData] = useState({ title: '', chatUrl: '', roles: [{ roleName: '백엔드', requiredCount: 1 }] });
 
   const fetchRooms = async () => {
     try {
       const response = await api.get('/api/team-rooms');
       setRooms(response.data);
     } catch (error) {
-      console.error('팀룸 목록 조회 실패:', error);
       showToast('팀룸 목록을 불러오지 못했습니다.');
     }
   };
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
-
-  const handleAddRole = () => {
-    setFormData({
-      ...formData,
-      roles: [...formData.roles, { roleName: '', requiredCount: 1 }],
-    });
-  };
-
-  const handleRoleChange = (index, field, value) => {
-    const newRoles = [...formData.roles];
-    newRoles[index][field] = value;
-    setFormData({ ...formData, roles: newRoles });
-  };
-
-  const handleRemoveRole = (index) => {
-    const newRoles = formData.roles.filter((_, i) => i !== index);
-    setFormData({ ...formData, roles: newRoles });
-  };
+  useEffect(() => { fetchRooms(); }, []);
 
   const handleCreateRoom = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/api/team-rooms', {
-        projectId: null, // 임시로 null (전체 대시보드 용)
-        title: formData.title,
-        chatUrl: formData.chatUrl,
-        roles: formData.roles,
-      });
-      showToast('모집방이 성공적으로 생성되었습니다!');
+      await api.post('/api/team-rooms', { ...formData, projectId: null });
+      showToast('모집방이 생성되었습니다!');
       setIsModalOpen(false);
       setFormData({ title: '', chatUrl: '', roles: [{ roleName: '백엔드', requiredCount: 1 }] });
       fetchRooms();
-    } catch (error) {
-      console.error('방 생성 실패:', error);
-      showToast(error.response?.data?.message || '방 생성에 실패했습니다.');
-    }
+    } catch (error) { showToast('방 생성에 실패했습니다.'); }
   };
 
   const handleJoinRoom = async (roomId, roleName) => {
@@ -67,220 +134,94 @@ export default function TeamRoomDashboard() {
     try {
       await api.post(`/api/team-rooms/${roomId}/join`, { roleName });
       showToast('성공적으로 합류했습니다!');
-      fetchRooms(); // 상태 최신화 (TO 차감 및 잠금 반영)
-    } catch (error) {
-      console.error('합류 실패:', error);
-      showToast(error.response?.data?.message || '합류에 실패했습니다.');
-    }
+      fetchRooms();
+    } catch (error) { showToast(error.response?.data?.message || '합류에 실패했습니다.'); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">팀 모집방 대시보드</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              필요한 직무를 설정하여 팀원을 모집하거나, 다른 팀의 빈 자리에 합류해 보세요.
-            </p>
-          </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-sm transition"
-          >
-            + 새 모집방 만들기
-          </button>
+    <Container>
+      <Header>
+        <div>
+          <h1>팀 모집방 대시보드</h1>
+          <p>필요한 직무를 설정하여 팀원을 모집하거나, 다른 팀의 빈 자리에 합류해 보세요.</p>
         </div>
+        <CreateBtn onClick={() => setIsModalOpen(true)}>+ 새 모집방 만들기</CreateBtn>
+      </Header>
 
-        {/* 모집방 리스트 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rooms.map((room) => (
-            <div
-              key={room.id}
-              className={`bg-white border rounded-xl shadow-sm overflow-hidden transition ${
-                room.status === 'CLOSED' ? 'opacity-75 border-gray-200' : 'border-indigo-100 hover:shadow-md'
-              }`}
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-gray-900 truncate pr-4">{room.title}</h3>
-                  <span
-                    className={`px-3 py-1 text-xs font-bold rounded-full ${
-                      room.status === 'CLOSED'
-                        ? 'bg-gray-100 text-gray-600'
-                        : 'bg-green-100 text-green-700'
-                    }`}
-                  >
-                    {room.status === 'CLOSED' ? '모집 마감' : '모집 중'}
+      <Grid>
+        {rooms.map(room => (
+          <Card key={room.id} isClosed={room.status === 'CLOSED'}>
+            <CardHeader>
+              <h3>{room.title}</h3>
+              <Badge isClosed={room.status === 'CLOSED'}>{room.status === 'CLOSED' ? '모집 마감' : '모집 중'}</Badge>
+            </CardHeader>
+            <div style={{color:'#8a8b91', fontSize:'13px', marginBottom:'20px'}}>방장: {room.creatorName}</div>
+            
+            <div style={{marginBottom:'20px'}}>
+              {room.roles.map(role => {
+                const isFull = role.currentCount >= role.requiredCount;
+                return (
+                  <RoleItem key={role.id} isFull={isFull} progress={(role.currentCount/role.requiredCount)*100}>
+                    <div className="info"><span>{role.roleName}</span><span>{role.currentCount} / {role.requiredCount} 명</span></div>
+                    <div className="bar-bg"><div className="bar-fill"></div></div>
+                    {room.status === 'OPEN' && !isFull && (
+                      <div className="action"><button className="join-btn" onClick={() => handleJoinRoom(room.id, role.roleName)}>지원하기</button></div>
+                    )}
+                  </RoleItem>
+                );
+              })}
+            </div>
+
+            <div style={{borderTop:'1px solid #2a2b36', paddingTop:'15px'}}>
+              <div style={{fontSize:'12px', color:'#8a8b91', marginBottom:'10px'}}>현재 참여 멤버 ({room.members.length}명)</div>
+              <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                {room.members.map(m => (
+                  <span key={m.studentId} style={{background:'#0b0c10', border:'1px solid #2a2b36', padding:'4px 8px', borderRadius:'6px', fontSize:'12px', color:'#d0d0d5'}}>
+                    {m.studentName} ({m.joinedRole})
                   </span>
-                </div>
-                <p className="text-sm text-gray-500 mb-6">방장: {room.creatorName}</p>
-
-                {/* 직무별 TO 현황 */}
-                <div className="space-y-4 mb-6">
-                  {room.roles.map((role) => {
-                    const progress = (role.currentCount / role.requiredCount) * 100;
-                    const isFull = role.currentCount >= role.requiredCount;
-                    return (
-                      <div key={role.id}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="font-medium text-gray-700">{role.roleName}</span>
-                          <span className="text-gray-500">
-                            {role.currentCount} / {role.requiredCount} 명
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${isFull ? 'bg-gray-400' : 'bg-indigo-500'}`}
-                              style={{ width: `${progress}%` }}
-                            ></div>
-                          </div>
-                          {room.status === 'OPEN' && !isFull && (
-                            <button
-                              onClick={() => handleJoinRoom(room.id, role.roleName)}
-                              className="shrink-0 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1 text-xs font-bold rounded"
-                            >
-                              지원
-                            </button>
-                          )}
-                          {isFull && (
-                            <span className="shrink-0 text-xs font-bold text-gray-400 px-3 py-1">마감</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* 멤버 목록 & 카톡 링크 */}
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="text-xs text-gray-500 mb-2">현재 참여 멤버 ({room.members.length}명)</div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {room.members.map((m) => (
-                      <span key={m.studentId} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                        {m.studentName} ({m.joinedRole})
-                      </span>
-                    ))}
-                  </div>
-                  {room.status === 'CLOSED' && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                      <a
-                        href={room.chatUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-yellow-800 text-sm font-bold hover:underline"
-                      >
-                        오픈채팅방 입장하기 💬
-                      </a>
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
+              {room.status === 'CLOSED' && (
+                <a href={room.chatUrl} target="_blank" rel="noreferrer" style={{display:'block', textAlign:'center', marginTop:'15px', background:'rgba(196,255,0,0.1)', color:'#c4ff00', padding:'10px', borderRadius:'8px', textDecoration:'none', fontSize:'14px', fontWeight:'bold'}}>
+                  오픈채팅방 입장하기 💬
+                </a>
+              )}
             </div>
-          ))}
-          {rooms.length === 0 && (
-            <div className="col-span-full text-center py-20 text-gray-500">
-              현재 개설된 모집방이 없습니다. 첫 번째 방장이 되어보세요!
-            </div>
-          )}
-        </div>
-      </div>
+          </Card>
+        ))}
+      </Grid>
 
-      {/* 방 만들기 모달 */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">새 모집방 만들기</h2>
-            <form onSubmit={handleCreateRoom} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">방 제목</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="예: 해커톤 프론트/백 모집합니다!"
-                />
+        <ModalOverlay>
+          <ModalContent>
+            <h2>새 모집방 만들기</h2>
+            <form onSubmit={handleCreateRoom}>
+              <label>방 제목</label>
+              <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title:e.target.value})} placeholder="예: 공공데이터 해커톤 멤버 구합니다" />
+              
+              <label>오픈채팅방 링크 (마감 후 공개)</label>
+              <input type="url" required value={formData.chatUrl} onChange={e => setFormData({...formData, chatUrl:e.target.value})} placeholder="https://open.kakao.com/..." />
+              
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'10px'}}>
+                <label style={{marginBottom:0}}>모집 직무 (TO)</label>
+                <button type="button" onClick={() => setFormData({...formData, roles: [...formData.roles, {roleName:'', requiredCount:1}]})} style={{background:'none', border:'none', color:'#c4ff00', cursor:'pointer', fontSize:'12px', fontWeight:'bold'}}>+ 직무 추가</button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">카카오톡 오픈채팅방 링크</label>
-                <input
-                  type="url"
-                  required
-                  value={formData.chatUrl}
-                  onChange={(e) => setFormData({ ...formData, chatUrl: e.target.value })}
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="https://open.kakao.com/o/..."
-                />
-                <p className="text-xs text-gray-500 mt-1">모집이 완료되면 멤버들에게만 공개됩니다.</p>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">모집 직무 (TO)</label>
-                  <button
-                    type="button"
-                    onClick={handleAddRole}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-bold"
-                  >
-                    + 직무 추가
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {formData.roles.map((role, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <input
-                        type="text"
-                        required
-                        value={role.roleName}
-                        onChange={(e) => handleRoleChange(index, 'roleName', e.target.value)}
-                        className="flex-1 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                        placeholder="직무명 (예: 백엔드)"
-                      />
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        required
-                        value={role.requiredCount}
-                        onChange={(e) => handleRoleChange(index, 'requiredCount', parseInt(e.target.value) || 1)}
-                        className="w-20 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                      />
-                      {formData.roles.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveRole(index)}
-                          className="text-red-500 hover:text-red-700 px-2"
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium"
-                >
-                  방 생성하기
-                </button>
+              {formData.roles.map((role, i) => (
+                <RoleRow key={i}>
+                  <input type="text" required value={role.roleName} onChange={e => { const r=[...formData.roles]; r[i].roleName=e.target.value; setFormData({...formData, roles:r}); }} placeholder="직무명 (예: 백엔드)" style={{flex:1}} />
+                  <input type="number" min="1" required value={role.requiredCount} onChange={e => { const r=[...formData.roles]; r[i].requiredCount=parseInt(e.target.value)||1; setFormData({...formData, roles:r}); }} style={{width:'80px'}} />
+                  {formData.roles.length > 1 && <button type="button" className="remove" onClick={() => setFormData({...formData, roles: formData.roles.filter((_, idx)=>idx!==i)})}>✕</button>}
+                </RoleRow>
+              ))}
+              
+              <div style={{display:'flex', gap:'10px', marginTop:'20px'}}>
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{flex:1, background:'#2a2b36', color:'#fff', padding:'12px', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}}>취소</button>
+                <button type="submit" style={{flex:1, background:'#c4ff00', color:'#000', padding:'12px', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}}>생성하기</button>
               </div>
             </form>
-          </div>
-        </div>
+          </ModalContent>
+        </ModalOverlay>
       )}
-    </div>
+    </Container>
   );
 }
