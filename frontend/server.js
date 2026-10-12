@@ -4,10 +4,12 @@ const path = require('path');
 
 const app = express();
 
-// /api 로 시작하는 모든 요청을 백엔드 컨테이너(http://backend:8080)로 전달합니다.
+// /api 로 시작하는 모든 요청을 백엔드로 전달합니다.
+const backendTarget = process.env.BACKEND_URL || 'https://gongmatch-production.up.railway.app';
 app.use('/api', createProxyMiddleware({ 
-  target: 'http://backend:8080', 
-  changeOrigin: true 
+  target: backendTarget, 
+  changeOrigin: true,
+  secure: false
 }));
 
 // React 빌드 파일들을 정적으로 서빙합니다.
