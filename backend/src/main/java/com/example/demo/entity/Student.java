@@ -25,6 +25,7 @@ public class Student {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -77,9 +78,11 @@ public class Student {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
     private java.util.Set<StudentTag> studentTags = new java.util.HashSet<>();
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
     private java.util.Set<AvailableTime> availableTimes = new java.util.HashSet<>();
 

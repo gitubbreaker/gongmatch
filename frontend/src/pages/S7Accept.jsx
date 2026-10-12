@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../App';
 import api from '../api';
+import { formatSafeDate as formatDate } from '../dateUtils';
 
 function S7Accept() {
   const navigate = useNavigate();
@@ -16,8 +17,13 @@ function S7Accept() {
 
   useEffect(() => {
     const userStr = localStorage.getItem('gongmatch_currentUser');
-    if (userStr && userStr !== "undefined") {
-      setCurrentUser(JSON.parse(userStr));
+    if (userStr && userStr !== "undefined" && userStr !== "null") {
+      try {
+        const parsed = JSON.parse(userStr);
+        if (parsed && typeof parsed === 'object') {
+          setCurrentUser(parsed);
+        }
+      } catch (e) {}
     }
     fetchRequests();
   }, []);
@@ -25,15 +31,18 @@ function S7Accept() {
   const fetchRequests = async () => {
     try {
       const [receivedRes, sentRes, recoRes] = await Promise.all([
-        api.get('/api/team-requests/received'),
-        api.get('/api/team-requests/sent'),
-        api.get('/api/students/recommendations')
+        api.get('/api/team-requests/received').catch(() => ({ data: [] })),
+        api.get('/api/team-requests/sent').catch(() => ({ data: [] })),
+        api.get('/api/students/recommendations').catch(() => ({ data: [] }))
       ]);
-      setReceivedRequests(receivedRes.data);
-      setSentRequests(sentRes.data);
-      setRecommendations(recoRes.data || []);
+      setReceivedRequests(Array.isArray(receivedRes?.data) ? receivedRes.data : []);
+      setSentRequests(Array.isArray(sentRes?.data) ? sentRes.data : []);
+      setRecommendations(Array.isArray(recoRes?.data) ? recoRes.data : []);
     } catch (error) {
       console.error('요청 목록 로딩 실패:', error);
+      setReceivedRequests([]);
+      setSentRequests([]);
+      setRecommendations([]);
     } finally {
       setLoading(false);
     }
@@ -69,24 +78,30 @@ function S7Accept() {
     }
   };
 
-  // derived lists
+  // derived lists (안전 배열 처리)
+  const safeReceived = Array.isArray(receivedRequests) ? receivedRequests : [];
+  const safeSent = Array.isArray(sentRequests) ? sentRequests : [];
+
   let currentList = [];
   if (activeTab === 'RECEIVED') {
-    currentList = receivedRequests.filter(r => r.status === 'PENDING').map(r => ({...r, type: 'RECEIVED'}));
+    currentList = safeReceived.filter(r => r && r.status === 'PENDING').map(r => ({...r, type: 'RECEIVED'}));
   } else if (activeTab === 'SENT') {
-    currentList = sentRequests.filter(r => r.status === 'PENDING').map(r => ({...r, type: 'SENT'}));
+    currentList = safeSent.filter(r => r && r.status === 'PENDING').map(r => ({...r, type: 'SENT'}));
   } else if (activeTab === 'ACCEPTED') {
     currentList = [
-      ...receivedRequests.filter(r => r.status === 'ACCEPTED').map(r => ({...r, type: 'RECEIVED'})),
-      ...sentRequests.filter(r => r.status === 'ACCEPTED').map(r => ({...r, type: 'SENT'}))
-    ].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      ...safeReceived.filter(r => r && r.status === 'ACCEPTED').map(r => ({...r, type: 'RECEIVED'})),
+      ...safeSent.filter(r => r && r.status === 'ACCEPTED').map(r => ({...r, type: 'SENT'}))
+    ].sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }
 
-  const getOtherPerson = (req) => req.type === 'RECEIVED' ? req.sender : req.receiver;
+  const getOtherPerson = (req) => {
+    if (!req) return null;
+    return req.type === 'RECEIVED' ? req.sender : req.receiver;
+  };
   
   const acceptedMembers = [
-    ...receivedRequests.filter(r => r.status === 'ACCEPTED').map(r => r.sender),
-    ...sentRequests.filter(r => r.status === 'ACCEPTED').map(r => r.receiver)
+    ...safeReceived.filter(r => r && r.status === 'ACCEPTED').map(r => r.sender).filter(Boolean),
+    ...safeSent.filter(r => r && r.status === 'ACCEPTED').map(r => r.receiver).filter(Boolean)
   ];
 
   if (loading) return <div style={{padding:'100px', textAlign:'center', color:'var(--tx3)'}}>매칭 정보를 불러오는 중...</div>;
@@ -153,7 +168,7 @@ function S7Accept() {
                         {req.status === 'PENDING' && req.type === 'SENT' && <span style={{ fontSize: '10px', background: 'var(--card2)', border: '1px solid var(--purple)', color: 'var(--purple)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>수락 대기중</span>}
                         {req.status === 'ACCEPTED' && <span style={{ fontSize: '10px', background: 'var(--green-dim)', color: 'var(--green)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>수락완료</span>}
                       </div>
-                      <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{req.createdAt ? new Date(req.createdAt + (req.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : ''}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{formatDate(req.createdAt)}</span>
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.4' }}>
                       <div style={{color:'var(--ac)', fontSize: '11px', fontWeight:'800', marginBottom:'4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>🎯 {req.targetProjectTitle || req.project?.title || '프로젝트 무관 (자유 매칭)'}</div>
@@ -215,7 +230,7 @@ function S7Accept() {
                         );
                       })()}
                     </h2>
-                    <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>{getOtherPerson(activeChat)?.major || '학과 미기재'} · 가입 {getOtherPerson(activeChat)?.createdAt ? new Date(getOtherPerson(activeChat).createdAt + (getOtherPerson(activeChat).createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : new Date().toLocaleDateString()}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>{getOtherPerson(activeChat)?.major || '학과 미기재'} · 가입 {formatDate(getOtherPerson(activeChat)?.createdAt) || new Date().toLocaleDateString()}</p>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: '#000', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>✓ 학교인증</span>
                       <span style={{ fontSize: '10px', background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>🏆 대상 수상</span>
@@ -349,16 +364,16 @@ function S7Accept() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ background: 'var(--card2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--brd2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', color: 'var(--tx2)' }}>받은 요청 (대기중)</span>
-                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--ac)' }}>{receivedRequests.filter(r => r.status === 'PENDING').length}건</span>
+                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--ac)' }}>{safeReceived.filter(r => r && r.status === 'PENDING').length}건</span>
               </div>
               <div style={{ background: 'var(--card2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--brd2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', color: 'var(--tx2)' }}>보낸 요청 (대기중)</span>
-                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--purple)' }}>{sentRequests.filter(r => r.status === 'PENDING').length}건</span>
+                <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--purple)' }}>{safeSent.filter(r => r && r.status === 'PENDING').length}건</span>
               </div>
               <div style={{ background: 'var(--card2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--brd2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', color: 'var(--tx2)' }}>성사된 매칭</span>
                 <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--green)' }}>
-                  {receivedRequests.filter(r => r.status === 'ACCEPTED').length + sentRequests.filter(r => r.status === 'ACCEPTED').length}건
+                  {safeReceived.filter(r => r && r.status === 'ACCEPTED').length + safeSent.filter(r => r && r.status === 'ACCEPTED').length}건
                 </span>
               </div>
             </div>
@@ -379,14 +394,14 @@ function S7Accept() {
                 const getProjectTitle = (req) => req?.targetProjectTitle || req?.project?.title || '자유 매칭';
                 const currentProjectTitle = getProjectTitle(activeChat);
                 const projectAcceptedRequests = [
-                  ...receivedRequests.filter(r => r.status === 'ACCEPTED'),
-                  ...sentRequests.filter(r => r.status === 'ACCEPTED')
+                  ...safeReceived.filter(r => r && r.status === 'ACCEPTED'),
+                  ...safeSent.filter(r => r && r.status === 'ACCEPTED')
                 ].filter(r => getProjectTitle(r) === currentProjectTitle);
                 
                 const uniqueMembersMap = new Map();
                 projectAcceptedRequests.forEach(r => {
                   const other = getOtherPerson(r);
-                  if (other && !uniqueMembersMap.has(other.id)) {
+                  if (other && other.id && !uniqueMembersMap.has(other.id)) {
                     uniqueMembersMap.set(other.id, other);
                   }
                 });
@@ -397,10 +412,10 @@ function S7Accept() {
                   <>
                     {/* Me */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--brd2)' }}>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px solid var(--ac-brd)' }}>{currentUser.name?.charAt(0) || '?'}</div>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px solid var(--ac-brd)' }}>{currentUser?.name?.charAt(0) || '나'}</div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{currentUser.name} <span style={{fontSize:'10px', color:'var(--ac)', background:'var(--ac-dim)', padding:'2px 6px', borderRadius:'4px'}}>👑 본인</span></div>
-                        <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{currentUser.role || '직무 미기재'}</div>
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{currentUser?.name || '본인'} <span style={{fontSize:'10px', color:'var(--ac)', background:'var(--ac-dim)', padding:'2px 6px', borderRadius:'4px'}}>👑 본인</span></div>
+                        <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{currentUser?.role || '직무 미기재'}</div>
                       </div>
                     </div>
                     

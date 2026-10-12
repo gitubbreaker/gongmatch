@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from '../App';
 import api from '../api';
+import { formatSafeDate } from '../dateUtils';
 
 const Container = styled.div`
   padding: 60px 8%;
@@ -72,13 +73,18 @@ function ProfileDetailPage() {
   const profileColor = colors[colorIndex];
 
   const handleRequest = async () => {
+    const targetReceiverId = profileData?.id || location.state?.receiverId;
+    if (!targetReceiverId) {
+      showToast('상대방 사용자의 식별 정보를 확인할 수 없습니다.');
+      return;
+    }
     try {
-      await api.post('/api/team-requests', { receiverId: 999, message: `${reqMessage}\n\n[연락처] ${kakaoLink}` });
+      await api.post('/api/team-requests', { receiverId: targetReceiverId, message: `${reqMessage}\n\n[연락처] ${kakaoLink}` });
       showToast('성공적으로 팀원 합류 제안을 보냈습니다!');
       navigate(-1);
     } catch(e) {
-      showToast('팀원 합류 제안에 실패했습니다. 유효하지 않은 대상입니다.');
-      navigate(-1);
+      const errMsg = e.response?.data?.message || '팀원 합류 제안에 실패했습니다.';
+      showToast(errMsg);
     }
   };
 
@@ -88,7 +94,7 @@ function ProfileDetailPage() {
         <Section style={{display:'flex', gap:'30px', alignItems:'center'}}>
           <div style={{width:'100px', height:'100px', background: profileColor, borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'40px', fontWeight:'bold', color: '#fff', overflow: 'hidden'}}>
             {profileImageUrl ? (
-              <img src={profileImageUrl.startsWith('data:image') ? profileImageUrl : `${api.defaults.baseURL}${profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={profileImageUrl.startsWith('data:') || profileImageUrl.startsWith('http') ? profileImageUrl : `${api.defaults.baseURL}${profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               authorIcon
             )}
@@ -127,7 +133,7 @@ function ProfileDetailPage() {
                 <div key={i} style={{padding: '20px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--brd)'}}>
                   <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
                     <div style={{fontSize: '14px', fontWeight: '800', color: 'var(--tx)'}}>{r.projectName}</div>
-                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{new Date(r.createdAt + (r.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString()}</div>
+                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{formatSafeDate(r.createdAt)}</div>
                   </div>
                   {r.reviewText && (
                     <p style={{fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px'}}>"{r.reviewText}"</p>

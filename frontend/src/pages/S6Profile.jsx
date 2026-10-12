@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../App';
 import api from '../api';
+import { formatSafeDate } from '../dateUtils';
 
 const DAY_LABELS = {
   MONDAY: '월', TUESDAY: '화', WEDNESDAY: '수', THURSDAY: '목',
@@ -154,7 +155,7 @@ function S6Profile() {
             <div style={{ position: 'relative' }}>
               <div className="av" style={{ width: '66px', height: '66px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '22px' }}>
                 {student?.profileImageUrl ? (
-                  <img src={student.profileImageUrl.startsWith('data:image') ? student.profileImageUrl : `${api.defaults.baseURL}${student.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={student.profileImageUrl.startsWith('data:') || student.profileImageUrl.startsWith('http') ? student.profileImageUrl : `${api.defaults.baseURL}${student.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   student?.name?.charAt(0) || 'U'
                 )}
@@ -175,7 +176,7 @@ function S6Profile() {
                 <span className="tag" style={{ fontSize: '13px', padding: '5px 13px', fontWeight: '800' }}>매칭 점수 {totalScore}점</span>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>
-                {student?.major} · {student?.grade}학년 · {student?.region || '전국'} · 가입 {student?.createdAt ? new Date(student.createdAt + (student.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : ''}
+                {student?.major} · {student?.grade}학년 · {student?.region || '전국'} · 가입 {formatSafeDate(student?.createdAt)}
               </p>
             </div>
             <button className="btn-ghost btn-sm" onClick={() => navigate('/candidates')}>후보 목록 탐색 →</button>
@@ -236,7 +237,7 @@ function S6Profile() {
                 <div key={i} style={{padding: '20px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--brd)'}}>
                   <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
                     <div style={{fontSize: '14px', fontWeight: '800', color: 'var(--tx)'}}>{r.projectName}</div>
-                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{new Date(r.createdAt + (r.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString()}</div>
+                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{formatSafeDate(r.createdAt)}</div>
                   </div>
                   {r.reviewText && (
                     <p style={{fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px'}}>"{r.reviewText}"</p>

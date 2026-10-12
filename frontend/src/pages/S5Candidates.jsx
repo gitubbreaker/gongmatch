@@ -134,7 +134,8 @@ function S5Candidates() {
       showToast(`${reqModal.name}님께 팀원 요청을 보냈습니다!`);
     } catch (error) {
       console.error('팀원 요청 전송 실패:', error);
-      showToast('요청 전송에 실패했습니다.');
+      const msg = error.response?.data?.message || '요청 전송에 실패했습니다.';
+      showToast(msg);
     }
   };
 
@@ -288,9 +289,9 @@ function S5Candidates() {
                 <div style={{textAlign:'center'}}>
                   <div style={{ width: '70px', height: '70px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', fontWeight:'900', borderRadius:'22px', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px', overflow:'hidden' }}>
                     {c.profileImageUrl ? (
-                      <img src={c.profileImageUrl.startsWith('data:image') ? c.profileImageUrl : `${api.defaults.baseURL}${c.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={c.profileImageUrl.startsWith('data:') || c.profileImageUrl.startsWith('http') ? c.profileImageUrl : `${api.defaults.baseURL}${c.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      c.name.charAt(0)
+                      c.name?.charAt(0) || '?'
                     )}
                   </div>
                   <div style={{fontSize:'12px', color:'var(--ac)', fontWeight:'800', border:'1px solid var(--ac-brd)', borderRadius:'4px', padding:'2px 4px', background:'var(--ac-dim)'}}>

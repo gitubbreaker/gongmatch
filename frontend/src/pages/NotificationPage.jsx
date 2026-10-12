@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { getSafeTime, formatSafeDateTime } from '../dateUtils';
 
 function NotificationPage() {
   const navigate = useNavigate();
@@ -64,8 +65,8 @@ function NotificationPage() {
             isNew: notif.isNew,
             desc1: notif.desc1,
             desc2: notif.desc2,
-            _rawTime: new Date(notif.createdAt + (notif.createdAt.endsWith('Z') ? '' : 'Z')).getTime(),
-            time: new Date(notif.createdAt + (notif.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleString(),
+            _rawTime: getSafeTime(notif.createdAt),
+            time: formatSafeDateTime(notif.createdAt, '방금 전'),
             actions
           };
         });

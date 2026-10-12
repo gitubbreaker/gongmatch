@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import api from '../api';
+import { formatSafeDate } from '../dateUtils';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -563,7 +564,7 @@ function ProjectListPage() {
 
                   <Footer>
                     <DateBadge>
-                      수집: {project.createdAt ? new Date(project.createdAt + (project.createdAt.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : '최근'}
+                      수집: {formatSafeDate(project.createdAt, '최근')}
                     </DateBadge>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                       <MoreBtn onClick={(e) => handleShare(e, shareUrl)}>
