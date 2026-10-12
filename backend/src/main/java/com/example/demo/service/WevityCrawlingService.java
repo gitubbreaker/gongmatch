@@ -33,10 +33,53 @@ public class WevityCrawlingService implements InitializingBean {
     private boolean isCrawling = false;
     private java.time.LocalDateTime lastStartTime;
     private String currentProgress = "준비 중...";
+    private final java.util.Set<String> disallowedPaths = new java.util.HashSet<>();
+    private boolean robotsTxtChecked = false;
 
     public boolean isCrawling() { return isCrawling; }
     public java.time.LocalDateTime getLastStartTime() { return lastStartTime; }
     public String getCurrentProgress() { return currentProgress; }
+
+    /**
+     * 대상 사이트의 robots.txt 규약을 준수하는지 사전 점검 (웹 표준 크롤링 원칙)
+     */
+    private synchronized void initRobotsTxtPolicy() {
+        if (robotsTxtChecked) return;
+        try {
+            log.info("robots.txt 정책 파싱 및 접근 규약 확인 중: {}/robots.txt", BASE_URL);
+            Document robotsDoc = Jsoup.connect(BASE_URL + "/robots.txt")
+                    .timeout(5000)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) GongmatchBot/1.0")
+                    .get();
+            String content = robotsDoc.text();
+            String[] lines = content.split("\\r?\\n");
+            for (String line : lines) {
+                line = line.trim();
+                if (line.toLowerCase().startsWith("disallow:")) {
+                    String path = line.substring(9).trim();
+                    if (!path.isEmpty() && !path.equals("/")) {
+                        disallowedPaths.add(path);
+                    }
+                }
+            }
+            log.info("robots.txt 분석 완료. 제한된 경로: {}", disallowedPaths);
+        } catch (Exception e) {
+            log.info("robots.txt 조회 생략 (기본 허용 정책 적용): {}", e.getMessage());
+        } finally {
+            robotsTxtChecked = true;
+        }
+    }
+
+    private boolean isAllowedByRobotsTxt(String url) {
+        initRobotsTxtPolicy();
+        if (url == null) return false;
+        for (String disallowed : disallowedPaths) {
+            if (url.contains(disallowed)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -91,18 +134,37 @@ public class WevityCrawlingService implements InitializingBean {
 
                             String detailUrl = titleTag.attr("href").startsWith("http") ? titleTag.attr("href") : BASE_URL + titleTag.attr("href");
                             
+                            // [robots.txt 규약 사전 검사]
+                            if (!isAllowedByRobotsTxt(detailUrl)) {
+                                log.warn("robots.txt 규약에 의해 크롤링이 제한된 경로입니다. 건너뜁니다: {}", detailUrl);
+                                continue;
+                            }
+
                             Document detailDoc = null;
                             int retryCount = 0;
                             while (retryCount < 3) {
                                 try {
                                     detailDoc = Jsoup.connect(detailUrl)
                                             .timeout(15000)
-                                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) GongmatchBot/1.0")
                                             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
                                             .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
                                             .referrer(BASE_URL)
                                             .get();
                                     break; // 성공 시 루프 탈출
+                                } catch (org.jsoup.HttpStatusException hse) {
+                                    int statusCode = hse.getStatusCode();
+                                    if (statusCode == 403 || statusCode == 401) {
+                                        log.warn("🚨 [접근 거부/robots.txt 차단 감지 - HTTP {}] 대상 URL 접근이 제한되어 즉시 스킵합니다: {}", statusCode, detailUrl);
+                                        break; // 차단 시 무리한 재시도 중단 (서버 보호 및 정책 준수)
+                                    } else if (statusCode == 429) {
+                                        log.warn("⚠️ [크롤링 속도 제한(Rate Limit) 감지 - HTTP 429] 쿨다운 대기 후 재시도합니다: {}", detailUrl);
+                                        Thread.sleep(3000);
+                                    } else if (statusCode == 404) {
+                                        log.warn("ℹ️ [공모전 페이지 삭제됨 - HTTP 404] 스킵합니다: {}", detailUrl);
+                                        break;
+                                    }
+                                    retryCount++;
                                 } catch (Exception e) {
                                     retryCount++;
                                     log.warn("상세 페이지 접속 실패 (재시도 {}/3): {} - {}", retryCount, detailUrl, e.getMessage());
@@ -113,7 +175,7 @@ public class WevityCrawlingService implements InitializingBean {
                                 }
                             }
                             
-                            // 모든 재시도 후에도 실패하면 깔끔하게 스킵 (버림)
+                            // 모든 재시도 후에도 실패하면 깔끔하게 스킵 (Fail-Safe)
                             if (detailDoc == null) {
                                 log.error("상세 페이지 최종 로드 실패. 해당 항목 저장을 건너뜁니다: {}", title);
                                 continue;
@@ -143,11 +205,6 @@ public class WevityCrawlingService implements InitializingBean {
                                     break;
                                 }
                             }
-                            
-                            // cidx=20 이므로 별도의 isRelevantToIT 검증을 무시하고 모두 통과시킵니다.
-                            // if (!isRelevantToIT(field) && !isRelevantToIT(title)) {
-                            //     continue;
-                            // }
 
                             // 3. 마감일 파싱 (정규식 강화)
                             String dateRange = "";
@@ -178,7 +235,7 @@ public class WevityCrawlingService implements InitializingBean {
 
                             String hostName = item.select(".organ").text().trim();
                             
-                            // [중복 방지 강화] detailUrl에서 위비티 고유 식별자(ix=번호) 추출
+                            // [중복 방지 및 변경 감지(Upsert) 강화] detailUrl에서 위비티 고유 식별자(ix=번호) 추출
                             String ixParam = null;
                             if (detailUrl != null && detailUrl.contains("ix=")) {
                                 int ixIndex = detailUrl.indexOf("ix=");
@@ -193,26 +250,40 @@ public class WevityCrawlingService implements InitializingBean {
                             }
                             
                             // ix로 못 찾았거나 ix가 없는 경우 제목+주최로 2차 검색
+                            boolean isUpdated = false;
                             if (project == null) {
                                 project = projectRepository.findFirstByTitleAndHost(title, hostName)
                                         .orElse(Project.builder().title(title).host(hostName).build());
                             } else {
-                                // 기존 프로젝트를 찾았는데 주최측이 제목을 수정한 경우 최신 제목으로 덮어쓰기
-                                project.setTitle(title);
+                                // 기존 프로젝트 변동사항 감지 (Change Detection)
+                                if (project.getTitle() != null && !project.getTitle().equals(title)) {
+                                    log.info("📢 [공모전 제목 변경 감지] 기존: '{}' ➔ 최신: '{}'", project.getTitle(), title);
+                                    project.setTitle(title);
+                                    isUpdated = true;
+                                }
+                                if (project.getEndDate() != null && endDate != null && !project.getEndDate().equals(endDate)) {
+                                    log.info("📢 [공모전 마감일 변경 감지] '{}' 기존 마감: {} ➔ 연장/변경 마감: {}", title, project.getEndDate(), endDate);
+                                    project.setEndDate(endDate);
+                                    isUpdated = true;
+                                }
                             }
 
                             project.setDetailUrl(detailUrl); // URL 파라미터가 갱신(gp=페이지 번호 변경)되었을 수 있으므로 덮어쓰기
-                            project.setEndDate(endDate != null ? endDate : LocalDate.now().plusWeeks(2));
+                            if (!isUpdated) {
+                                project.setEndDate(endDate != null ? endDate : LocalDate.now().plusWeeks(2));
+                            }
                             project.setCategory("IT/해커톤");
                             if (posterUrl != null) project.setPosterImageUrl(posterUrl);
                             project.setOfficialUrl(officialUrl != null ? officialUrl : detailUrl);
 
-                            // 6. AI 분석 연동 (아직 분석되지 않은 프로젝트인 경우에만)
-                            if (project.getAiFeatures() == null || project.getAiFeatures().isEmpty()) {
-                                // 위비티 본문 영역 텍스트 추출 (보통 .cd-body 클래스에 존재)
-                                Element bodyEl = detailDoc.selectFirst(".cd-body");
-                                String rawText = bodyEl != null ? bodyEl.text() : detailDoc.body().text();
-                                
+                            // 6. AI 분석 연동 (신규 프로젝트이거나 정보가 변경된 경우 재분석)
+                            Element bodyEl = detailDoc.selectFirst(".cd-body");
+                            String rawText = bodyEl != null ? bodyEl.text() : detailDoc.body().text();
+
+                            if (project.getAiFeatures() == null || project.getAiFeatures().isEmpty() || isUpdated) {
+                                if (isUpdated) {
+                                    log.info("📢 [공모전 변동사항 발생에 따른 AI 재분석 실행] '{}'", title);
+                                }
                                 // AI에게 분석 요청 및 결과 저장
                                 aiParsingService.analyzeAndEnrichProject(project, rawText);
                             }
