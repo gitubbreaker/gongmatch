@@ -45,11 +45,11 @@ public class Student {
     @Column(length = 255)
     private String openChatUrl; // 카카오톡 오픈채팅 URL 추가
 
-    @Column(length = 1000)
-    private String profileImageUrl; // 사용자 프로필 이미지 URL 추가 (기존 호환용)
+    @Column(columnDefinition = "LONGTEXT")
+    private String profileImageUrl; // 사용자 프로필 이미지 URL (LONGTEXT로 확장)
 
     @Column(columnDefinition = "LONGTEXT")
-    private String profileImageBase64v2; // 4GB 영구 보존용 Base64 이미지 (용량 초과 방지)
+    private String profileImageBase64v2; // 4GB 영구 보존용 Base64 이미지
 
     @Column(name = "is_verified")
     private boolean isVerified = false;

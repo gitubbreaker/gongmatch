@@ -104,6 +104,7 @@ public class StudentService {
         Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         student.setProfileImageBase64v2(profileImageBase64); // v2(LONGTEXT) 필드로 저장
+        student.setProfileImageUrl(profileImageBase64);      // profileImageUrl도 함께 저장
         return studentRepository.save(student);
     }
 

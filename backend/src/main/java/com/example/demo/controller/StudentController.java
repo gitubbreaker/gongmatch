@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/students")
 @RequiredArgsConstructor
@@ -92,17 +95,33 @@ public class StudentController {
 
             // 파일을 Base64 문자열로 변환 (영구 보존 목적)
             String base64Image = java.util.Base64.getEncoder().encodeToString(file.getBytes());
-            String mimeType = file.getContentType();
+            String mimeType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
             String dataUrl = "data:" + mimeType + ";base64," + base64Image;
 
-            // DB 업데이트 로직 (기존 호환성을 위해 ImageUrl도 업데이트, Base64에 실제 저장)
-            student.setProfileImageBase64v2(dataUrl);
+            // DB 업데이트 로직 (LONGTEXT에 영구 저장)
             studentService.updateStudentProfileImageBase64(loginId, dataUrl); 
 
             return ResponseEntity.ok(Map.of("profileImageUrl", dataUrl));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Map.of("message", "Could not store file"));
+        } catch (Exception e) {
+            log.error("프로필 이미지 Multipart 업로드 에러: ", e);
+            return ResponseEntity.internalServerError().body(Map.of("message", "Could not store file: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/profile-image-base64")
+    public ResponseEntity<?> uploadProfileImageBase64(@RequestBody Map<String, String> body, Authentication authentication) {
+        String dataUrl = body.get("imageBase64");
+        if (dataUrl == null || dataUrl.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Image data is empty"));
+        }
+
+        try {
+            String loginId = authentication.getName();
+            studentService.updateStudentProfileImageBase64(loginId, dataUrl);
+            return ResponseEntity.ok(Map.of("profileImageUrl", dataUrl));
+        } catch (Exception e) {
+            log.error("프로필 이미지 Base64 업로드 에러: ", e);
+            return ResponseEntity.internalServerError().body(Map.of("message", "Could not store file: " + e.getMessage()));
         }
     }
 

@@ -67,36 +67,69 @@ function S6Profile() {
     }
   };
 
+  const compressImage = (file, maxWidth = 400, maxHeight = 400, quality = 0.85) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const res = await api.post('/api/students/profile-image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      showToast('이미지를 최적화하여 업로드하는 중...');
+      const compressedDataUrl = await compressImage(file, 400, 400, 0.85);
+
+      const res = await api.post('/api/students/profile-image-base64', {
+        imageBase64: compressedDataUrl
       });
-      // 업로드 성공 후 로컬 상태 즉시 반영
-      const newImageUrl = res.data.profileImageUrl;
-      setStudent({ ...student, profileImageUrl: newImageUrl });
+
+      const newImageUrl = res.data.profileImageUrl || compressedDataUrl;
+      setStudent(prev => ({ ...prev, profileImageUrl: newImageUrl }));
       
-      // Header 등 다른 컴포넌트에서도 실시간 반영되도록 localStorage 업데이트
       const userStr = localStorage.getItem('gongmatch_currentUser');
       if (userStr) {
         const parsedUser = JSON.parse(userStr);
         parsedUser.profileImageUrl = newImageUrl;
         localStorage.setItem('gongmatch_currentUser', JSON.stringify(parsedUser));
-        // Header 리렌더링을 위해 이벤트 발생 (선택사항, 하지만 App이나 Header에 리스너가 필요하므로 일단 localStorage 업데이트만)
-        // location 변경 시 Header가 업데이트 되지만, 당장 이 페이지에서도 즉각 반영을 위해 window.dispatchEvent 사용
         window.dispatchEvent(new Event('userProfileUpdated'));
       }
 
-      showToast('프로필 이미지가 성공적으로 변경되었습니다.');
+      showToast('프로필 이미지가 성공적으로 변경되었습니다!');
     } catch (error) {
       console.error('이미지 업로드 실패:', error);
-      showToast('이미지 업로드에 실패했습니다.');
+      showToast('이미지 업로드에 실패했습니다. 다른 이미지를 선택해 보세요.');
     }
   };
 
