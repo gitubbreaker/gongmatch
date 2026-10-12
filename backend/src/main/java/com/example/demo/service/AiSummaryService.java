@@ -26,8 +26,17 @@ public class AiSummaryService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private String getApiKey() {
+        String env = System.getenv("OPENAI_API_KEY");
+        if (env != null && !env.trim().isEmpty()) return env.trim();
+        String llmEnv = System.getenv("LLM_API_KEY");
+        if (llmEnv != null && !llmEnv.trim().isEmpty()) return llmEnv.trim();
+        return openAiApiKey;
+    }
+
     public AiSummaryResponseDto summarizeChat(String chatText) {
-        if (openAiApiKey == null || openAiApiKey.isEmpty()) {
+        String apiKey = getApiKey();
+        if (apiKey == null || apiKey.isEmpty()) {
             System.out.println("[AiSummary] API 키가 비어있어 로컬 파싱으로 전환합니다.");
             return localParse(chatText);
         }
@@ -36,7 +45,7 @@ public class AiSummaryService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(openAiApiKey);
+        headers.setBearerAuth(apiKey);
 
         // 한국 시간(KST) 기준으로 날짜 계산
         java.time.LocalDate todayDate = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));

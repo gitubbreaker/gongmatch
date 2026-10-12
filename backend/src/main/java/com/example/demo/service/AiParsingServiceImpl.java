@@ -24,12 +24,21 @@ public class AiParsingServiceImpl implements AiParsingService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private String getApiKey() {
+        String env = System.getenv("OPENAI_API_KEY");
+        if (env != null && !env.trim().isEmpty()) return env.trim();
+        String llmEnv = System.getenv("LLM_API_KEY");
+        if (llmEnv != null && !llmEnv.trim().isEmpty()) return llmEnv.trim();
+        return openAiApiKey;
+    }
+
     @Override
     public void analyzeAndEnrichProject(Project project, String rawHtmlText) {
         if (project == null) return;
 
+        String apiKey = getApiKey();
         // OpenAI API 키가 없으면 스마트 규칙 기반 AI 분석기로 즉시 처리
-        if (openAiApiKey == null || openAiApiKey.isEmpty()) {
+        if (apiKey == null || apiKey.isEmpty()) {
             log.info("[AiParsing] API 키 미설정으로 스마트 AI 분석 엔진 가동: '{}'", project.getTitle());
             generateSmartFallbackAnalysis(project, rawHtmlText);
             return;
@@ -42,7 +51,7 @@ public class AiParsingServiceImpl implements AiParsingService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(openAiApiKey);
+        headers.setBearerAuth(apiKey);
 
         String prompt = "당신은 IT 개발자를 위한 멘토이자 해커톤/공모전 분석 전문가입니다.\n" +
                 "다음은 해커톤/공모전 모집 요강 원문입니다. 이 내용을 바탕으로 참가자들이 준비해야 할 내용을 분석해서 **반드시 아래 JSON 형식으로만** 답변해 주세요. 마크다운 코드블록(```json 등)은 절대 포함하지 마세요.\n\n" +
