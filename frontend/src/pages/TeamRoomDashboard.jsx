@@ -263,7 +263,12 @@ export default function TeamRoomDashboard() {
   const fetchProjects = async () => {
     try {
       const response = await api.get('/api/projects');
-      setProjects(response.data || []);
+      const validProjects = (response.data || []).filter(p => 
+        p.posterImageUrl && 
+        (p.officialUrl || p.detailUrl) && 
+        !p.title.includes('피우다프로젝트')
+      );
+      setProjects(validProjects);
     } catch (error) {
       console.error('공모전 목록 조회 실패:', error);
     }

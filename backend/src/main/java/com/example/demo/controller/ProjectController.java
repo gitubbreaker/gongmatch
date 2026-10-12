@@ -49,12 +49,14 @@ public class ProjectController {
 
     @GetMapping
     public List<ProjectResponseDto> getAllProjects() {
-        // 1. 크롤링 데이터 가져오기
+        // 크롤링 데이터 중 유효한 공모전만 반환 (더미/누락 항목 영구 배제)
         List<ProjectResponseDto> projects = projectRepository.findAllByOrderByIdDesc().stream()
+                .filter(p -> p.getTitle() != null && !p.getTitle().contains("피우다프로젝트"))
+                .filter(p -> p.getPosterImageUrl() != null && !p.getPosterImageUrl().trim().isEmpty())
+                .filter(p -> (p.getOfficialUrl() != null && !p.getOfficialUrl().trim().isEmpty()) || (p.getDetailUrl() != null && !p.getDetailUrl().trim().isEmpty()))
                 .map(ProjectResponseDto::from)
                 .collect(Collectors.toList());
 
-        // 크롤링 데이터만 반환
         return projects;
     }
 
