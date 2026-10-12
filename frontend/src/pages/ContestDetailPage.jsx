@@ -280,18 +280,48 @@ function ContestDetailPage() {
           <button onClick={toggleBookmark} style={{ background: 'var(--card2)', border: '1px solid var(--brd)', width: '50px', height: '50px', borderRadius: '50%', fontSize: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} onMouseOver={e=>e.target.style.transform='scale(1.1)'} onMouseOut={e=>e.target.style.transform='scale(1)'}>
             {isBookmarked ? '💖' : '🤍'}
           </button>
-          {!isJoined ? (
-            <button onClick={handleJoin} className="btn-prim" style={{padding:'20px 32px', borderRadius:'16px', fontSize:'16px', fontWeight:'900', boxShadow: '0 8px 24px rgba(196,255,0,0.25)', transition: 'transform 0.1s'}}>
-              🤝 팀 빌딩 대기실 입장하기
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button 
+              onClick={() => navigate('/team-rooms', { 
+                state: { 
+                  selectedProjectId: project.id, 
+                  selectedProjectTitle: project.title,
+                  selectedProject: project 
+                } 
+              })} 
+              style={{
+                background: 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)',
+                color: '#fff',
+                border: 'none',
+                padding: '18px 24px',
+                borderRadius: '16px',
+                fontSize: '15px',
+                fontWeight: '900',
+                cursor: 'pointer',
+                boxShadow: '0 8px 20px rgba(108, 92, 231, 0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              🚀 이 공모전으로 팀 모집하기
             </button>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end' }}>
-              <div style={{color:'var(--ac)', fontWeight:'900', background:'var(--ac-dim)', padding:'16px 28px', borderRadius:'16px', border: '1px solid var(--ac-brd)'}}>
-                ✓ 현재 이 대회 대기실에 입장 중입니다
+            {!isJoined ? (
+              <button onClick={handleJoin} className="btn-prim" style={{padding:'18px 28px', borderRadius:'16px', fontSize:'15px', fontWeight:'900', boxShadow: '0 8px 24px rgba(196,255,0,0.25)', transition: 'transform 0.1s'}}>
+                🤝 팀 빌딩 대기실 입장하기
+              </button>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                <div style={{color:'var(--ac)', fontWeight:'900', background:'var(--ac-dim)', padding:'12px 20px', borderRadius:'14px', border: '1px solid var(--ac-brd)', fontSize:'14px'}}>
+                  ✓ 대기실 입장 중
+                </div>
+                <button onClick={handleLeave} style={{ background: 'transparent', border: 'none', color: 'var(--tx3)', fontSize: '12px', fontWeight: '700', textDecoration: 'underline', cursor: 'pointer' }}>대기실 퇴장</button>
               </div>
-              <button onClick={handleLeave} style={{ background: 'transparent', border: 'none', color: 'var(--tx3)', fontSize: '13px', fontWeight: '700', textDecoration: 'underline', cursor: 'pointer' }}>대기실 퇴장하기</button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

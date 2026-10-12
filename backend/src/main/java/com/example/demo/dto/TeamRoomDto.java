@@ -48,6 +48,13 @@ public class TeamRoomDto {
         private String creatorName;
         private Long projectId;
         private String projectTitle;
+        private String projectHost;
+        private String projectCategory;
+        private String projectEndDate;
+        private Integer projectDday;
+        private String projectPosterImageUrl;
+        private Boolean isProjectExpired;
+        private Boolean isProjectDeleted;
         private String title;
         private String status;
         private String chatUrl;

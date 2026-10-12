@@ -49,4 +49,23 @@ public class TeamRoomController {
         teamRoomService.joinRoom(loginId, roomId, request);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{roomId}/project")
+    public ResponseEntity<Void> detachProject(
+            Authentication authentication,
+            @PathVariable Long roomId) {
+        String loginId = authentication.getName();
+        teamRoomService.detachProject(loginId, roomId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{roomId}/project/{projectId}")
+    public ResponseEntity<Void> updateProject(
+            Authentication authentication,
+            @PathVariable Long roomId,
+            @PathVariable Long projectId) {
+        String loginId = authentication.getName();
+        teamRoomService.updateProject(loginId, roomId, projectId);
+        return ResponseEntity.ok().build();
+    }
 }

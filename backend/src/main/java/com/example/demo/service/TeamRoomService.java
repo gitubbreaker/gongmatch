@@ -29,8 +29,10 @@ public class TeamRoomService {
 
         Project project = null;
         if (request.getProjectId() != null) {
-            project = projectRepository.findById(request.getProjectId())
-                    .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+            project = projectRepository.findById(request.getProjectId()).orElse(null);
+            if (project == null) {
+                log.warn("[TeamRoom] 존재하지 않는 공모전 ID({}). 프로젝트 없이 개설합니다.", request.getProjectId());
+            }
         }
 
         TeamRoom teamRoom = TeamRoom.builder()
@@ -65,12 +67,44 @@ public class TeamRoomService {
         List<TeamRoomRole> roles = teamRoomRoleRepository.findByTeamRoomId(roomId);
         List<TeamRoomMember> members = teamRoomMemberRepository.findByTeamRoomId(roomId);
 
+        Project project = room.getProject();
+        Long projectId = null;
+        String projectTitle = null;
+        String projectHost = null;
+        String projectCategory = null;
+        String projectEndDate = null;
+        Integer projectDday = null;
+        String projectPosterImageUrl = null;
+        Boolean isProjectExpired = false;
+        Boolean isProjectDeleted = false;
+
+        if (project != null) {
+            projectId = project.getId();
+            projectTitle = project.getTitle();
+            projectHost = project.getHost();
+            projectCategory = project.getCategory();
+            projectPosterImageUrl = project.getPosterImageUrl();
+            if (project.getEndDate() != null) {
+                projectEndDate = project.getEndDate().toString();
+                long diff = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), project.getEndDate());
+                projectDday = (int) diff;
+                isProjectExpired = (diff < 0);
+            }
+        }
+
         return TeamRoomDto.Response.builder()
                 .id(room.getId())
                 .creatorId(room.getCreator().getId())
                 .creatorName(room.getCreator().getName())
-                .projectId(room.getProject() != null ? room.getProject().getId() : null)
-                .projectTitle(room.getProject() != null ? room.getProject().getTitle() : null)
+                .projectId(projectId)
+                .projectTitle(projectTitle)
+                .projectHost(projectHost)
+                .projectCategory(projectCategory)
+                .projectEndDate(projectEndDate)
+                .projectDday(projectDday)
+                .projectPosterImageUrl(projectPosterImageUrl)
+                .isProjectExpired(isProjectExpired)
+                .isProjectDeleted(isProjectDeleted)
                 .title(room.getTitle())
                 .status(room.getStatus())
                 .chatUrl(room.getChatUrl())
@@ -161,5 +195,31 @@ public class TeamRoomService {
             teamRoomRepository.save(room);
             log.info("팀룸 {}의 모든 TO가 마감되어 CLOSED 상태로 변경되었습니다.", roomId);
         }
+    }
+
+    @Transactional
+    public void detachProject(String loginId, Long roomId) {
+        TeamRoom room = teamRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("팀룸을 찾을 수 없습니다."));
+        if (!room.getCreator().getLoginId().equals(loginId)) {
+            throw new IllegalStateException("방장만 연계 공모전을 해제할 수 있습니다.");
+        }
+        room.setProject(null);
+        teamRoomRepository.save(room);
+        log.info("팀룸 {}의 연계 공모전이 해제되었습니다.", roomId);
+    }
+
+    @Transactional
+    public void updateProject(String loginId, Long roomId, Long projectId) {
+        TeamRoom room = teamRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("팀룸을 찾을 수 없습니다."));
+        if (!room.getCreator().getLoginId().equals(loginId)) {
+            throw new IllegalStateException("방장만 연계 공모전을 변경할 수 있습니다.");
+        }
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("공모전을 찾을 수 없습니다."));
+        room.setProject(project);
+        teamRoomRepository.save(room);
+        log.info("팀룸 {}의 연계 공모전이 ID {}로 변경되었습니다.", roomId, projectId);
     }
 }
