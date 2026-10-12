@@ -25,6 +25,7 @@ public class ProjectController {
     private final ProjectRepository projectRepository;
     private final PublicProjectRepository publicProjectRepository; // 추가
     private final WevityCrawlingService wevityCrawlingService;
+    private final com.example.demo.service.AiParsingService aiParsingService;
 
     @PostConstruct
     public void cleanUpDummyProjects() {
@@ -36,6 +37,12 @@ public class ProjectController {
                 } catch (Exception e) {
                     // 연관 관계 오류 등 무시
                 }
+            } else if (p.getAiFeatures() == null || p.getAiFeatures().trim().isEmpty()) {
+                // AI 분석 데이터가 없는 기존 공모전 일괄 AI 분석 보강
+                try {
+                    aiParsingService.analyzeAndEnrichProject(p, p.getTitle());
+                    projectRepository.save(p);
+                } catch (Exception ignored) {}
             }
         });
     }
@@ -54,7 +61,15 @@ public class ProjectController {
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponseDto> getProjectById(@PathVariable Long id) {
         return projectRepository.findById(id)
-                .map(project -> ResponseEntity.ok(ProjectResponseDto.from(project)))
+                .map(project -> {
+                    if (project.getAiFeatures() == null || project.getAiFeatures().trim().isEmpty()) {
+                        try {
+                            aiParsingService.analyzeAndEnrichProject(project, project.getTitle());
+                            projectRepository.save(project);
+                        } catch (Exception ignored) {}
+                    }
+                    return ResponseEntity.ok(ProjectResponseDto.from(project));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

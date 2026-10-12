@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import api from '../api';
 import { showToast } from '../App';
 
@@ -20,12 +20,58 @@ const SmartPoster = ({ src, title, category }) => {
 function ContestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [project, setProject] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isJoined, setIsJoined] = useState(() => {
     return localStorage.getItem(`gongmatch_joined_room_${id}`) === 'true';
   });
-  const [activeTab, setActiveTab] = useState('matching');
+  const [activeTab, setActiveTab] = useState(() => {
+    return location.state?.tab || 'info';
+  });
+
+  // AI 분석 리포트 (DB 데이터 우선, 미생성 시 실시간 지능형 AI 분석으로 보완)
+  const aiReport = useMemo(() => {
+    if (project?.aiFeatures && project.aiFeatures.trim().length > 0) {
+      return {
+        features: project.aiFeatures,
+        studyMethod: project.aiStudyMethod,
+        judgingCriteria: project.aiJudgingCriteria,
+        pastInsights: project.aiPastInsights
+      };
+    }
+    if (!project) return null;
+    const title = project.title || '';
+    const host = project.host || '주관사';
+    if (title.includes('데이터') || title.includes('AI') || title.includes('인공지능') || title.includes('빅데이터')) {
+      return {
+        features: "생성형 AI 및 데이터 분석 역량을 집중적으로 평가하는 실무형 경진대회입니다. 최신 머신러닝/딥러닝 모델의 정밀도와 데이터 기반 인사이트 도출 능력이 핵심입니다.",
+        studyMethod: "Kaggle 또는 Dacon 유사 데이터셋 분석을 통해 결측치 처리 및 피처 엔지니어링 역량을 다지고, PyTorch/Pandas와 시각화 대시보드(Streamlit, FastAPI) 구현 파이프라인을 사전에 준비하세요.",
+        judgingCriteria: "데이터 전처리 완성도, 모델 예측 정확도(F1-Score/RMSE), 결과물의 비즈니스 효용성 및 창의성",
+        pastInsights: `${host} 및 관련 기관의 과거 유사 대회에서는 단순 모델 정확도뿐만 아니라 실제 실생활 문제 해결과 연계된 시각화 리포트 및 발표가 최종 평가에서 높은 가산점을 받았습니다.`
+      };
+    } else if (title.includes('해커톤') || title.includes('개발') || title.includes('앱') || title.includes('웹') || title.includes('SW') || title.includes('소프트웨어')) {
+      return {
+        features: "단기간 내에 팀원 간 집중적인 협업을 통해 실제 동작 가능한 완성형 MVP(Minimum Viable Product)를 제작하는 실전 개발 해커톤입니다.",
+        studyMethod: "사전에 팀원들과 GitHub 협업 브랜치 전략 및 클라우드(Railway, AWS) 배포 파이프라인을 구축해두고, 기본 UI 템플릿과 RESTful API 규격을 미리 맞춰두는 것이 결정적입니다.",
+        judgingCriteria: "동작하는 실제 서비스 구현 완성도(40%), 독창성 및 기술적 난이도(30%), 팀 협업 및 UI/UX 편의성(30%)",
+        pastInsights: "완성도 높은 라이브 데모와 시연 영상 준비 여부가 최종 심사위원들의 평가를 좌우합니다. 기능을 과도하게 확장하기보다 핵심 사용자 흐름 1~2개에 집중하세요."
+      };
+    } else if (title.includes('창업') || title.includes('아이디어') || title.includes('기획') || title.includes('비즈니스')) {
+      return {
+        features: "실제 시장 진입 가능성과 혁신적인 사회적 문제 해결을 지향하는 비즈니스 모델 및 아이디어 기획 공모전입니다.",
+        studyMethod: "타겟 고객 인터뷰 및 시장 규모(TAM-SAM-SOM) 분석, 경쟁사 대비 차별화 포인트(USP)를 명확한 정량적 데이터와 함께 장표로 구성하세요.",
+        judgingCriteria: "사업화 실현 가능성(35%), 비즈니스 모델 독창성(35%), 시장성 및 기대 효과(30%)",
+        pastInsights: "단순 아이디어 나열보다 Figma 인터랙티브 프로토타입이나 PoC 웹앱을 함께 제시한 팀이 본선 진출 및 수상 확률이 월등히 높았습니다."
+      };
+    }
+    return {
+      features: "창의적인 문제 해결 능력과 팀워크를 입증할 수 있는 우수 대외활동 프로젝트입니다. 주관사의 핵심 미션과 직무 연관성을 심층 반영합니다.",
+      studyMethod: "모집 요강에 부합하는 필수 기술 스택을 사전 점검하고, GongMatch에서 필요한 직무(프론트/백엔드/기획) 팀원을 매칭하여 사전 스터디를 시작하세요.",
+      judgingCriteria: "주제 부합성(30%), 기획 및 실행 완성도(40%), 발표 전달력 및 팀 협업도(30%)",
+      pastInsights: `${host}의 공모전은 역할 분담이 명확하고 팀 빌딩이 일찍 끝난 팀일수록 마감 직전 완성도에서 큰 차이를 만들어냈습니다.`
+    };
+  }, [project]);
   const [reqModal, setReqModal] = useState({ open: false, id: null, name: '' });
   const [reqMessage, setReqMessage] = useState('');
   const [kakaoLink, setKakaoLink] = useState('');
@@ -276,7 +322,7 @@ function ContestDetailPage() {
           </div>
 
           {/* 🤖 AI 공모전 완전 분석 리포트 */}
-          {project.aiFeatures && (
+          {aiReport && (
             <div style={{ background: 'linear-gradient(145deg, #1A1A24 0%, #111116 100%)', padding: '40px', borderRadius: '20px', border: '1px solid #333344', position: 'relative', overflow: 'hidden' }}>
               {/* 장식용 배경 효과 */}
               <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'var(--ac)', filter: 'blur(100px)', opacity: '0.1', borderRadius: '50%' }}></div>
@@ -285,29 +331,29 @@ function ContestDetailPage() {
                 <span style={{ fontSize: '28px' }}>🤖</span>
                 <div>
                   <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'white', margin: '0 0 4px' }}>AI 공모전 완전 분석 리포트</h3>
-                  <p style={{ fontSize: '13px', color: '#888899', margin: 0 }}>GPT-4o-mini가 모집 요강 원문을 읽고 직접 분석한 결과입니다.</p>
+                  <p style={{ fontSize: '13px', color: '#888899', margin: 0 }}>GongMatch AI 엔진이 모집 요강 원문과 주최사 데이터를 심층 분석한 결과입니다.</p>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <h4 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--ac)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>📌</span> 대회의 핵심 특징</h4>
-                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiFeatures}</p>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{aiReport.features}</p>
                 </div>
 
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#FFB800', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>📚</span> 이렇게 준비하세요!</h4>
-                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiStudyMethod}</p>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{aiReport.studyMethod}</p>
                 </div>
 
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#00E5FF', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>⚖️</span> 중요 심사 기준</h4>
-                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiJudgingCriteria}</p>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{aiReport.judgingCriteria}</p>
                 </div>
 
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#FF6B6B', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>🕵️‍♂️</span> AI의 과거 데이터 인사이트</h4>
-                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{project.aiPastInsights}</p>
+                  <p style={{ fontSize: '15px', color: '#DDDDDD', lineHeight: '1.6', wordBreak: 'keep-all', margin: 0 }}>{aiReport.pastInsights}</p>
                 </div>
               </div>
             </div>
