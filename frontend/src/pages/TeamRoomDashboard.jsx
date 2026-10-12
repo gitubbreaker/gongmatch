@@ -202,6 +202,36 @@ const RoleRow = styled.div`
   .remove { background: transparent; border: none; color: #ff4b4b; cursor: pointer; font-size: 18px; font-weight: bold; }
 `;
 
+// 헬퍼: D-Day 안전 계산 (어떤 API 포맷이 와도 D-undefined 방지)
+const getProjectDDay = (p) => {
+  if (!p) return null;
+  if (p.dday !== undefined && p.dday !== null) return Number(p.dday);
+  if (p.dDay !== undefined && p.dDay !== null) return Number(p.dDay);
+  if (p.projectDday !== undefined && p.projectDday !== null) return Number(p.projectDday);
+  const endStr = p.endDate || p.projectEndDate;
+  if (endStr) {
+    try {
+      const end = new Date(endStr.trim());
+      const now = new Date();
+      end.setHours(0, 0, 0, 0);
+      now.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((end - now) / (1000 * 60 * 60 * 24));
+      return isNaN(diffDays) ? null : diffDays;
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+};
+
+// 헬퍼: D-Day 배지 텍스트 서식
+const formatDDayBadge = (dday) => {
+  if (dday === null || dday === undefined || isNaN(dday)) return 'D-Day 미정';
+  if (dday < 0) return '마감';
+  if (dday === 0) return 'D-Day';
+  return `D-${dday}`;
+};
+
 export default function TeamRoomDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -237,25 +267,35 @@ export default function TeamRoomDashboard() {
     fetchProjects();
   }, []);
 
-  // S4 공모전 상세페이지에서 '이 공모전으로 팀 모집하기'를 누르고 들어온 경우
+  // 공모전 선택 핸들러: 선택 시 방 제목을 자동으로 "[공모전명] 팀원 모집"으로 채움 (수정은 언제든 가능)
+  const handleSelectProject = (project) => {
+    setSelectedProject(project);
+    setFormData(prev => ({
+      ...prev,
+      title: `[${project.title}] 팀원 모집`
+    }));
+  };
+
+  // 공모전 선택 취소 핸들러
+  const handleDeselectProject = () => {
+    const curTitle = formData.title;
+    const defaultTitle = selectedProject ? `[${selectedProject.title}] 팀원 모집` : '';
+    setSelectedProject(null);
+    if (curTitle === defaultTitle) {
+      setFormData(prev => ({ ...prev, title: '' }));
+    }
+  };
+
+  // S4 공모전 상세페이지에서 '이 공모전으로 팀 모집하기'를 누르고 들어온 경우 자동 선택 및 제목 설정
   useEffect(() => {
     if (location.state?.selectedProjectId) {
       setIsModalOpen(true);
       if (location.state.selectedProject) {
-        setSelectedProject(location.state.selectedProject);
-        setFormData(prev => ({
-          ...prev,
-          title: prev.title || `[${location.state.selectedProject.title}] 함께할 팀원 모집`
-        }));
+        handleSelectProject(location.state.selectedProject);
       } else {
-        // ID만 넘어온 경우 projects에서 검색
         const found = projects.find(p => p.id === location.state.selectedProjectId);
         if (found) {
-          setSelectedProject(found);
-          setFormData(prev => ({
-            ...prev,
-            title: prev.title || `[${found.title}] 함께할 팀원 모집`
-          }));
+          handleSelectProject(found);
         }
       }
     }
@@ -324,7 +364,8 @@ export default function TeamRoomDashboard() {
       <Grid>
         {rooms.map(room => {
           const isClosed = room.status === 'CLOSED';
-          const isExpired = room.isProjectExpired || (room.projectDday !== null && room.projectDday !== undefined && room.projectDday < 0);
+          const roomDday = getProjectDDay(room);
+          const isExpired = room.isProjectExpired || (roomDday !== null && roomDday < 0);
           const isLeader = room.creatorName === currentUser?.name;
 
           return (
@@ -342,7 +383,7 @@ export default function TeamRoomDashboard() {
                     <div className="header-row">
                       <span className="tag">🏆 연계 공모전</span>
                       <span className="dday-badge">
-                        {isExpired ? '🚨 접수 마감' : (room.projectDday !== null && room.projectDday !== undefined ? `D-${room.projectDday}` : '진행중')}
+                        {isExpired ? '🚨 접수 마감' : formatDDayBadge(roomDday)}
                       </span>
                     </div>
                     <div className="contest-title">{room.projectTitle}</div>
@@ -432,7 +473,7 @@ export default function TeamRoomDashboard() {
                   {selectedProject && (
                     <span 
                       style={{ color: '#ff6b6b', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }} 
-                      onClick={() => setSelectedProject(null)}
+                      onClick={handleDeselectProject}
                     >
                       ✕ 첨부 취소
                     </span>
@@ -443,9 +484,15 @@ export default function TeamRoomDashboard() {
                   <div style={{ background: 'rgba(108, 92, 231, 0.15)', border: '1px solid rgba(108, 92, 231, 0.4)', borderRadius: '12px', padding: '14px 16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <span style={{ fontSize: '11px', fontWeight: '800', color: '#a29bfe' }}>선택된 연계 대회</span>
-                      <span style={{ fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', background: (selectedProject.dDay !== undefined && selectedProject.dDay < 0) ? 'rgba(255, 75, 75, 0.2)' : 'rgba(0, 229, 255, 0.2)', color: (selectedProject.dDay !== undefined && selectedProject.dDay < 0) ? '#ff6b6b' : '#00e5ff' }}>
-                        {(selectedProject.dDay !== undefined && selectedProject.dDay < 0) ? '🚨 접수 마감됨' : `D-${selectedProject.dDay ?? '?'}`}
-                      </span>
+                      {(() => {
+                        const selDday = getProjectDDay(selectedProject);
+                        const isSelExpired = (selDday !== null && selDday < 0);
+                        return (
+                          <span style={{ fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', background: isSelExpired ? 'rgba(255, 75, 75, 0.2)' : 'rgba(0, 229, 255, 0.2)', color: isSelExpired ? '#ff6b6b' : '#00e5ff' }}>
+                            {isSelExpired ? '🚨 접수 마감됨' : formatDDayBadge(selDday)}
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div style={{ fontWeight: '700', fontSize: '14px', color: '#fff', marginBottom: '4px', lineHeight: '1.4' }}>
                       {selectedProject.title}
@@ -453,11 +500,14 @@ export default function TeamRoomDashboard() {
                     <div style={{ fontSize: '12px', color: '#8a8b91' }}>
                       주관: {selectedProject.host} · {selectedProject.category || 'IT/해커톤'}
                     </div>
-                    {(selectedProject.dDay !== undefined && selectedProject.dDay < 0) && (
-                      <div style={{ fontSize: '11px', color: '#ff6b6b', marginTop: '8px', background: 'rgba(255,75,75,0.1)', padding: '6px 8px', borderRadius: '6px', lineHeight: '1.4' }}>
-                        ⚠️ 이미 접수가 마감된 공모전입니다. 스터디 및 프로젝트 참고용으로만 연계됩니다.
-                      </div>
-                    )}
+                    {(() => {
+                      const selDday = getProjectDDay(selectedProject);
+                      return (selDday !== null && selDday < 0) && (
+                        <div style={{ fontSize: '11px', color: '#ff6b6b', marginTop: '8px', background: 'rgba(255,75,75,0.1)', padding: '6px 8px', borderRadius: '6px', lineHeight: '1.4' }}>
+                          ⚠️ 이미 접수가 마감된 공모전입니다. 스터디 및 프로젝트 참고용으로만 연계됩니다.
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <div>
@@ -472,17 +522,13 @@ export default function TeamRoomDashboard() {
                       {filteredProjects.length === 0 ? (
                         <div style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: '#8a8b91' }}>검색된 공모전이 없습니다.</div>
                       ) : (
-                        filteredProjects.slice(0, 15).map(p => {
-                          const isExpired = (p.dDay !== undefined && p.dDay < 0);
+                        filteredProjects.slice(0, 25).map(p => {
+                          const itemDday = getProjectDDay(p);
+                          const isExpired = (itemDday !== null && itemDday < 0);
                           return (
                             <div 
                               key={p.id} 
-                              onClick={() => {
-                                setSelectedProject(p);
-                                if (!formData.title) {
-                                  setFormData(prev => ({ ...prev, title: `[${p.title}] 팀원 모집` }));
-                                }
-                              }}
+                              onClick={() => handleSelectProject(p)}
                               style={{ padding: '8px 12px', borderRadius: '6px', borderBottom: '1px solid #1a1a24', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.15s' }}
                               onMouseOver={e => e.currentTarget.style.background = '#1a1a24'}
                               onMouseOut={e => e.currentTarget.style.background = 'transparent'}
@@ -494,7 +540,7 @@ export default function TeamRoomDashboard() {
                                 <div style={{ fontSize: '11px', color: '#8a8b91' }}>{p.host} · {p.category || '기타'}</div>
                               </div>
                               <span style={{ fontSize: '11px', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap', background: isExpired ? 'rgba(255, 75, 75, 0.15)' : 'rgba(0, 229, 255, 0.15)', color: isExpired ? '#ff6b6b' : '#00e5ff' }}>
-                                {isExpired ? '마감' : `D-${p.dDay}`}
+                                {formatDDayBadge(itemDday)}
                               </span>
                             </div>
                           );
@@ -514,7 +560,7 @@ export default function TeamRoomDashboard() {
                 required 
                 value={formData.title} 
                 onChange={e => setFormData({ ...formData, title: e.target.value })} 
-                placeholder="예: 공공데이터 해커톤 멤버 구합니다" 
+                placeholder="예: [공모전명] 팀원 모집" 
               />
               
               <label>오픈채팅방 링크 (마감 후 또는 합류자에게 공개)</label>
