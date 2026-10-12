@@ -48,29 +48,36 @@ function S1Home() {
 
   const fetchHomeData = async (hasToken) => {
     try {
-      const projRes = await api.get('/api/projects');
-      const validProjects = projRes.data.filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl) && !p.title.includes('피우다프로젝트'));
-      setProjects(validProjects);
-      
-      const statsRes = await api.get('/api/stats');
-      setStats({ ...statsRes.data, projectCount: validProjects.length });
+      if (!hasToken) {
+        const [projRes, statsRes] = await Promise.all([
+          api.get('/api/projects'),
+          api.get('/api/stats')
+        ]);
+        const validProjects = projRes.data.filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl) && !p.title.includes('피우다프로젝트'));
+        setProjects(validProjects);
+        setStats({ ...statsRes.data, projectCount: validProjects.length });
+      } else {
+        const [projRes, statsRes, recoRes, recvRes, sentRes] = await Promise.all([
+          api.get('/api/projects'),
+          api.get('/api/stats'),
+          api.get('/api/students/recommendations').catch(() => ({ data: [] })),
+          api.get('/api/team-requests/received').catch(() => ({ data: [] })),
+          api.get('/api/team-requests/sent').catch(() => ({ data: [] }))
+        ]);
 
-      if (hasToken) {
-        const recoRes = await api.get('/api/students/recommendations');
+        const validProjects = projRes.data.filter(p => p.posterImageUrl && (p.officialUrl || p.detailUrl) && !p.title.includes('피우다프로젝트'));
+        setProjects(validProjects);
+        setStats({ ...statsRes.data, projectCount: validProjects.length });
+
         if (recoRes.data && recoRes.data.length > 0) {
           setBestMatch(recoRes.data[0]);
         }
-        
-        const [recvRes, sentRes] = await Promise.all([
-          api.get('/api/team-requests/received'),
-          api.get('/api/team-requests/sent')
-        ]);
-        
+
         const combined = [
           ...recvRes.data.map(r => ({...r, type: 'received'})), 
           ...sentRes.data.map(r => ({...r, type: 'sent'}))
         ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
+
         setMyRequests(combined.slice(0, 3));
       }
     } catch (error) {
