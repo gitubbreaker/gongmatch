@@ -14,4 +14,10 @@ public interface TeamRoomMemberRepository extends JpaRepository<TeamRoomMember, 
     
     // 특정 유저가 합류한 팀룸 내역 조회
     List<TeamRoomMember> findByStudentIdOrderByIdDesc(Long studentId);
+
+    // 특정 팀룸에서 특정 학생의 멤버십 조회
+    java.util.Optional<TeamRoomMember> findByTeamRoomIdAndStudentId(Long teamRoomId, Long studentId);
+
+    // 특정 팀룸의 모든 멤버 삭제
+    void deleteByTeamRoomId(Long teamRoomId);
 }

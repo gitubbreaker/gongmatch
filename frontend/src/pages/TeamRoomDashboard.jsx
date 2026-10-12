@@ -244,6 +244,13 @@ export default function TeamRoomDashboard() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [formData, setFormData] = useState({ title: '', chatUrl: '', roles: [{ roleName: '백엔드', requiredCount: 1 }] });
 
+  // 🛠️ 팀룸 수정 모달 관련 상태
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingRoomId, setEditingRoomId] = useState(null);
+  const [editFormData, setEditFormData] = useState({ title: '', chatUrl: '', roles: [] });
+  const [editSelectedProject, setEditSelectedProject] = useState(null);
+  const [editSearchKeyword, setEditSearchKeyword] = useState('');
+
   const fetchRooms = async () => {
     try {
       const response = await api.get('/api/team-rooms');
@@ -323,10 +330,96 @@ export default function TeamRoomDashboard() {
     if (!window.confirm(`'${roleName}' 직무로 이 팀에 합류하시겠습니까?`)) return;
     try {
       await api.post(`/api/team-rooms/${roomId}/join`, { roleName });
-      showToast('성공적으로 합류했습니다!');
+      showToast('성공적으로 합류했습니다! 방장에게 알림이 전달되었습니다.');
       fetchRooms();
     } catch (error) { 
       showToast(error.response?.data?.message || '합류에 실패했습니다.'); 
+    }
+  };
+
+  // 🚪 지원 취소 및 팀 탈퇴 핸들러
+  const handleLeaveRoom = async (roomId, roleName) => {
+    if (!window.confirm(`'${roleName}' 직무 지원을 취소하고 팀에서 탈퇴하시겠습니까?\n방장에게 알림이 전송되며, 직무 모집이 다시 열립니다.`)) return;
+    try {
+      await api.post(`/api/team-rooms/${roomId}/leave`);
+      showToast('팀룸 지원을 취소(탈퇴)하였습니다.');
+      fetchRooms();
+    } catch (error) {
+      showToast(error.response?.data?.message || '지원 취소에 실패했습니다.');
+    }
+  };
+
+  // 🗑️ 방장의 팀룸 삭제 핸들러
+  const handleDeleteRoom = async (roomId, title) => {
+    if (!window.confirm(`'${title}' 팀룸을 정말 삭제하시겠습니까?\n참여 중인 모든 팀원들에게 삭제 알림이 발송되며 복구할 수 없습니다.`)) return;
+    try {
+      await api.delete(`/api/team-rooms/${roomId}`);
+      showToast('팀룸이 삭제되었습니다.');
+      fetchRooms();
+    } catch (error) {
+      showToast(error.response?.data?.message || '팀룸 삭제에 실패했습니다.');
+    }
+  };
+
+  // ⚠️ 방장의 팀원 내보내기(강퇴) 핸들러
+  const handleKickMember = async (roomId, studentId, studentName) => {
+    if (!window.confirm(`'${studentName}' 팀원을 팀룸에서 내보내시겠습니까?\n해당 학생에게 알림이 발송되고, 직무 모집이 다시 재개됩니다.`)) return;
+    try {
+      await api.delete(`/api/team-rooms/${roomId}/members/${studentId}`);
+      showToast(`'${studentName}' 님을 내보냈습니다.`);
+      fetchRooms();
+    } catch (error) {
+      showToast(error.response?.data?.message || '팀원 퇴장에 실패했습니다.');
+    }
+  };
+
+  // ✏️ 팀룸 수정 모달 열기 핸들러
+  const openEditModal = (room) => {
+    setEditingRoomId(room.id);
+    setEditFormData({
+      title: room.title,
+      chatUrl: room.chatUrl || '',
+      roles: room.roles.map(r => ({
+        roleName: r.roleName,
+        requiredCount: r.requiredCount,
+        currentCount: r.currentCount || 0
+      }))
+    });
+    if (room.projectId) {
+      const proj = projects.find(p => p.id === room.projectId) || {
+        id: room.projectId,
+        title: room.projectTitle,
+        host: room.projectHost,
+        category: room.projectCategory,
+        endDate: room.projectEndDate,
+        dday: room.projectDday
+      };
+      setEditSelectedProject(proj);
+    } else {
+      setEditSelectedProject(null);
+    }
+    setEditSearchKeyword('');
+    setIsEditModalOpen(true);
+  };
+
+  // ✏️ 팀룸 수정 제출 핸들러
+  const handleUpdateRoom = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/api/team-rooms/${editingRoomId}`, {
+        title: editFormData.title,
+        chatUrl: editFormData.chatUrl,
+        roles: editFormData.roles.map(r => ({
+          roleName: r.roleName,
+          requiredCount: r.requiredCount
+        })),
+        projectId: editSelectedProject ? editSelectedProject.id : null
+      });
+      showToast('팀룸 정보가 성공적으로 수정되었습니다. 팀원들에게 알림이 발송되었습니다.');
+      setIsEditModalOpen(false);
+      fetchRooms();
+    } catch (error) {
+      showToast(error.response?.data?.message || '팀룸 수정에 실패했습니다.');
     }
   };
 
@@ -349,6 +442,14 @@ export default function TeamRoomDashboard() {
            (p.category && p.category.toLowerCase().includes(kw));
   });
 
+  const filteredEditProjects = projects.filter(p => {
+    if (!editSearchKeyword.trim()) return true;
+    const kw = editSearchKeyword.toLowerCase();
+    return (p.title && p.title.toLowerCase().includes(kw)) ||
+           (p.host && p.host.toLowerCase().includes(kw)) ||
+           (p.category && p.category.toLowerCase().includes(kw));
+  });
+
   return (
     <Container>
       <Header>
@@ -366,16 +467,53 @@ export default function TeamRoomDashboard() {
           const isClosed = room.status === 'CLOSED';
           const roomDday = getProjectDDay(room);
           const isExpired = room.isProjectExpired || (roomDday !== null && roomDday < 0);
-          const isLeader = room.creatorName === currentUser?.name;
+          const isLeader = (currentUser?.id && room.creatorId === currentUser?.id) || (currentUser?.name && room.creatorName === currentUser?.name);
+          const myMembership = room.members.find(m => (currentUser?.id && m.studentId === currentUser?.id) || (currentUser?.name && m.studentName === currentUser?.name));
 
           return (
             <Card key={room.id} isClosed={isClosed}>
               <div>
                 <CardHeader>
                   <h3>{room.title}</h3>
-                  <Badge isClosed={isClosed}>{isClosed ? '모집 마감' : '모집 중'}</Badge>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Badge isClosed={isClosed}>{isClosed ? '모집 마감' : '모집 중'}</Badge>
+                    {isLeader && (
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button 
+                          onClick={() => openEditModal(room)}
+                          style={{ background: 'rgba(255, 255, 255, 0.08)', border: '1px solid #3d3e4f', color: '#d0d0d5', borderRadius: '6px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}
+                          title="팀룸 정보 수정"
+                        >
+                          ✏️ 수정
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteRoom(room.id, room.title)}
+                          style={{ background: 'rgba(255, 75, 75, 0.15)', border: '1px solid rgba(255, 75, 75, 0.3)', color: '#ff6b6b', borderRadius: '6px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}
+                          title="팀룸 삭제"
+                        >
+                          🗑️ 삭제
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <div style={{ color: '#8a8b91', fontSize: '13px', marginBottom: '16px' }}>방장: {room.creatorName}</div>
+
+                {/* 🎯 내가 참여 중인 팀룸 알림 및 지원 취소 (탈퇴) 버튼 */}
+                {myMembership && (
+                  <div style={{ background: 'rgba(196, 255, 0, 0.08)', border: '1px solid rgba(196, 255, 0, 0.25)', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '13px', color: '#c4ff00', fontWeight: 'bold' }}>
+                      ✓ 내가 합류한 직무: <span style={{ color: '#fff' }}>{myMembership.joinedRole}</span>
+                    </div>
+                    <button
+                      onClick={() => handleLeaveRoom(room.id, myMembership.joinedRole)}
+                      style={{ background: 'rgba(255, 75, 75, 0.15)', border: '1px solid rgba(255, 75, 75, 0.4)', color: '#ff6b6b', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
+                      title="지원 취소 및 팀 탈퇴"
+                    >
+                      지원 취소 (탈퇴)
+                    </button>
+                  </div>
+                )}
 
                 {/* 🎯 연계 공모전 첨부 배너 */}
                 {room.projectId && room.projectTitle && (
@@ -420,14 +558,16 @@ export default function TeamRoomDashboard() {
                 <div style={{ marginBottom: '20px' }}>
                   {room.roles.map(role => {
                     const isFull = role.currentCount >= role.requiredCount;
+                    const isMyRole = myMembership && myMembership.joinedRole === role.roleName;
+
                     return (
                       <RoleItem key={role.id} isFull={isFull} progress={(role.currentCount / role.requiredCount) * 100}>
                         <div className="info">
-                          <span>{role.roleName}</span>
+                          <span>{role.roleName} {isMyRole && <strong style={{ color: '#c4ff00', fontSize: '11px' }}>(내 직무)</strong>}</span>
                           <span>{role.currentCount} / {role.requiredCount} 명</span>
                         </div>
                         <div className="bar-bg"><div className="bar-fill"></div></div>
-                        {room.status === 'OPEN' && !isFull && (
+                        {room.status === 'OPEN' && !isFull && !myMembership && !isLeader && (
                           <div className="action">
                             <button className="join-btn" onClick={() => handleJoinRoom(room.id, role.roleName)}>지원하기</button>
                           </div>
@@ -443,13 +583,22 @@ export default function TeamRoomDashboard() {
                 <div style={{ fontSize: '12px', color: '#8a8b91', marginBottom: '10px' }}>현재 참여 멤버 ({room.members.length}명)</div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {room.members.map(m => (
-                    <span key={m.studentId} style={{ background: '#0b0c10', border: '1px solid #2a2b36', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', color: '#d0d0d5' }}>
-                      {m.studentName} ({m.joinedRole})
+                    <span key={m.studentId} style={{ background: '#0b0c10', border: '1px solid #2a2b36', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', color: '#d0d0d5', display: 'inline-flex', alignItems: 'center' }}>
+                      <span>{m.studentName} ({m.joinedRole})</span>
+                      {isLeader && (
+                        <button
+                          onClick={() => handleKickMember(room.id, m.studentId, m.studentName)}
+                          style={{ background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', marginLeft: '6px', padding: '0 2px', fontSize: '13px', lineHeight: '1', fontWeight: 'bold' }}
+                          title={`${m.studentName} 팀원 내보내기`}
+                        >
+                          ✕
+                        </button>
+                      )}
                     </span>
                   ))}
                 </div>
                 {/* 모집 마감이거나, 내가 방장이거나, 내가 속해 있는 경우 채팅방 링크 공개 */}
-                {(isClosed || isLeader || room.members.some(m => m.studentName === currentUser?.name)) && (
+                {(isClosed || isLeader || myMembership) && (
                   <a href={room.chatUrl} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', marginTop: '15px', background: 'rgba(196,255,0,0.1)', color: '#c4ff00', padding: '10px', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
                     오픈채팅방 입장하기 💬
                   </a>
@@ -619,6 +768,171 @@ export default function TeamRoomDashboard() {
                   style={{ flex: 1, background: '#c4ff00', color: '#000', padding: '12px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   생성하기
+                </button>
+              </div>
+            </form>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* ✏️ 팀룸 정보 수정 모달 */}
+      {isEditModalOpen && (
+        <ModalOverlay onClick={() => setIsEditModalOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <h2>✏️ 팀룸 정보 수정</h2>
+            <form onSubmit={handleUpdateRoom}>
+              {/* 🎯 연계 공모전 변경/해제 섹션 */}
+              <div style={{ marginBottom: '22px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label style={{ margin: 0 }}>🎯 연계 공모전 / 해커톤</label>
+                  {editSelectedProject && (
+                    <span 
+                      style={{ color: '#ff6b6b', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }} 
+                      onClick={() => setEditSelectedProject(null)}
+                    >
+                      ✕ 연계 해제
+                    </span>
+                  )}
+                </div>
+
+                {editSelectedProject ? (
+                  <div style={{ background: 'rgba(108, 92, 231, 0.15)', border: '1px solid rgba(108, 92, 231, 0.4)', borderRadius: '12px', padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '800', color: '#a29bfe' }}>현재 연계된 대회</span>
+                      {(() => {
+                        const selDday = getProjectDDay(editSelectedProject);
+                        const isSelExpired = (selDday !== null && selDday < 0);
+                        return (
+                          <span style={{ fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', background: isSelExpired ? 'rgba(255, 75, 75, 0.2)' : 'rgba(0, 229, 255, 0.2)', color: isSelExpired ? '#ff6b6b' : '#00e5ff' }}>
+                            {isSelExpired ? '🚨 접수 마감됨' : formatDDayBadge(selDday)}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    <div style={{ fontWeight: '700', fontSize: '14px', color: '#fff', marginBottom: '4px', lineHeight: '1.4' }}>
+                      {editSelectedProject.title}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#8a8b91' }}>
+                      주관: {editSelectedProject.host} · {editSelectedProject.category || 'IT/해커톤'}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input 
+                      type="text" 
+                      value={editSearchKeyword} 
+                      onChange={e => setEditSearchKeyword(e.target.value)} 
+                      placeholder="변경할 공모전 검색..." 
+                      style={{ marginBottom: '8px', fontSize: '13px', padding: '10px' }}
+                    />
+                    <div style={{ maxHeight: '150px', overflowY: 'auto', background: '#0b0c10', border: '1px solid #2a2b36', borderRadius: '8px', padding: '4px' }}>
+                      {filteredEditProjects.length === 0 ? (
+                        <div style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: '#8a8b91' }}>검색된 공모전이 없습니다.</div>
+                      ) : (
+                        filteredEditProjects.slice(0, 20).map(p => {
+                          const itemDday = getProjectDDay(p);
+                          const isExpired = (itemDday !== null && itemDday < 0);
+                          return (
+                            <div 
+                              key={p.id} 
+                              onClick={() => setEditSelectedProject(p)}
+                              style={{ padding: '8px 12px', borderRadius: '6px', borderBottom: '1px solid #1a1a24', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                              onMouseOver={e => e.currentTarget.style.background = '#1a1a24'}
+                              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <div style={{ flex: 1, marginRight: '10px', overflow: 'hidden' }}>
+                                <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {p.title}
+                                </div>
+                                <div style={{ fontSize: '11px', color: '#8a8b91' }}>{p.host}</div>
+                              </div>
+                              <span style={{ fontSize: '11px', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', background: isExpired ? 'rgba(255, 75, 75, 0.15)' : 'rgba(0, 229, 255, 0.15)', color: isExpired ? '#ff6b6b' : '#00e5ff' }}>
+                                {formatDDayBadge(itemDday)}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <label>방 제목</label>
+              <input 
+                type="text" 
+                required 
+                value={editFormData.title} 
+                onChange={e => setEditFormData({ ...editFormData, title: e.target.value })} 
+                placeholder="팀룸 제목" 
+              />
+              
+              <label>오픈채팅방 링크</label>
+              <input 
+                type="url" 
+                required 
+                value={editFormData.chatUrl} 
+                onChange={e => setEditFormData({ ...editFormData, chatUrl: e.target.value })} 
+                placeholder="https://open.kakao.com/..." 
+              />
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
+                <label style={{ marginBottom: 0 }}>모집 직무 및 정원 (TO)</label>
+                <button 
+                  type="button" 
+                  onClick={() => setEditFormData({ ...editFormData, roles: [...editFormData.roles, { roleName: '', requiredCount: 1, currentCount: 0 }] })} 
+                  style={{ background: 'none', border: 'none', color: '#c4ff00', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                >
+                  + 새 직무 추가
+                </button>
+              </div>
+              {editFormData.roles.map((role, i) => {
+                const cur = role.currentCount || 0;
+                return (
+                  <RoleRow key={i}>
+                    <input 
+                      type="text" 
+                      required 
+                      disabled={cur > 0} 
+                      value={role.roleName} 
+                      onChange={e => { const r = [...editFormData.roles]; r[i].roleName = e.target.value; setEditFormData({ ...editFormData, roles: r }); }} 
+                      placeholder="직무명" 
+                      style={{ flex: 1, opacity: cur > 0 ? 0.7 : 1 }} 
+                      title={cur > 0 ? '참여자가 있는 직무명은 변경할 수 없습니다.' : ''}
+                    />
+                    <input 
+                      type="number" 
+                      min={cur || 1} 
+                      required 
+                      value={role.requiredCount} 
+                      onChange={e => { const r = [...editFormData.roles]; r[i].requiredCount = parseInt(e.target.value) || 1; setEditFormData({ ...editFormData, roles: r }); }} 
+                      style={{ width: '80px' }} 
+                      title={`현재 ${cur}명이 참여 중이므로 최소 ${cur || 1}명 이상이어야 합니다.`}
+                    />
+                    {cur > 0 ? (
+                      <span style={{ fontSize: '11px', color: '#8a8b91', alignSelf: 'center', minWidth: '40px' }}>({cur}명 참여)</span>
+                    ) : (
+                      editFormData.roles.length > 1 && (
+                        <button type="button" className="remove" onClick={() => setEditFormData({ ...editFormData, roles: editFormData.roles.filter((_, idx) => idx !== i) })}>✕</button>
+                      )
+                    )}
+                  </RoleRow>
+                );
+              })}
+              
+              <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setIsEditModalOpen(false)} 
+                  style={{ flex: 1, background: '#2a2b36', color: '#fff', padding: '12px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  취소
+                </button>
+                <button 
+                  type="submit" 
+                  style={{ flex: 1, background: '#c4ff00', color: '#000', padding: '12px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  수정 완료
                 </button>
               </div>
             </form>

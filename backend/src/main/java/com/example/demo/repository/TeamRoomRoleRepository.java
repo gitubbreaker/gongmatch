@@ -11,4 +11,7 @@ public interface TeamRoomRoleRepository extends JpaRepository<TeamRoomRole, Long
     
     // 특정 팀룸의 직무별 TO 목록 조회
     List<TeamRoomRole> findByTeamRoomId(Long teamRoomId);
+
+    // 특정 팀룸의 모든 직무 삭제
+    void deleteByTeamRoomId(Long teamRoomId);
 }
