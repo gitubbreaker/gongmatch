@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[별지 제 3호] 공매치 풀스택 최종 시스템 아키텍처 및 E2E 시연 시나리오</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #090d16;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+        }
+        .capture-card {
+            width: 1100px;
+            background: linear-gradient(145deg, #111827 0%, #090d16 100%);
+            border: 1px solid #1f2937;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            padding: 36px 44px;
+            box-sizing: border-box;
+        }
+        .arch-layer {
+            background: rgba(17, 24, 39, 0.75);
+            border: 1px solid #374151;
+            border-radius: 14px;
+            padding: 16px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="capture-card">
+        <!-- 헤더 영역 -->
+        <div class="flex justify-between items-center border-b border-slate-700/80 pb-5 mb-7">
+            <div>
+                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">별지 제 3호</span>
+                <h1 class="text-2xl font-black text-white mt-2">공매치 풀스택 최종 시스템 아키텍처 및 E2E 시연 파이프라인</h1>
+                <p class="text-sm text-slate-400 mt-1">Railway Cloud 무중단 CI/CD 인프라 및 다차원 매칭/팀빌딩/AI 요약 통합 구조도</p>
+            </div>
+            <div class="text-right">
+                <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg font-semibold">Graduation Capstone Complete</span>
+                <p class="text-xs text-slate-500 mt-2">공매치 풀스택 플랫폼 (정성원)</p>
+            </div>
+        </div>
+
+        <!-- 3계층 아키텍처 (클라이언트 - 클라우드 서버 - 데이터/외부 API) -->
+        <div class="space-y-4 mb-7">
+            <!-- 계층 1: 프론트엔드 클라이언트 -->
+            <div class="arch-layer border-l-4 border-l-cyan-400">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-cyan-400 tracking-wider">LAYER 1. FRONTEND CLIENT (React 18 SPA + Styled-Components + Vite)</span>
+                    <span class="text-[11px] font-mono text-slate-400">modest-laughter-production-fb46.up.railway.app</span>
+                </div>
+                <div class="grid grid-cols-4 gap-3 text-xs">
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">S1~S3. 프로필 & 가용시간</span>
+                        <p class="text-slate-400 text-[11px] mt-1">시간표 그리드 셀렉터, 4개 카테고리 해시태그</p>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">S4. 공모전 AI 큐레이션</span>
+                        <p class="text-slate-400 text-[11px] mt-1">AI 4대 리포트 카드, 실시간 D-Day 필터</p>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">S5~S7. 매칭 & 팀룸 대시보드</span>
+                        <p class="text-slate-400 text-[11px] mt-1">1.3배 기술 가중치 추천, 동적 직무 TO 바</p>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">S8~S9. AI 회의록 & 상호리뷰</span>
+                        <p class="text-slate-400 text-[11px] mt-1">GPT 대화 분석 요약, 팀원 별점/신뢰도 평가</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 연결 화살표 -->
+            <div class="flex justify-center -my-2 text-slate-500 font-mono text-xs">
+                ▼ Express Static Proxy (/api/* Forwarding with HTTPS / JWT Authorization)
+            </div>
+
+            <!-- 계층 2: 백엔드 서버 -->
+            <div class="arch-layer border-l-4 border-l-indigo-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-indigo-400 tracking-wider">LAYER 2. BACKEND SERVER (Spring Boot 3.3.4 + JDK 17 + Spring Security)</span>
+                    <span class="text-[11px] font-mono text-slate-400">gongmatch-production.up.railway.app</span>
+                </div>
+                <div class="grid grid-cols-4 gap-3 text-xs">
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">Matching Engine</span>
+                        <p class="text-slate-400 text-[11px] mt-1">시간 교집합 50점 + 태그 50점 + 1.3배 스택 가중</p>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">Team Room State Machine</span>
+                        <p class="text-slate-400 text-[11px] mt-1">직무별 TO 차감, 100% 충족 시 자동 마감(CLOSED)</p>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">Intelligent Crawler</span>
+                        <p class="text-slate-400 text-[11px] mt-1">Robots.txt 준수 + 403/429 Fail-Safe + Upsert 동기화</p>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-bold text-white block">Dual AI Dispatcher</span>
+                        <p class="text-slate-400 text-[11px] mt-1">OpenAI API 연동 + KST 달력 주입 + 도메인 Fallback</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 연결 화살표 -->
+            <div class="flex justify-center -my-2 text-slate-500 font-mono text-xs">
+                ▼ JPA Hibernate ORM & External HTTPS RestTemplate
+            </div>
+
+            <!-- 계층 3: 인프라 & 외부 API -->
+            <div class="arch-layer border-l-4 border-l-amber-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-amber-400 tracking-wider">LAYER 3. DATA PERSISTENCE & EXTERNAL CLOUD SERVICES</span>
+                    <span class="text-[11px] font-mono text-slate-400">MariaDB 11.x Cloud Database</span>
+                </div>
+                <div class="grid grid-cols-3 gap-3 text-xs">
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex items-center gap-3">
+                        <span class="text-xl">🗄️</span>
+                        <div>
+                            <span class="font-bold text-white block">Cloud MariaDB</span>
+                            <span class="text-slate-400 text-[11px]">HikariCP 커넥션 풀, UTF8MB4 한글 최적화</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex items-center gap-3">
+                        <span class="text-xl">⚡</span>
+                        <div>
+                            <span class="font-bold text-white block">OpenAI gpt-4o-mini</span>
+                            <span class="text-slate-400 text-[11px]">실시간 요약 및 공모전 4대 리포트 생성</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex items-center gap-3">
+                        <span class="text-xl">🌐</span>
+                        <div>
+                            <span class="font-bold text-white block">Wevity External Web</span>
+                            <span class="text-slate-400 text-[11px]">매일 새벽 4시 자동 스크래핑 및 변동 감지</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단: 시연 준비 완료 및 안정성 선언 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-3">
+                <span class="text-lg">🎯</span>
+                <div>
+                    <span class="font-bold text-white">졸업작품 최종 시연 준비 완료:</span>
+                    <span class="text-slate-400 ml-1">노트북 2대(방장 vs 지원자) 실시간 쌍방향 팀 빌딩 & 카톡 AI 요약 무중단 라이브 데모 보장</span>
+                </div>
+            </div>
+            <span class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-[11px] font-bold px-3 py-1 rounded-full">
+                100% Production Ready
+            </span>
+        </div>
+    </div>
+</body>
+</html>
