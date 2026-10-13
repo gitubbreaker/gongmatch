@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[별지 제 1호] 지능형 크롤링 및 Robots.txt 규약 준수 아키텍처 다이어그램</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+        }
+        .capture-card {
+            width: 1100px;
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 36px 44px;
+            box-sizing: border-box;
+        }
+        .step-box {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #475569;
+            border-radius: 14px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .code-pill {
+            background: #020617;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="capture-card">
+        <!-- 헤더 영역 -->
+        <div class="flex justify-between items-center border-b border-slate-700 pb-5 mb-7">
+            <div>
+                <span class="bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">별지 제 1호</span>
+                <h1 class="text-2xl font-black text-white mt-2">지능형 웹 크롤링 파이프라인 & Robots.txt 규약 준수 아키텍처</h1>
+                <p class="text-sm text-slate-400 mt-1">GongMatch Crawling Engine (WevityCrawlingService.java) - 페일세이프 및 변경 감지 동기화</p>
+            </div>
+            <div class="text-right">
+                <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg font-semibold">Web Scraper Ethics 준수</span>
+                <p class="text-xs text-slate-500 mt-2">공매치 풀스택 플랫폼 (정성원)</p>
+            </div>
+        </div>
+
+        <!-- 메인 파이프라인 그리드 -->
+        <div class="grid grid-cols-3 gap-6 mb-7">
+            <!-- 1단계: 규약 검증 -->
+            <div class="step-box border-t-4 border-t-indigo-500">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 font-black flex items-center justify-center text-sm">1</span>
+                    <h2 class="font-bold text-white text-base">Robots.txt 사전 파싱 & 정책 캐싱</h2>
+                </div>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">수집 개시 전 대상 도메인의 <code class="text-indigo-300">/robots.txt</code>를 조회하여 Disallow 수집 금지 경로를 메모리 Set에 사전 등록</p>
+                
+                <div class="code-pill text-indigo-200 text-xs mb-3">
+                    <span class="text-slate-500">// WevityCrawlingService.java</span><br>
+                    boolean isAllowed = isAllowedByRobotsTxt(url);<br>
+                    <span class="text-rose-400">if (!isAllowed) { skip(); }</span>
+                </div>
+                <div class="text-[11px] text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 rounded p-2">
+                    ✓ 비인가 경로 무단 스크래핑 원천 차단<br>
+                    ✓ 서버 IP 영구 차단(Blacklist) 선제적 예방
+                </div>
+            </div>
+
+            <!-- 2단계: HTTP 에러 분기 -->
+            <div class="step-box border-t-4 border-t-amber-500">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 font-black flex items-center justify-center text-sm">2</span>
+                    <h2 class="font-bold text-white text-base">HTTP 상태별 Fail-Safe 예외 처리</h2>
+                </div>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">웹 방화벽(WAF) 차단 및 일시 장애 시 프로세스 크래시 없이 다음 작업으로 제어권 안전 이양</p>
+                
+                <div class="space-y-2 text-xs">
+                    <div class="bg-rose-950/40 border border-rose-800/50 p-2 rounded flex justify-between">
+                        <span class="text-rose-300 font-bold">403 Forbidden</span>
+                        <span class="text-slate-300">Graceful Skip (무한 재시도 중단)</span>
+                    </div>
+                    <div class="bg-amber-950/40 border border-amber-800/50 p-2 rounded flex justify-between">
+                        <span class="text-amber-300 font-bold">429 Too Many Req</span>
+                        <span class="text-slate-300">3초 Exponential Backoff 후 재시도</span>
+                    </div>
+                    <div class="bg-slate-800 border border-slate-700 p-2 rounded flex justify-between">
+                        <span class="text-slate-300 font-bold">404 Not Found</span>
+                        <span class="text-slate-400">삭제 공모전 로그 기록 후 스킵</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3단계: 변경 감지 & Upsert -->
+            <div class="step-box border-t-4 border-t-emerald-500">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-sm">3</span>
+                    <h2 class="font-bold text-white text-base">고유키 기반 변경 감지 & Upsert</h2>
+                </div>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">접수 기간 연장, 제목 수정 시 중복 Insert를 방지하고 DB 기존 엔티티를 정밀 Update</p>
+                
+                <div class="code-pill text-emerald-200 text-xs mb-3">
+                    <span class="text-slate-500">// ix 고유키 기반 Upsert</span><br>
+                    String ix = extractIx(detailUrl);<br>
+                    Project old = repo.findByDetailUrl(ix);<br>
+                    <span class="text-amber-300">if (isChanged(old, new)) { update(); }</span>
+                </div>
+                <div class="text-[11px] text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 rounded p-2">
+                    ✓ 마감일 연장 공모전 실시간 반영<br>
+                    ✓ DB 데이터 무결성 100% 보장 (중복 0건)
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단: 안티 봇 탐지 우회 및 스케줄러 세부사항 -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-3">
+                <span class="text-lg">🛡️</span>
+                <div>
+                    <span class="font-bold text-white">Anti-Bot 회피 파이프라인:</span>
+                    <span class="text-slate-400 ml-1">브라우저 표준 헤더 주입 + GongmatchBot/1.0 식별 + 600~1000ms Jitter Dynamic Sleep</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-300 font-mono text-[11px]">Daily 04:00 AM Cron Active</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
