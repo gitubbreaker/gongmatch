@@ -106,10 +106,12 @@ function S8Summary() {
             <>
               {topics.map((topic, tIdx) => (
                 <div key={tIdx} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: tIdx < topics.length - 1 ? '20px' : '0' }}>
-                  {topics.length > 1 && (
-                     <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--ac)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ background: 'var(--ac)', color: '#080F00', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>{tIdx + 1}</span>
-                      {topic.title}
+                  {topic.title && (
+                     <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--ac)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {topics.length > 1 && (
+                        <span style={{ background: 'var(--ac)', color: '#080F00', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>{tIdx + 1}</span>
+                      )}
+                      <span>📌 {topic.title}</span>
                     </div>
                   )}
                   <div className="card" style={{ borderLeft: '3px solid var(--ac)' }}>
