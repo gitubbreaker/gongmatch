@@ -21,6 +21,26 @@ function S6Profile() {
   const [isKakaoModalOpen, setKakaoModalOpen] = useState(false);
   const [kakaoUrlInput, setKakaoUrlInput] = useState('');
 
+  // 프로필 정보 공개 범위 설정 상태 (로컬 스토리지에 영구 보존 및 상호작용)
+  const [privacySettings, setPrivacySettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('gongmatch_privacy_settings');
+      return saved ? JSON.parse(saved) : { time: true, tags: true, rating: true };
+    } catch (e) {
+      return { time: true, tags: true, rating: true };
+    }
+  });
+
+  const togglePrivacy = (key, label) => {
+    setPrivacySettings(prev => {
+      const nextVal = !prev[key];
+      const updated = { ...prev, [key]: nextVal };
+      localStorage.setItem('gongmatch_privacy_settings', JSON.stringify(updated));
+      showToast(`${label}이(가) '${nextVal ? '전체 공개' : '비공개'}'로 변경되었습니다.`);
+      return updated;
+    });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -298,26 +318,123 @@ function S6Profile() {
           }}>로그아웃</button>
         </div>
 
-        <div className="card2" style={{ padding: '18px' }}>
+        <div className="card2" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <p className="slabel" style={{ margin: 0 }}>🔒 프로필 정보 공개 범위</p>
-            <span style={{ fontSize: '10px', color: 'var(--green)', background: 'var(--green-dim)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>공개 중</span>
+            <p className="slabel" style={{ margin: 0 }}>🔒 프로필 정보 공개 범위 설정</p>
+            <span style={{ 
+              fontSize: '10px', 
+              color: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green)' : 'var(--yellow)', 
+              background: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green-dim)' : 'var(--yellow-dim)', 
+              padding: '2px 8px', 
+              borderRadius: '6px', 
+              fontWeight: '800' 
+            }}>
+              {(privacySettings.time && privacySettings.tags && privacySettings.rating) ? '전체 공개 중' : '일부 비공개'}
+            </span>
           </div>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', lineHeight: '1.4' }}>상대방 상세 프로필 열람 시 노출할 정보 항목입니다.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px', color: 'var(--tx2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>⏱️ 가용시간 겹침 지표</span>
-              <span style={{ color: 'var(--ac)', fontWeight: '800' }}>✓ 전체 공개</span>
+          <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', lineHeight: '1.4' }}>
+            상대방이 내 상세 프로필을 열람할 때 보여질 정보 범위를 직접 설정하세요. 클릭 시 즉시 변경됩니다.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* 1. 가용시간 */}
+            <div 
+              onClick={() => togglePrivacy('time', '가용시간 겹침 지표')}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                background: privacySettings.time ? 'var(--ac-dim)' : 'var(--bg)',
+                border: `1px solid ${privacySettings.time ? 'var(--ac-brd)' : 'var(--brd)'}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '14px' }}>⏱️</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)' }}>가용시간 겹침 지표</span>
+              </div>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '800',
+                color: privacySettings.time ? 'var(--ac)' : 'var(--tx3)',
+                background: privacySettings.time ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                border: `1px solid ${privacySettings.time ? 'var(--ac-brd)' : 'var(--brd2)'}`
+              }}>
+                {privacySettings.time ? '✓ 전체 공개' : '🔒 비공개'}
+              </span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>🏷️ 직무 기술스택 태그</span>
-              <span style={{ color: 'var(--ac)', fontWeight: '800' }}>✓ 전체 공개</span>
+
+            {/* 2. 직무/기술 */}
+            <div 
+              onClick={() => togglePrivacy('tags', '직무 기술스택 태그')}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                background: privacySettings.tags ? 'var(--ac-dim)' : 'var(--bg)',
+                border: `1px solid ${privacySettings.tags ? 'var(--ac-brd)' : 'var(--brd)'}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '14px' }}>🏷️</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)' }}>직무 기술스택 태그</span>
+              </div>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '800',
+                color: privacySettings.tags ? 'var(--ac)' : 'var(--tx3)',
+                background: privacySettings.tags ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                border: `1px solid ${privacySettings.tags ? 'var(--ac-brd)' : 'var(--brd2)'}`
+              }}>
+                {privacySettings.tags ? '✓ 전체 공개' : '🔒 비공개'}
+              </span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>⭐ 동료 리뷰 평점</span>
-              <span style={{ color: 'var(--ac)', fontWeight: '800' }}>✓ 전체 공개</span>
+
+            {/* 3. 동료 평점 */}
+            <div 
+              onClick={() => togglePrivacy('rating', '동료 리뷰 평점')}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                background: privacySettings.rating ? 'var(--ac-dim)' : 'var(--bg)',
+                border: `1px solid ${privacySettings.rating ? 'var(--ac-brd)' : 'var(--brd)'}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '14px' }}>⭐</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)' }}>동료 리뷰 평점</span>
+              </div>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '800',
+                color: privacySettings.rating ? 'var(--ac)' : 'var(--tx3)',
+                background: privacySettings.rating ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                border: `1px solid ${privacySettings.rating ? 'var(--ac-brd)' : 'var(--brd2)'}`
+              }}>
+                {privacySettings.rating ? '✓ 전체 공개' : '🔒 비공개'}
+              </span>
             </div>
           </div>
+          <p style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '10px', textAlign: 'center' }}>
+            💡 클릭하여 실시간으로 공개/비공개 전환이 가능합니다
+          </p>
         </div>
         
         <div className="card" style={{ padding: '15px', background: 'var(--ac-dim)', borderColor: 'var(--ac-brd)' }}>

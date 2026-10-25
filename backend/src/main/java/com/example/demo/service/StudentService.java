@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Collections;
 import java.util.Random;
 
 @Service
@@ -182,6 +183,7 @@ public class StudentService {
                     .relScore(relScore)
                     .totalScore(totalScore)
                     .overlapText(getOverlapSummary(myTimes, otherTimes))
+                    .overlapSlots(calculateOverlapSlots(myTimes, otherTimes))
                     .tags(new ArrayList<>(otherTagNames))
                     .commonTags(myTagNames.stream().filter(otherTagNames::contains).collect(Collectors.toList()))
                     .role(other.getRole())
@@ -278,6 +280,34 @@ public class StudentService {
         return total;
     }
 
+    private List<String> calculateOverlapSlots(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
+        if (myTimes == null || otherTimes == null) return Collections.emptyList();
+        List<String> slots = new ArrayList<>();
+        for (AvailableTime mt : myTimes) {
+            for (AvailableTime ot : otherTimes) {
+                if (mt.getDayOfWeek() == ot.getDayOfWeek() && 
+                    mt.getStartTime() != null && mt.getEndTime() != null && 
+                    ot.getStartTime() != null && ot.getEndTime() != null) {
+                    
+                    LocalTime start = mt.getStartTime().isAfter(ot.getStartTime()) ? mt.getStartTime() : ot.getStartTime();
+                    LocalTime end = mt.getEndTime().isBefore(ot.getEndTime()) ? mt.getEndTime() : ot.getEndTime();
+                    
+                    if (start.isBefore(end)) {
+                        String dayName = switch (mt.getDayOfWeek()) {
+                            case MONDAY -> "월"; case TUESDAY -> "화"; case WEDNESDAY -> "수";
+                            case THURSDAY -> "목"; case FRIDAY -> "금"; case SATURDAY -> "토"; case SUNDAY -> "일";
+                        };
+                        for (int h = start.getHour(); h < end.getHour(); h++) {
+                            String slot = dayName + String.format("%02d", h);
+                            if (!slots.contains(slot)) slots.add(slot);
+                        }
+                    }
+                }
+            }
+        }
+        return slots;
+    }
+
     @Getter @Setter @Builder
     @AllArgsConstructor @NoArgsConstructor
     public static class RecommendationResponse {
@@ -292,6 +322,7 @@ public class StudentService {
         private int expScore;
         private int relScore;
         private String overlapText;
+        private List<String> overlapSlots;
         private List<String> tags;
         private List<String> commonTags;
         private String role;

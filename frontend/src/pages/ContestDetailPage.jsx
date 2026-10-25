@@ -601,6 +601,7 @@ function ContestDetailPage() {
                             relScore: u.relScore,
                             totalScore: u.totalScore,
                             overlapText: u.overlapText,
+                            overlapSlots: u.overlapSlots,
                             tags: u.tags,
                             commonTags: u.commonTags
                           } 

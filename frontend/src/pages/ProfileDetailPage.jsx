@@ -75,6 +75,68 @@ function ProfileDetailPage() {
   const totalScore = stateData.totalScore !== undefined ? stateData.totalScore : Math.min(100, timeScore + tagScore + expScore + relScore);
   const overlapText = stateData.overlapText || '화, 목, 금요일 18시 이후 겹치는 시간대';
   
+  const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+  const TIMES = ['09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'];
+
+  // 로컬 공개 설정 확인
+  const privacySettings = (() => {
+    try {
+      const saved = localStorage.getItem('gongmatch_privacy_settings');
+      return saved ? JSON.parse(saved) : { time: true, tags: true, rating: true };
+    } catch (e) {
+      return { time: true, tags: true, rating: true };
+    }
+  })();
+
+  // 겹치는 슬롯 및 요일별 범위 계산
+  const { slotSet, summaryPills, totalOverlapHours, activeDays } = (() => {
+    const set = new Set();
+    const dayGroups = {};
+    DAYS.forEach(d => { dayGroups[d] = []; });
+
+    if (Array.isArray(stateData.overlapSlots) && stateData.overlapSlots.length > 0) {
+      stateData.overlapSlots.forEach(slot => {
+        set.add(slot);
+        const d = slot.substring(0, 1);
+        const h = parseInt(slot.substring(1), 10);
+        if (dayGroups[d] && !isNaN(h) && !dayGroups[d].includes(h)) {
+          dayGroups[d].push(h);
+        }
+      });
+    } else if (overlapText && typeof overlapText === 'string') {
+      const matchedDays = DAYS.filter(d => overlapText.includes(d));
+      matchedDays.forEach(d => {
+        const hours = (d === '토' || d === '일') ? [13, 14, 15, 16] : [18, 19, 20];
+        hours.forEach(h => {
+          const slot = d + String(h).padStart(2, '0');
+          set.add(slot);
+          if (!dayGroups[d].includes(h)) dayGroups[d].push(h);
+        });
+      });
+    }
+
+    const pills = [];
+    const actDays = [];
+    let totalH = 0;
+    DAYS.forEach(d => {
+      const hours = dayGroups[d].sort((a, b) => a - b);
+      if (hours.length > 0) {
+        actDays.push(d);
+        totalH += hours.length;
+        const start = hours[0];
+        const end = hours[hours.length - 1] + 1;
+        pills.push({
+          day: d,
+          start: String(start).padStart(2, '0'),
+          end: String(end).padStart(2, '0'),
+          count: hours.length
+        });
+      }
+    });
+
+    return { slotSet: set, summaryPills: pills, totalOverlapHours: totalH || 9, activeDays: actDays };
+  })();
+
   // 기술 스택 및 해시태그 목록
   const rawTags = (stateData.tags && stateData.tags.length > 0) ? stateData.tags : (
     role.includes('프론트') ? ['React', 'Next.js', 'TypeScript', 'Figma', '스타디'] :
@@ -120,8 +182,24 @@ function ProfileDetailPage() {
           <div style={{ flex: 1 }}>
             <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px', flexWrap: 'wrap'}}>
               <h1 style={{fontSize:'30px', color:'var(--tx)', margin: 0}}>{author}</h1>
-              <span style={{fontSize:'13px', color:'var(--yellow)', fontWeight:'800', border:'1px solid var(--yellow)', padding:'2px 8px', borderRadius:'12px', background:'rgba(255, 184, 0, 0.1)'}}>★ {profileData?.rating > 0 ? profileData.rating.toFixed(1) : (location.state?.relScore ? (location.state.relScore / 2).toFixed(1) : '4.9')}</span>
-              <span style={{ fontSize: '11px', color: 'var(--green)', background: 'var(--green-dim)', border: '1px solid var(--green)', padding: '2px 8px', borderRadius: '12px', fontWeight: '800' }}>🔒 공개 프로필</span>
+              <span style={{fontSize:'13px', color:'var(--yellow)', fontWeight:'800', border:'1px solid var(--yellow)', padding:'2px 8px', borderRadius:'12px', background:'rgba(255, 184, 0, 0.1)'}}>
+                {privacySettings.rating ? (
+                  `★ ${profileData?.rating > 0 ? profileData.rating.toFixed(1) : (location.state?.relScore ? (location.state.relScore / 2).toFixed(1) : '4.9')}`
+                ) : (
+                  '⭐ 평점 비공개'
+                )}
+              </span>
+              <span style={{ 
+                fontSize: '11px', 
+                color: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green)' : 'var(--yellow)', 
+                background: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green-dim)' : 'var(--yellow-dim)', 
+                border: `1px solid ${(privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green)' : 'var(--yellow)'}`, 
+                padding: '2px 8px', 
+                borderRadius: '12px', 
+                fontWeight: '800' 
+              }}>
+                {(privacySettings.time && privacySettings.tags && privacySettings.rating) ? '🔒 전체 공개 프로필' : '🔒 보호된 프로필 (일부 비공개)'}
+              </span>
             </div>
             <p style={{color:'var(--tx3)', margin: 0}}>{role} · {major} {grade}</p>
           </div>
@@ -179,25 +257,142 @@ function ProfileDetailPage() {
           )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--tx3)' }}>
-            <span>* 사용자의 공개 설정에 따라 나와의 4축 가용시간 정량 지표가 표시됩니다.</span>
+            <span>* 사용자의 공개 범위 설정에 따라 나와의 4축 가용시간 정량 지표가 실시간 반영됩니다.</span>
             <span>비공개 항목은 보호됩니다</span>
           </div>
+        </Section>
+
+        {/* 📅 상호 가용시간 매칭 타임테이블 (시간표 블록) */}
+        <Section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ color: 'var(--tx)', margin: 0 }}>📅 상호 가용시간 일치 타임테이블</h3>
+              <span style={{ fontSize: '11px', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
+                시간표 블록 매칭
+              </span>
+            </div>
+            {privacySettings.time && (
+              <div style={{ fontSize: '12px', color: 'var(--tx3)' }}>
+                총 <b style={{ color: 'var(--ac)' }}>{totalOverlapHours}시간</b> 일치 (40점 만점 중 <b style={{ color: 'var(--ac)' }}>{timeScore}점</b>)
+              </div>
+            )}
+          </div>
+
+          {privacySettings.time ? (
+            <>
+              {/* 범례 */}
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '14px', fontSize: '11px', color: 'var(--tx3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '14px', height: '14px', background: 'var(--ac)', borderRadius: '3px' }} />
+                  <span style={{ color: 'var(--tx)', fontWeight: '700' }}>상호 겹치는 협업 가능 시간</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '14px', height: '14px', background: 'var(--card)', border: '1px solid var(--brd2)', borderRadius: '3px' }} />
+                  <span>겹치지 않음 / 공강 아님</span>
+                </div>
+              </div>
+
+              {/* 타임테이블 그리드 (S2Time과 일치하는 7x13 직관적 시간표 블록) */}
+              <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid var(--brd2)', marginBottom: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '48px repeat(13, 1fr)', gap: '1px', background: 'var(--brd)', minWidth: '580px' }}>
+                  <div style={{ height: '34px', background: 'var(--bg3)' }}></div>
+                  {TIMES.map(t => (
+                    <div key={t} style={{ height: '34px', background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '600', color: 'var(--tx2)' }}>
+                      {t}:00
+                    </div>
+                  ))}
+                  {DAYS.map(day => (
+                    <React.Fragment key={day}>
+                      <div style={{ 
+                        height: '34px', 
+                        background: 'var(--bg3)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        fontSize: '11px', 
+                        fontWeight: '800', 
+                        color: activeDays.includes(day) ? 'var(--ac)' : 'var(--tx)' 
+                      }}>
+                        {day}
+                      </div>
+                      {TIMES.map(t => {
+                        const isOverlap = slotSet.has(day + t);
+                        return (
+                          <div
+                            key={day + t}
+                            title={`${day}요일 ${t}:00 ${isOverlap ? '(상호 협업 가능)' : ''}`}
+                            style={{
+                              height: '34px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: isOverlap ? 'var(--ac)' : 'var(--card)',
+                              color: isOverlap ? '#080F00' : 'transparent',
+                              fontWeight: '900',
+                              fontSize: '11px',
+                              transition: 'all 0.15s'
+                            }}
+                          >
+                            {isOverlap ? '✓' : ''}
+                          </div>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+
+              {/* 요일별 겹치는 시간대 상세 설명 카드들 */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', marginBottom: '14px' }}>
+                {summaryPills.map(p => (
+                  <div key={p.day} style={{ background: 'var(--bg2)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--brd)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--ac)' }}>{p.day}요일</span>
+                      <span style={{ fontSize: '11px', color: 'var(--tx3)', background: 'var(--card)', padding: '2px 6px', borderRadius: '4px' }}>{p.count}시간 겹침</span>
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--tx)' }}>
+                      {p.start}:00 ~ {p.end}:00
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ padding: '12px 16px', background: 'rgba(200,242,38,0.06)', borderRadius: '8px', border: '1px solid var(--ac-brd)', fontSize: '12px', color: 'var(--tx2)', lineHeight: '1.5' }}>
+                💡 <b>스마트 시간 매칭 인사이트:</b> 위 형광색 블록 시간대에 정기 팀 회의, 온라인 스프린트, 디스코드 협업을 잡으시면 시간 조율 스트레스 없이 프로젝트를 진행할 수 있습니다.
+              </div>
+            </>
+          ) : (
+            <div style={{ padding: '36px 20px', textAlign: 'center', background: 'var(--bg2)', borderRadius: '12px', border: '1px dashed var(--brd)' }}>
+              <span style={{ fontSize: '24px' }}>🔒</span>
+              <p style={{ fontSize: '15px', fontWeight: '800', color: 'var(--tx)', marginTop: '10px', marginBottom: '4px' }}>가용 시간표 세부 블록 비공개</p>
+              <p style={{ fontSize: '12px', color: 'var(--tx3)', maxWidth: '420px', margin: '0 auto', lineHeight: '1.5' }}>
+                상대방 사용자의 프로필 공개 범위 설정에 따라 세부 시간표 블록은 비공개 처리되었습니다. 
+                단, 4축 매칭 엔진에서 시간표 일치 점수(<b>{timeScore}/40점</b>)는 정량 계산되어 총점에 정확히 반영되어 있습니다.
+              </p>
+            </div>
+          )}
         </Section>
 
         {/* 🏷️ 기술 스택 및 전문 관심 분야 */}
         <Section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ color: 'var(--tx)', margin: 0 }}>🏷️ 보유 기술 스택 및 관심 태그</h3>
-            <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>공통 태그는 🔥 표시</span>
+            <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{privacySettings.tags ? '공통 태그는 🔥 표시' : '비공개 설정됨'}</span>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {commonTags && commonTags.map(t => (
-              <span key={t} style={{ fontSize: '12px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '6px 12px', borderRadius: '8px', border: '1.5px solid var(--ac)' }}>🔥 {t}</span>
-            ))}
-            {rawTags.filter(t => !commonTags?.includes(t)).map((t, idx) => (
-              <span key={idx} style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', background: 'var(--bg)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--brd2)' }}>#{t}</span>
-            ))}
-          </div>
+          {privacySettings.tags ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {commonTags && commonTags.map(t => (
+                <span key={t} style={{ fontSize: '12px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '6px 12px', borderRadius: '8px', border: '1.5px solid var(--ac)' }}>🔥 {t}</span>
+              ))}
+              {rawTags.filter(t => !commonTags?.includes(t)).map((t, idx) => (
+                <span key={idx} style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', background: 'var(--bg)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--brd2)' }}>#{t}</span>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: '24px', textAlign: 'center', background: 'var(--bg2)', borderRadius: '10px', border: '1px dashed var(--brd)' }}>
+              <p style={{ fontSize: '13px', color: 'var(--tx3)', margin: 0 }}>🔒 상대방이 기술 스택 태그를 비공개로 설정하였습니다. (직무 점수 {tagScore}/30점은 매칭 총점에 반영됨)</p>
+            </div>
+          )}
         </Section>
 
         <Section>

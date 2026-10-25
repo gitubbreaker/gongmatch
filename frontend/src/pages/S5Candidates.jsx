@@ -3,6 +3,38 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from '../App';
 import api from '../api';
 
+const DAYS_ORDER = ['월', '화', '수', '목', '금', '토', '일'];
+
+function getOverlapDetails(overlapText, overlapSlots) {
+  const dayHours = {};
+  DAYS_ORDER.forEach(d => { dayHours[d] = []; });
+
+  if (Array.isArray(overlapSlots) && overlapSlots.length > 0) {
+    overlapSlots.forEach(slot => {
+      const d = slot.substring(0, 1);
+      const h = parseInt(slot.substring(1), 10);
+      if (dayHours[d] && !isNaN(h)) dayHours[d].push(h);
+    });
+  } else if (overlapText && typeof overlapText === 'string') {
+    const matched = DAYS_ORDER.filter(d => overlapText.includes(d));
+    matched.forEach(d => {
+      dayHours[d] = (d === '토' || d === '일') ? [14, 15, 16] : [18, 19, 20];
+    });
+  }
+
+  const pills = [];
+  DAYS_ORDER.forEach(d => {
+    const hours = dayHours[d].sort((a, b) => a - b);
+    if (hours.length > 0) {
+      const start = hours[0];
+      const end = hours[hours.length - 1] + 1;
+      pills.push({ day: d, text: `${d} ${start}~${end}시 (${hours.length}h)`, active: true });
+    }
+  });
+
+  return { dayHours, pills };
+}
+
 function S5Candidates() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -269,167 +301,195 @@ function S5Candidates() {
           )}
         </div>
 
-        {/* 메인 리스트 */}
-        <div className="clist" style={{ padding: '32px 40px', display: 'flex', flexDirection: 'column', gap: '20px', background:'var(--bg)' }}>
+        {/* 메인 리스트: 2열 고밀도 그리드 */}
+        <div className="clist" style={{ padding: '28px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(430px, 1fr))', gap: '22px', background: 'var(--bg)', alignContent: 'start' }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: '80px 20px', textAlign: 'center', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '20px' }}>
+            <div style={{ gridColumn: '1 / -1', padding: '80px 20px', textAlign: 'center', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '20px' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
               <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>조건에 맞는 팀원 후보가 없습니다.</h3>
               <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>필터 조건(학년, 직무, 기술 등)을 완화하여 더 많은 후보를 찾아보세요.</p>
               <button className="btn-ghost" style={{ marginTop: '24px', padding: '10px 20px' }} onClick={resetFilters}>필터 초기화</button>
             </div>
           ) : (
-            filtered.map(c => (
-              <div key={c.id} className="candidate-card" style={{ 
-                background: 'var(--card)', border: '1px solid var(--brd)', borderRadius: '20px', padding: '28px',
-                display:'grid', gridTemplateColumns:'80px 1fr 220px', gap:'24px', transition:'transform .2s, border-color .2s',
-                cursor:'default'
-              }}>
-                {/* 왼쪽: 아바타 */}
-                <div style={{textAlign:'center'}}>
-                  <div style={{ width: '70px', height: '70px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '24px', fontWeight:'900', borderRadius:'22px', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px', overflow:'hidden' }}>
-                    {c.profileImageUrl ? (
-                      <img src={c.profileImageUrl.startsWith('data:') || c.profileImageUrl.startsWith('http') ? c.profileImageUrl : `${api.defaults.baseURL}${c.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      c.name?.charAt(0) || '?'
-                    )}
-                  </div>
-                  <div style={{fontSize:'12px', color:'var(--ac)', fontWeight:'800', border:'1px solid var(--ac-brd)', borderRadius:'4px', padding:'2px 4px', background:'var(--ac-dim)'}}>
-                    {c.role || 'MEMBER'}
-                  </div>
-                </div>
+            filtered.map(c => {
+              const { pills } = getOverlapDetails(c.overlapText, c.overlapSlots);
+              return (
+                <div 
+                  key={c.id} 
+                  className="candidate-card" 
+                  style={{ 
+                    background: 'var(--card)', 
+                    border: '1px solid var(--brd)', 
+                    borderRadius: '18px', 
+                    padding: '24px',
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'space-between',
+                    gap: '16px', 
+                    transition: 'transform .2s, border-color .2s, box-shadow .2s',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  {/* 상단: 프로필 아바타 + 기본 정보 + 총점 뱃지 */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                      <div style={{ width: '56px', height: '56px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '20px', fontWeight: '900', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', border: '1px solid var(--ac-brd)' }}>
+                        {c.profileImageUrl ? (
+                          <img src={c.profileImageUrl.startsWith('data:') || c.profileImageUrl.startsWith('http') ? c.profileImageUrl : `${api.defaults.baseURL}${c.profileImageUrl}`} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          c.name?.charAt(0) || '?'
+                        )}
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '18px', fontWeight: '900', color: 'var(--tx)' }}>{c.name}</span>
+                          <span style={{ fontSize: '11px', color: 'var(--ac)', fontWeight: '800', border: '1px solid var(--ac-brd)', borderRadius: '6px', padding: '2px 6px', background: 'var(--ac-dim)' }}>
+                            {c.role || 'MEMBER'}
+                          </span>
+                          {myRole && c.role && (
+                            (() => {
+                              const m = (myRole || '').replace(/\s/g, '').toLowerCase();
+                              const r = (c.role || '').replace(/\s/g, '').toLowerCase();
+                              return m && r && (r.includes(m) || m.includes(r));
+                            })()
+                          ) && (
+                            <span style={{ fontSize: '10px', background: 'var(--green-dim)', color: 'var(--green)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800', border: '1px solid var(--green)' }}>
+                              ★ 내 분야 일치
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--tx3)' }}>
+                          <span>{c.major} · {c.grade}학년</span>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            background: c.averageRating ? 'rgba(255, 184, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+                            color: c.averageRating ? '#FFB800' : 'var(--tx3)', 
+                            padding: '2px 6px', 
+                            borderRadius: '4px', 
+                            fontWeight: '800'
+                          }}>
+                            ⭐ {c.averageRating !== null && c.averageRating !== undefined ? `${c.averageRating.toFixed(1)}/5.0` : '평가 없음'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* 중앙: 정보 및 인사이트 */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '20px', fontWeight: '900' }}>{c.name}</span>
-                    <span style={{ 
-                      fontSize: '12px', 
-                      background: c.averageRating ? 'rgba(255, 184, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
-                      color: c.averageRating ? '#FFB800' : 'var(--tx3)', 
-                      padding: '3px 8px', 
-                      borderRadius: '6px', 
-                      fontWeight: '800', 
-                      border: c.averageRating ? '1px solid rgba(255, 184, 0, 0.3)' : '1px solid var(--brd2)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <span style={{ fontSize: '11px' }}>⭐</span>
-                      {c.averageRating !== null && c.averageRating !== undefined ? `${c.averageRating.toFixed(1)}/5.0` : '평가 없음'}
-                    </span>
-                    {myRole && c.role && (
-                      (() => {
-                        const m = (myRole || '').replace(/\s/g, '').toLowerCase();
-                        const r = (c.role || '').replace(/\s/g, '').toLowerCase();
-                        return m && r && (r.includes(m) || m.includes(r));
-                      })()
-                    ) && (
-                      <span style={{ fontSize: '10px', background: 'var(--green-dim)', color: 'var(--green)', padding: '3px 8px', borderRadius: '4px', fontWeight: '800', border: '1px solid var(--green)' }}>
-                        ★ 내 분야 일치
+                    {/* 우측 상단 총점 뱃지 */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '9px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '0.5px' }}>MATCH SCORE</div>
+                      <div style={{ fontSize: '32px', fontWeight: '950', color: 'var(--ac)', lineHeight: '1.1' }}>{c.totalScore}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--tx3)' }}>/ 100점</div>
+                    </div>
+                  </div>
+
+                  {/* 자기소개 한 줄 */}
+                  <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.4', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    "{c.introduction || '팀워크를 소중히 여기며 함께 성장하고 싶은 팀원입니다.'}"
+                  </div>
+
+                  {/* 🎯 4축 정량 지표 세부 현황 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', background: 'var(--bg2)', padding: '8px', borderRadius: '10px', border: '1px solid var(--brd)' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>⏱️ 시간</div>
+                      <div style={{ fontSize: '13px', fontWeight: '900', color: 'var(--ac)' }}>{c.timeScore || 0}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/40</span></div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>🏷️ 직무</div>
+                      <div style={{ fontSize: '13px', fontWeight: '900', color: '#00E5FF' }}>{c.tagScore || 0}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/30</span></div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>🎓 경험</div>
+                      <div style={{ fontSize: '13px', fontWeight: '900', color: '#a29bfe' }}>{c.expScore || (c.grade ? Math.min(20, c.grade * 3) : 10)}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/20</span></div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>⭐ 신뢰</div>
+                      <div style={{ fontSize: '13px', fontWeight: '900', color: '#FFB800' }}>{c.relScore || (c.averageRating ? Math.round(c.averageRating * 2) : 8)}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/10</span></div>
+                    </div>
+                  </div>
+
+                  {/* ⏱️ TIME MATCH: 언제 겹치는지 직관적인 요일/시간대 블록 확인 */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 14px', borderRadius: '12px', border: '1px dashed var(--brd2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--ac)' }}>⏱️ TIME MATCH</span>
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--tx)' }}>
+                        🎯 {c.overlapText || '상호 가용시간 매칭'}
                       </span>
-                    )}
-                    <span style={{ fontSize: '13px', color: 'var(--tx2)', fontWeight:'500' }}>{c.major} · {c.grade}학년</span>
-                    {/* <span style={{fontSize:'10px', color:'#999', marginLeft:'auto'}}>#{c.id}</span> */}
-                  </div>
-                  
-                  <div style={{fontSize:'14px', color:'var(--tx2)', marginBottom:'18px', lineHeight:'1.5'}}>
-                    "{c.introduction || '팀워크를 소중히 여기는 팀원입니다.'}"
-                  </div>
-
-                  {/* 매칭 인사이트 섹션 */}
-                  <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
-                    <div style={{background:'rgba(255,255,255,0.03)', padding:'12px 16px', borderRadius:'12px', border:'1px dashed var(--brd2)'}}>
-                      <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
-                        <span style={{fontSize:'11px', fontWeight:'900', color:'var(--ac)'}}>TIME MATCH</span>
-                        <div style={{flex:1, height:'1px', background:'var(--brd2)'}}></div>
-                      </div>
-                      <p style={{fontSize:'13px', fontWeight:'600', color:'var(--tx)'}}>
-                        🎯 {c.overlapText}
-                      </p>
                     </div>
-
-                    <div style={{background:'rgba(255,255,255,0.03)', padding:'12px 16px', borderRadius:'12px', border:'1px dashed var(--brd2)'}}>
-                      <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
-                        <span style={{fontSize:'11px', fontWeight:'900', color:'var(--ac)'}}>INTEREST MATCH</span>
-                        <div style={{flex:1, height:'1px', background:'var(--brd2)'}}></div>
-                      </div>
-                      <div style={{display:'flex', gap:'6px', flexWrap:'wrap'}}>
-                        {/* 공통 태그는 강조색 */}
-                        {c.commonTags && c.commonTags.map(t => (
-                          <span key={t} className="tag green" style={{fontSize:'11px', padding:'4px 10px', border:'1.5px solid var(--ac)'}}>🔥 {t}</span>
-                        ))}
-                        {/* 일반 태그는 회색 (너무 많지 않게 7개까지만) */}
-                        {c.tags && c.tags.filter(t => !c.commonTags.includes(t)).slice(0, 7).map(t => (
-                          <span key={t} className="tag gray" style={{fontSize:'11px', padding:'4px 10px'}}>#{t}</span>
-                        ))}
-                      </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '11px', color: 'var(--tx3)', border: '1px solid var(--brd2)' }}>
-                      <span>🎓 학년 기반 정량 산출 ({c.grade || 1}학년) · ⭐ 동료 평가 신뢰 지수</span>
-                      <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>* 공모전 수상·참여 증빙 인증 시스템 v2.0 오픈 예정</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 오른쪽: 점수 및 액션 */}
-                <div style={{ borderLeft:'1px solid var(--brd)', paddingLeft:'24px', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', gap:'20px' }}>
-                    <div style={{fontSize:'11px', fontWeight:'800', color:'var(--tx3)', marginBottom:'4px', letterSpacing:'1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'}}>
-                      MATCH SCORE
-                      <span data-tooltip-id="main-tooltip" data-tooltip-content="🎯 가용시간 4축 정량 매칭 엔진: 시간표(40점) + 직무·기술(30점) + 경험(20점) + 신뢰(10점)" style={{cursor:'help', background:'var(--card2)', color:'var(--tx2)', width:'14px', height:'14px', borderRadius:'50%', fontSize:'10px', display:'inline-flex', alignItems:'center', justifyContent:'center'}}>?</span>
-                    </div>
-                    <div style={{fontSize:'48px', fontWeight:'950', color:'var(--ac)', lineHeight:'1', marginBottom:'8px'}}>{c.totalScore}</div>
                     
-                    {/* 🎯 4축 정량 지표 세부 현황 */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%', marginBottom: '14px', background: 'var(--card2)', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--brd2)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
-                        <span>⏱️ 시간표</span>
-                        <b style={{ color: 'var(--ac)' }}>{c.timeScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/40</span></b>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
-                        <span>🏷️ 직무·기술</span>
-                        <b style={{ color: '#00E5FF' }}>{c.tagScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/30</span></b>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
-                        <span>🎓 경험치</span>
-                        <b style={{ color: '#a29bfe' }}>{c.expScore || (c.grade ? Math.min(20, c.grade * 3) : 10)}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/20</span></b>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
-                        <span>⭐ 신뢰도</span>
-                        <b style={{ color: '#FFB800' }}>{c.relScore || (c.averageRating ? Math.round(c.averageRating * 2) : 8)}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/10</span></b>
-                      </div>
-                    </div>
-
-                    <div style={{width:'100%', background:'var(--card2)', height:'6px', borderRadius:'4px', overflow:'hidden', marginBottom:'4px'}}>
-                       <div style={{width:`${c.totalScore}%`, background:'var(--ac)', height:'100%', borderRadius:'4px'}}></div>
-                    </div>
-                    <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'var(--tx3)'}}>
-                       <span>0</span>
-                       <span>100</span>
+                    {/* 요일별 겹치는 시간대 직관적 블록 뱃지 */}
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {pills.length > 0 ? pills.map(p => (
+                        <span 
+                          key={p.day} 
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            color: 'var(--ac)',
+                            background: 'var(--ac-dim)',
+                            border: '1px solid var(--ac-brd)',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></span>
+                          {p.text}
+                        </span>
+                      )) : (
+                        <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>가용 시간대 비교 중</span>
+                      )}
                     </div>
                   </div>
-                  <div style={{display:'flex', flexDirection:'column', gap:'8px', width:'100%'}}>
-                    <button className="btn-prim" style={{width:'100%', padding:'12px', borderRadius:'10px', fontSize:'14px', fontWeight:'800'}} onClick={() => openModal(c.id, c.name, c.totalScore)}>팀원 요청하기</button>
-                    <button className="btn-ghost" style={{width:'100%', padding:'10px', fontSize:'12px'}} onClick={() => navigate(`/profile-detail`, { 
-                      state: { 
-                        author: c.name, 
-                        role: c.role, 
-                        major: c.major, 
-                        grade: c.grade,
-                        receiverId: c.id,
-                        timeScore: c.timeScore,
-                        tagScore: c.tagScore,
-                        expScore: c.expScore,
-                        relScore: c.relScore,
-                        totalScore: c.totalScore,
-                        overlapText: c.overlapText,
-                        tags: c.tags,
-                        commonTags: c.commonTags
-                      } 
-                    })}>상세 프로필 보기</button>
+
+                  {/* 🏷️ INTEREST MATCH 태그 */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {c.commonTags && c.commonTags.map(t => (
+                      <span key={t} className="tag green" style={{ fontSize: '11px', padding: '3px 8px', border: '1.5px solid var(--ac)' }}>🔥 {t}</span>
+                    ))}
+                    {c.tags && c.tags.filter(t => !c.commonTags?.includes(t)).slice(0, 5).map(t => (
+                      <span key={t} className="tag gray" style={{ fontSize: '11px', padding: '3px 8px' }}>#{t}</span>
+                    ))}
+                  </div>
+
+                  {/* 하단 액션 버튼 */}
+                  <div style={{ display: 'flex', gap: '10px', marginTop: 'auto', paddingTop: '6px' }}>
+                    <button 
+                      className="btn-ghost" 
+                      style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: '700' }} 
+                      onClick={() => navigate(`/profile-detail`, { 
+                        state: { 
+                          author: c.name, 
+                          role: c.role, 
+                          major: c.major, 
+                          grade: c.grade,
+                          receiverId: c.id,
+                          timeScore: c.timeScore,
+                          tagScore: c.tagScore,
+                          expScore: c.expScore,
+                          relScore: c.relScore,
+                          totalScore: c.totalScore,
+                          overlapText: c.overlapText,
+                          overlapSlots: c.overlapSlots,
+                          tags: c.tags,
+                          commonTags: c.commonTags
+                        } 
+                      })}
+                    >
+                      상세 프로필 보기
+                    </button>
+                    <button 
+                      className="btn-prim" 
+                      style={{ flex: 1, padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '800' }} 
+                      onClick={() => openModal(c.id, c.name, c.totalScore)}
+                    >
+                      팀원 요청하기
+                    </button>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
