@@ -588,7 +588,7 @@ function ProjectListPage() {
             gap: '8px'
           }}
         >
-          <span>📦 지난 공모전 (AI 기출 분석)</span>
+          <span>📦 지난 공모전</span>
           <span style={{
             background: activeTab === 'EXPIRED' ? 'rgba(245, 158, 11, 0.3)' : 'var(--card2)',
             padding: '2px 8px',
@@ -621,7 +621,7 @@ function ProjectListPage() {
         </button>
       </div>
 
-      {/* 지난 공모전 아카이브 가이드 배너 */}
+      {/* 지난 공모전 안내 배너 */}
       {activeTab === 'EXPIRED' && (
         <div style={{
           maxWidth: '820px',
@@ -639,9 +639,9 @@ function ProjectListPage() {
         }}>
           <span style={{ fontSize: '22px' }}>💡</span>
           <div>
-            <b style={{ color: 'var(--orange)' }}>공식 접수가 종료된 지난 공모전 아카이브입니다.</b>
+            <b style={{ color: 'var(--orange)' }}>접수가 마감된 지난 공모전 목록입니다.</b>
             <div style={{ marginTop: '2px' }}>
-              공모전 상세 페이지에서 <b>AI 완전 분석 리포트</b>와 <b>출제 심사기준·공략법</b>을 열람하여 차기 공모전 준비 및 프로젝트 포트폴리오 스터디에 자유롭게 활용하실 수 있습니다.
+              공모전 상세 페이지에서 <b>AI 요강 심층 분석 리포트</b>와 <b>심사 기준·준비 전략</b>을 열람하여 차기 공모전 준비 및 프로젝트 스터디에 자유롭게 활용하실 수 있습니다.
             </div>
           </div>
         </div>

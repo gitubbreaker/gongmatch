@@ -144,7 +144,7 @@ function S5Candidates() {
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg)', color: 'var(--tx2)' }}>
         <div style={{textAlign:'center'}}>
           <div className="spin" style={{width:'30px', height:'30px', border:'3px solid var(--brd)', borderTopColor:'var(--ac)', borderRadius:'50%', margin:'0 auto 15px'}}></div>
-          최적의 팀원 궁합을 계산하는 중...
+          최적의 팀원 매칭 점수를 계산하는 중...
         </div>
       </div>
     );

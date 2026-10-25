@@ -161,7 +161,7 @@ function ContestDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    // 실시간 DB에서 선택한 대회 정보를 가져오는 척 (실제로는 ProjectListPage에서 받아온 ID 사용)
+    // 실시간 DB에서 선택한 대회 정보 조회
     api.get('/api/projects').then(res => {
       const found = res.data.find(p => p.id.toString() === id);
       if(found) setProject(found);
@@ -407,7 +407,7 @@ function ContestDetailPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
                 <span style={{ fontSize: '28px' }}>🤖</span>
                 <div>
-                  <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'white', margin: '0 0 4px' }}>AI 공모전 완전 분석 리포트</h3>
+                  <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'white', margin: '0 0 4px' }}>AI 공모전 심층 분석 리포트</h3>
                   <p style={{ fontSize: '13px', color: '#888899', margin: 0 }}>GongMatch AI 엔진이 모집 요강 원문과 주최사 데이터를 심층 분석한 결과입니다.</p>
                 </div>
               </div>
@@ -544,7 +544,7 @@ function ContestDetailPage() {
                         </div>
                         <div style={{textAlign: 'right'}}>
                           <div style={{color:'var(--ac)', fontWeight:'950', fontSize: '24px', letterSpacing: '-1px'}}>{u.totalScore || 70}점</div>
-                          <div style={{fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', marginTop: '2px'}}>매칭 찰떡!</div>
+                          <div style={{fontSize: '11px', fontWeight: '800', color: 'var(--ac)', marginTop: '2px'}}>매칭 적합</div>
                         </div>
                       </div>
 
