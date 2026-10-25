@@ -283,31 +283,63 @@ function S7Accept() {
               </div>
 
               <div style={{ borderTop: '1px solid var(--brd)', paddingTop: '24px', marginBottom: '32px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '16px' }}>매칭 점수 상세</div>
+                <div style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>🎯 4축 정량 매칭 점수 상세</span>
+                  <span style={{ fontSize: '11px', color: 'var(--ac)' }}>정량 알고리즘 연동</span>
+                </div>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
-                  <div style={{ width: '60px', fontSize: '13px', color: 'var(--tx2)' }}>가용시간</div>
-                  <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${(recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.timeScore || 0) * 2}%`, height: '100%', background: 'var(--ac)' }}></div>
-                  </div>
-                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.timeScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
-                </div>
+                {(() => {
+                  const rec = recommendations.find(r => r.id === getOtherPerson(activeChat)?.id);
+                  const timeScore = rec?.timeScore || 0;
+                  const tagScore = rec?.tagScore || 0;
+                  const expScore = rec?.expScore || (rec?.grade ? Math.min(20, rec.grade * 3) : 10);
+                  const relScore = rec?.relScore || (rec?.averageRating ? Math.round(rec.averageRating * 2) : 8);
+                  const total = rec?.totalScore || (timeScore + tagScore + expScore + relScore);
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
-                  <div style={{ width: '60px', fontSize: '13px', color: 'var(--tx2)' }}>관심사</div>
-                  <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${(recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.tagScore || 0) * 2}%`, height: '100%', background: 'var(--ac)' }}></div>
-                  </div>
-                  <div style={{ width: '40px', fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.tagScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/50</span></div>
-                </div>
+                  return (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
+                        <div style={{ width: '65px', fontSize: '12px', color: 'var(--tx2)' }}>⏱️ 시간표</div>
+                        <div style={{ flex: 1, background: 'var(--card2)', height: '7px', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, (timeScore / 40) * 100)}%`, height: '100%', background: 'var(--ac)' }}></div>
+                        </div>
+                        <div style={{ width: '45px', fontSize: '12px', fontWeight: '800', textAlign: 'right' }}>{timeScore}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/40</span></div>
+                      </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ width: '60px', fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>총 점수</div>
-                  <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.totalScore || 0}%`, height: '100%', background: 'var(--ac)' }}></div>
-                  </div>
-                  <div style={{ width: '40px', fontSize: '14px', fontWeight: '900', color: 'var(--ac)', textAlign: 'right' }}>{recommendations.find(r => r.id === getOtherPerson(activeChat)?.id)?.totalScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400', fontSize: '12px' }}>/100</span></div>
-                </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
+                        <div style={{ width: '65px', fontSize: '12px', color: 'var(--tx2)' }}>🏷️ 직무·기술</div>
+                        <div style={{ flex: 1, background: 'var(--card2)', height: '7px', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, (tagScore / 30) * 100)}%`, height: '100%', background: '#00E5FF' }}></div>
+                        </div>
+                        <div style={{ width: '45px', fontSize: '12px', fontWeight: '800', textAlign: 'right' }}>{tagScore}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/30</span></div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
+                        <div style={{ width: '65px', fontSize: '12px', color: 'var(--tx2)' }}>🎓 경험치</div>
+                        <div style={{ flex: 1, background: 'var(--card2)', height: '7px', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, (expScore / 20) * 100)}%`, height: '100%', background: '#a29bfe' }}></div>
+                        </div>
+                        <div style={{ width: '45px', fontSize: '12px', fontWeight: '800', textAlign: 'right' }}>{expScore}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/20</span></div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+                        <div style={{ width: '65px', fontSize: '12px', color: 'var(--tx2)' }}>⭐ 신뢰도</div>
+                        <div style={{ flex: 1, background: 'var(--card2)', height: '7px', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, (relScore / 10) * 100)}%`, height: '100%', background: '#FFB800' }}></div>
+                        </div>
+                        <div style={{ width: '45px', fontSize: '12px', fontWeight: '800', textAlign: 'right' }}>{relScore}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/10</span></div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingTop: '8px', borderTop: '1px dashed var(--brd)' }}>
+                        <div style={{ width: '65px', fontSize: '13px', fontWeight: '900', color: 'var(--tx)' }}>종합 합계</div>
+                        <div style={{ flex: 1, background: 'var(--card2)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, total)}%`, height: '100%', background: 'var(--ac)' }}></div>
+                        </div>
+                        <div style={{ width: '45px', fontSize: '14px', fontWeight: '900', color: 'var(--ac)', textAlign: 'right' }}>{total}<span style={{ color: 'var(--tx3)', fontWeight: '400', fontSize: '11px' }}>/100</span></div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {activeChat.status === 'ACCEPTED' ? (() => {

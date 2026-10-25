@@ -120,15 +120,20 @@ function ContestDetailPage() {
       result = result.filter(u => roleFilter.some(rf => matchesRole(u.role, rf)));
     }
 
-    // 2. 스마트 매칭 정렬 (우선순위 기반 정렬로 전환하여 후보자 실종 버그 해결)
+    // 2. 스마트 매칭 4축 정량 정렬
     result.sort((a, b) => {
-      if (timeMatchPriority) {
+      if (timeMatchPriority && !tagMatchPriority) {
+        // 시간표 우선 선택 시 시간 점수(40점 만점) 높은 순
         const timeDiff = (b.timeScore || 0) - (a.timeScore || 0);
         if (timeDiff !== 0) return timeDiff;
-      }
-      if (tagMatchPriority) {
+      } else if (tagMatchPriority && !timeMatchPriority) {
+        // 직무/기술 우선 선택 시 직무 점수(30점 만점) 높은 순
         const tagDiff = (b.tagScore || 0) - (a.tagScore || 0);
         if (tagDiff !== 0) return tagDiff;
+      } else if (timeMatchPriority && tagMatchPriority) {
+        // 둘 다 켜진 경우 시간(40)+직무기술(30) 합산 높은 순
+        const combDiff = ((b.timeScore || 0) + (b.tagScore || 0)) - ((a.timeScore || 0) + (a.tagScore || 0));
+        if (combDiff !== 0) return combDiff;
       }
       if (sortMode === 'recent') {
         const aTime = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
@@ -490,26 +495,32 @@ function ContestDetailPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                   <p style={{ fontSize: '15px', color: 'var(--tx2)', fontWeight: '600' }}>
-                    {sortMode === 'score' 
-                      ? <>매칭 점수가 높은 순서대로 추천합니다 <span style={{fontSize:'12px', color:'var(--tx3)'}}>(알고리즘 반영됨)</span></>
-                      : <>최근에 접속한 활성 사용자 순서대로 표시합니다 <span style={{fontSize:'12px', color:'var(--tx3)'}}>(응답률 ↑)</span></>
+                    {timeMatchPriority && !tagMatchPriority 
+                      ? <>⏱️ <b style={{color:'var(--ac)'}}>가용시간 일치(40점 만점)</b> 우선 정렬 중</>
+                      : tagMatchPriority && !timeMatchPriority
+                      ? <>🏷️ <b style={{color:'#00E5FF'}}>직무·기술 일치(30점 만점)</b> 우선 정렬 중</>
+                      : timeMatchPriority && tagMatchPriority
+                      ? <>⏱️🏷️ <b style={{color:'var(--ac)'}}>가용시간 & 기술스택 우선 정렬</b> 적용 중</>
+                      : sortMode === 'score' 
+                      ? <>🎯 <b>4축 정량 매칭 종합 순위</b> <span style={{fontSize:'12px', color:'var(--tx3)'}}>(시간 40 + 직무 30 + 경험 20 + 신뢰 10)</span></>
+                      : <>⚡ 최근 접속한 활성 사용자 순서대로 표시합니다 <span style={{fontSize:'12px', color:'var(--tx3)'}}>(응답률 ↑)</span></>
                     }
                     {!roleFilter.includes('전체') && <span style={{fontSize:'12px', color:'var(--ac)', marginLeft:'8px'}}>필터: {roleFilter.join(', ')}</span>}
                   </p>
                   <select className="field" value={sortMode} onChange={e => setSortMode(e.target.value)} style={{ padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', border: '1px solid var(--brd2)', background: 'var(--bg)', color: 'var(--tx)' }}>
-                    <option value="score">🔥 매칭 점수 높은 순</option>
+                    <option value="score">🔥 4축 종합 점수순</option>
                     <option value="recent">⚡ 최근 접속 순</option>
                   </select>
                 </div>
 
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px'}}>
                   {filteredCandidates.length > 0 ? filteredCandidates.map(u => (
-                    <div className="user-card" key={u.id}>
-                      <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <div className="user-card" key={u.id} style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems: 'flex-start'}}>
                         <div style={{display:'flex', gap:'16px', alignItems: 'center'}}>
-                          <div style={{width:'56px', height:'56px', background:`var(--bg)`, color: 'var(--ac)', border: `2px solid var(--ac)`, borderRadius:'16px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', fontSize:'20px'}}>{u.name?.charAt(0) || 'U'}</div>
+                          <div style={{width:'52px', height:'52px', background:`var(--bg)`, color: 'var(--ac)', border: `2px solid var(--ac)`, borderRadius:'16px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'900', fontSize:'20px'}}>{u.name?.charAt(0) || 'U'}</div>
                           <div>
-                            <p style={{fontWeight:'900', color: 'var(--tx)', marginBottom: '6px', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                            <p style={{fontWeight:'900', color: 'var(--tx)', marginBottom: '4px', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '4px'}}>
                               {u.name} <span style={{fontSize:'13px'}}>✅</span>
                               <span style={{ 
                                 fontSize: '11px', 
@@ -532,20 +543,53 @@ function ContestDetailPage() {
                           </div>
                         </div>
                         <div style={{textAlign: 'right'}}>
-                          <div style={{color:'var(--ac)', fontWeight:'900', fontSize: '24px', letterSpacing: '-1px'}}>{u.totalScore || 70}점</div>
-                          <div style={{fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', marginTop: '4px'}}>매칭 찰떡!</div>
+                          <div style={{color:'var(--ac)', fontWeight:'950', fontSize: '24px', letterSpacing: '-1px'}}>{u.totalScore || 70}점</div>
+                          <div style={{fontSize: '11px', fontWeight: '800', color: 'var(--tx3)', marginTop: '2px'}}>매칭 찰떡!</div>
+                        </div>
+                      </div>
+
+                      {/* 🎯 4축 정량 지표 세부 현황 뱃지 그리드 */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', margin: '16px 0 12px', background: 'var(--bg2)', padding: '10px 8px', borderRadius: '10px', border: '1px solid var(--brd)' }}>
+                        <div style={{ textAlign: 'center', background: timeMatchPriority ? 'rgba(196,255,0,0.1)' : 'transparent', borderRadius: '6px', padding: '4px 0' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>⏱️ 시간</div>
+                          <div style={{ fontSize: '12px', fontWeight: '800', color: timeMatchPriority ? 'var(--ac)' : 'var(--tx)' }}>{u.timeScore || 0}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/40</span></div>
+                        </div>
+                        <div style={{ textAlign: 'center', background: tagMatchPriority ? 'rgba(0,229,255,0.1)' : 'transparent', borderRadius: '6px', padding: '4px 0' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>🏷️ 직무</div>
+                          <div style={{ fontSize: '12px', fontWeight: '800', color: tagMatchPriority ? '#00E5FF' : 'var(--tx)' }}>{u.tagScore || 0}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/30</span></div>
+                        </div>
+                        <div style={{ textAlign: 'center', borderRadius: '6px', padding: '4px 0' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>🎓 경험</div>
+                          <div style={{ fontSize: '12px', fontWeight: '800', color: '#a29bfe' }}>{u.expScore || 10}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/20</span></div>
+                        </div>
+                        <div style={{ textAlign: 'center', borderRadius: '6px', padding: '4px 0' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--tx3)', marginBottom: '2px' }}>⭐ 신뢰</div>
+                          <div style={{ fontSize: '12px', fontWeight: '800', color: '#FFB800' }}>{u.relScore || 7}<span style={{ fontSize: '9px', color: 'var(--tx3)' }}>/10</span></div>
                         </div>
                       </div>
                       
-                      <div className="progress" style={{ margin: '24px 0 20px', background: 'var(--bg2)' }}><div className="bar" style={{ width: `${u.totalScore || 70}%` }} /></div>
+                      <div className="progress" style={{ margin: '0 0 14px', background: 'var(--bg2)' }}><div className="bar" style={{ width: `${u.totalScore || 70}%` }} /></div>
                       
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', flexWrap: 'wrap' }}>
-                        {(u.tags || ['#IT', '#개발']).map(t => <span key={t} style={{ fontSize: '12px', fontWeight: '700', color: 'var(--tx2)', background: 'var(--bg)', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--brd2)' }}>{t}</span>)}
+                      {/* 가용시간 중복 안내 */}
+                      {u.overlapText && (
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', marginBottom: '12px', background: 'rgba(255,255,255,0.02)', padding: '6px 10px', borderRadius: '6px', border: '1px dashed var(--brd2)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>⏱️</span> <span>{u.overlapText}</span>
+                        </div>
+                      )}
+
+                      {/* 태그 목록 (공통 태그 강조) */}
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap', flex: 1 }}>
+                        {u.commonTags && u.commonTags.map(t => (
+                          <span key={t} style={{ fontSize: '11px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--ac)' }}>🔥 {t}</span>
+                        ))}
+                        {(u.tags || ['#IT', '#개발']).filter(t => !u.commonTags?.includes(t)).slice(0, 5).map(t => (
+                          <span key={t} style={{ fontSize: '11px', fontWeight: '600', color: 'var(--tx2)', background: 'var(--bg)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--brd2)' }}>#{t}</span>
+                        ))}
                       </div>
 
-                      <div style={{ display: 'flex', gap: '12px' }}>
-                        <button onClick={() => navigate('/profile-detail', { state: { author: u.name, role: u.role, major: u.major, grade: u.grade } })} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
-                        <button onClick={() => setReqModal({ open: true, id: u.id, name: u.name })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'14px', borderRadius:'10px', fontSize: '14px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
+                      <div style={{ display: 'flex', gap: '12px', marginTop: 'auto' }}>
+                        <button onClick={() => navigate('/profile-detail', { state: { author: u.name, role: u.role, major: u.major, grade: u.grade } })} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'12px', borderRadius:'10px', fontSize: '13px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
+                        <button onClick={() => setReqModal({ open: true, id: u.id, name: u.name })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'12px', borderRadius:'10px', fontSize: '13px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
                     </div>
                   )) : (

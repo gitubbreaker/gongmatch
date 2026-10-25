@@ -364,20 +364,42 @@ function S5Candidates() {
                           <span key={t} className="tag gray" style={{fontSize:'11px', padding:'4px 10px'}}>#{t}</span>
                         ))}
                       </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '11px', color: 'var(--tx3)', border: '1px solid var(--brd2)' }}>
+                      <span>🎓 학년 기반 정량 산출 ({c.grade || 1}학년) · ⭐ 동료 평가 신뢰 지수</span>
+                      <span style={{ fontSize: '10px', color: 'var(--tx3)' }}>* 공모전 수상·참여 증빙 인증 시스템 v2.0 오픈 예정</span>
                     </div>
                   </div>
                 </div>
 
                 {/* 오른쪽: 점수 및 액션 */}
                 <div style={{ borderLeft:'1px solid var(--brd)', paddingLeft:'24px', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', gap:'20px' }}>
-                  <div style={{textAlign:'center', width:'100%'}}>
                     <div style={{fontSize:'11px', fontWeight:'800', color:'var(--tx3)', marginBottom:'4px', letterSpacing:'1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'}}>
                       MATCH SCORE
-                      <span data-tooltip-id="main-tooltip" data-tooltip-content="매칭 점수 = 시간 일치도(50점) + 관심사 일치도(50점)" style={{cursor:'help', background:'var(--card2)', color:'var(--tx2)', width:'14px', height:'14px', borderRadius:'50%', fontSize:'10px', display:'inline-flex', alignItems:'center', justifyContent:'center'}}>?</span>
+                      <span data-tooltip-id="main-tooltip" data-tooltip-content="🎯 가용시간 4축 정량 매칭 엔진: 시간표(40점) + 직무·기술(30점) + 경험(20점) + 신뢰(10점)" style={{cursor:'help', background:'var(--card2)', color:'var(--tx2)', width:'14px', height:'14px', borderRadius:'50%', fontSize:'10px', display:'inline-flex', alignItems:'center', justifyContent:'center'}}>?</span>
                     </div>
-                    <div style={{fontSize:'48px', fontWeight:'950', color:'var(--ac)', lineHeight:'1', marginBottom:'12px'}}>{c.totalScore}</div>
+                    <div style={{fontSize:'48px', fontWeight:'950', color:'var(--ac)', lineHeight:'1', marginBottom:'8px'}}>{c.totalScore}</div>
                     
-                    <div style={{width:'100%', background:'var(--card2)', height:'8px', borderRadius:'4px', overflow:'hidden', marginBottom:'4px'}}>
+                    {/* 🎯 4축 정량 지표 세부 현황 */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%', marginBottom: '14px', background: 'var(--card2)', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--brd2)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
+                        <span>⏱️ 시간표</span>
+                        <b style={{ color: 'var(--ac)' }}>{c.timeScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/40</span></b>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
+                        <span>🏷️ 직무·기술</span>
+                        <b style={{ color: '#00E5FF' }}>{c.tagScore || 0}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/30</span></b>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
+                        <span>🎓 경험치</span>
+                        <b style={{ color: '#a29bfe' }}>{c.expScore || (c.grade ? Math.min(20, c.grade * 3) : 10)}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/20</span></b>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--tx2)' }}>
+                        <span>⭐ 신뢰도</span>
+                        <b style={{ color: '#FFB800' }}>{c.relScore || (c.averageRating ? Math.round(c.averageRating * 2) : 8)}<span style={{ color: 'var(--tx3)', fontWeight: '400' }}>/10</span></b>
+                      </div>
+                    </div>
+
+                    <div style={{width:'100%', background:'var(--card2)', height:'6px', borderRadius:'4px', overflow:'hidden', marginBottom:'4px'}}>
                        <div style={{width:`${c.totalScore}%`, background:'var(--ac)', height:'100%', borderRadius:'4px'}}></div>
                     </div>
                     <div style={{display:'flex', justifyContent:'space-between', fontSize:'10px', color:'var(--tx3)'}}>

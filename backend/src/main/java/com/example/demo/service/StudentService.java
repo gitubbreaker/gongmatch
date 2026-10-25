@@ -132,16 +132,15 @@ public class StudentService {
                     .map(st -> st.getTag().getName())
                     .collect(Collectors.toSet());
 
-            // 1. 관심사 점수 (0-50점) - 겹치는 태그 1개당 10점, 최대 50점
+            // 🎯 공식 가용시간 4축 정량 매칭 엔진 (시간표 40 + 직무/관심사 30 + 경험 20 + 신뢰 10 = 100점)
+            // 1. 시간표 점수 (최대 40점) - 겹치는 1시간당 8점
+            int overlapHours = calculateOverlapHours(myTimes, otherTimes);
+            int timeScore = Math.min(40, overlapHours * 8);
+
+            // 2. 직무/관심사 점수 (최대 30점) - 일치하는 해시태그 1개당 10점
             long commonTagsContent = (myTagNames == null || otherTagNames == null) ? 0 : 
                     myTagNames.stream().filter(otherTagNames::contains).count();
-            int tagScore = (int) Math.min(50, commonTagsContent * 10);
-
-            // 2. 가용시간 점수 (0-50점) - 겹치는 총 시간(h)당 10점, 최대 50점
-            int overlapHours = calculateOverlapHours(myTimes, otherTimes);
-            int timeScore = Math.min(50, overlapHours * 10);
-
-            // 겹치는 시간 정보 텍스트 생성 (간소화)
+            int tagScore = (int) Math.min(30, commonTagsContent * 10);
 
             // 리뷰 평점 계산
             List<Review> otherReviews = reviewRepository.findAll().stream()
@@ -158,15 +157,30 @@ public class StudentService {
                 averageRating = Math.round(averageRating * 10.0) / 10.0;
             }
 
+            // 3. 경험치 점수 (최대 20점) - 학년(x2) + 공모전참여(x5) + 수상(x10)
+            int expScore = Math.min(20, Math.max(4, (other.getGrade() * 2) + (other.getContestCount() * 5) + (other.getAwardCount() * 10)));
+
+            // 4. 신뢰도 점수 (최대 10점) - 동료 평가 평점(5점 만점 x 2)
+            int relScore = 7; // 신규 유저 기본값 (3.5점 기준)
+            if (averageRating != null && averageRating > 0) {
+                relScore = (int) Math.min(10, Math.round(averageRating * 2));
+            } else if (other.getRating() > 0) {
+                relScore = (int) Math.min(10, Math.round(other.getRating() * 2));
+            }
+
+            int totalScore = Math.min(100, timeScore + tagScore + expScore + relScore);
+
             results.add(RecommendationResponse.builder()
                     .id(other.getId())
                     .name(other.getName())
                     .major(other.getMajor())
                     .grade(other.getGrade())
                     .introduction(other.getIntroduction())
-                    .tagScore(tagScore)
                     .timeScore(timeScore)
-                    .totalScore(tagScore + timeScore)
+                    .tagScore(tagScore)
+                    .expScore(expScore)
+                    .relScore(relScore)
+                    .totalScore(totalScore)
                     .overlapText(getOverlapSummary(myTimes, otherTimes))
                     .tags(new ArrayList<>(otherTagNames))
                     .commonTags(myTagNames.stream().filter(otherTagNames::contains).collect(Collectors.toList()))
@@ -275,6 +289,8 @@ public class StudentService {
         private int totalScore;
         private int timeScore;
         private int tagScore;
+        private int expScore;
+        private int relScore;
         private String overlapText;
         private List<String> tags;
         private List<String> commonTags;
