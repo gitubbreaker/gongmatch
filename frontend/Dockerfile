@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 # 빌드 캐시 강제 무력화 (매번 최신 코드를 명확히 복사하기 위함)
-RUN echo "Cache bust for Prod Server: 2026-10-26 v9-fix-text-wrap-keepall"
+RUN echo "Cache bust for Prod Server: 2026-10-26 v10-uniform-card-tag-heights"
 COPY . .
 RUN npm run build
 EXPOSE 3000

@@ -9,17 +9,21 @@ function getOverlapDetails(overlapText, overlapSlots) {
   const dayHours = {};
   DAYS_ORDER.forEach(d => { dayHours[d] = []; });
 
-  if (Array.isArray(overlapSlots) && overlapSlots.length > 0) {
-    overlapSlots.forEach(slot => {
-      const d = slot.substring(0, 1);
-      const h = parseInt(slot.substring(1), 10);
-      if (dayHours[d] && !isNaN(h)) dayHours[d].push(h);
-    });
-  } else if (overlapText && typeof overlapText === 'string') {
-    const matched = DAYS_ORDER.filter(d => overlapText.includes(d));
-    matched.forEach(d => {
-      dayHours[d] = (d === '토' || d === '일') ? [14, 15, 16] : [18, 19, 20];
-    });
+  const isMismatch = !overlapText || overlapText.includes('불일치') || overlapText.includes('미등록') || overlapText.includes('없음') || overlapText.includes('불가');
+
+  if (!isMismatch) {
+    if (Array.isArray(overlapSlots) && overlapSlots.length > 0) {
+      overlapSlots.forEach(slot => {
+        const d = slot.substring(0, 1);
+        const h = parseInt(slot.substring(1), 10);
+        if (dayHours[d] && !isNaN(h)) dayHours[d].push(h);
+      });
+    } else if (overlapText && typeof overlapText === 'string') {
+      const matched = DAYS_ORDER.filter(d => overlapText.includes(`${d}요일`) || overlapText.includes(`${d},`) || overlapText.includes(`${d} `));
+      matched.forEach(d => {
+        dayHours[d] = (d === '토' || d === '일') ? [14, 15, 16] : [18, 19, 20];
+      });
+    }
   }
 
   const pills = [];
@@ -32,7 +36,7 @@ function getOverlapDetails(overlapText, overlapSlots) {
     }
   });
 
-  return { dayHours, pills };
+  return { dayHours, pills, isMismatch };
 }
 
 function S5Candidates() {
@@ -312,7 +316,7 @@ function S5Candidates() {
             </div>
           ) : (
             filtered.map(c => {
-              const { pills } = getOverlapDetails(c.overlapText, c.overlapSlots);
+              const { pills, isMismatch } = getOverlapDetails(c.overlapText, c.overlapSlots);
               return (
                 <div 
                   key={c.id} 
@@ -331,7 +335,7 @@ function S5Candidates() {
                   }}
                 >
                   {/* 상단: 프로필 아바타 + 기본 정보 + 총점 뱃지 */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', minHeight: '56px' }}>
                     <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                       <div style={{ width: '56px', height: '56px', background: 'var(--ac-dim)', color: 'var(--ac)', fontSize: '20px', fontWeight: '900', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', border: '1px solid var(--ac-brd)' }}>
                         {c.profileImageUrl ? (
@@ -382,8 +386,8 @@ function S5Candidates() {
                     </div>
                   </div>
 
-                  {/* 자기소개 한 줄 */}
-                  <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.4', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {/* 자기소개 한 줄 (높이 38px 균일화) */}
+                  <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.4', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', minHeight: '38px', maxHeight: '38px' }}>
                     "{c.introduction || '팀워크를 소중히 여기며 함께 성장하고 싶은 팀원입니다.'}"
                   </div>
 
@@ -407,18 +411,18 @@ function S5Candidates() {
                     </div>
                   </div>
 
-                  {/* ⏱️ TIME MATCH: 언제 겹치는지 직관적인 요일/시간대 블록 확인 */}
-                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 14px', borderRadius: '12px', border: '1px dashed var(--brd2)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
+                  {/* ⏱️ TIME MATCH: 언제 겹치는지 직관적인 요일/시간대 블록 확인 (높이 70px 균일화) */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '12px', border: '1px dashed var(--brd2)', height: '70px', minHeight: '70px', maxHeight: '70px', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', whiteSpace: 'nowrap' }}>
                       <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--ac)' }}>⏱️ TIME MATCH</span>
                       <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--tx)' }}>
-                        🎯 {c.overlapText || '상호 가용시간 매칭'}
+                        🎯 {c.overlapText || '상호 가용시간 불일치'}
                       </span>
                     </div>
                     
                     {/* 요일별 겹치는 시간대 직관적 블록 뱃지 */}
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {pills.length > 0 ? pills.map(p => (
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', overflow: 'hidden', height: '26px' }}>
+                      {(!isMismatch && pills.length > 0) ? pills.slice(0, 3).map(p => (
                         <span 
                           key={p.day} 
                           style={{
@@ -431,24 +435,25 @@ function S5Candidates() {
                             borderRadius: '6px',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px'
+                            gap: '4px',
+                            whiteSpace: 'nowrap'
                           }}
                         >
                           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></span>
                           {p.text}
                         </span>
                       )) : (
-                        <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>가용 시간대 비교 중</span>
+                        <span style={{ fontSize: '11px', color: 'var(--tx3)', fontStyle: 'italic', paddingTop: '3px' }}>상호 겹치는 공강 시간 없음 (일정 조율 필요)</span>
                       )}
                     </div>
                   </div>
 
-                  {/* 🏷️ INTEREST MATCH 태그 */}
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {/* 🏷️ INTEREST MATCH 태그 (높이 56px 고정 슬롯으로 높낮이 완벽 정렬) */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignContent: 'flex-start', height: '56px', minHeight: '56px', maxHeight: '56px', overflow: 'hidden' }}>
                     {c.commonTags && c.commonTags.map(t => (
                       <span key={t} className="tag green" style={{ fontSize: '11px', padding: '3px 8px', border: '1.5px solid var(--ac)' }}>🔥 {t}</span>
                     ))}
-                    {c.tags && c.tags.filter(t => !c.commonTags?.includes(t)).slice(0, 5).map(t => (
+                    {c.tags && c.tags.filter(t => !c.commonTags?.includes(t)).slice(0, 6).map(t => (
                       <span key={t} className="tag gray" style={{ fontSize: '11px', padding: '3px 8px' }}>#{t}</span>
                     ))}
                   </div>

@@ -23,17 +23,21 @@ function getOverlapDetails(overlapText, overlapSlots) {
   const dayHours = {};
   DAYS_ORDER.forEach(d => { dayHours[d] = []; });
 
-  if (Array.isArray(overlapSlots) && overlapSlots.length > 0) {
-    overlapSlots.forEach(slot => {
-      const d = slot.substring(0, 1);
-      const h = parseInt(slot.substring(1), 10);
-      if (dayHours[d] && !isNaN(h)) dayHours[d].push(h);
-    });
-  } else if (overlapText && typeof overlapText === 'string') {
-    const matched = DAYS_ORDER.filter(d => overlapText.includes(d));
-    matched.forEach(d => {
-      dayHours[d] = (d === '토' || d === '일') ? [14, 15, 16] : [18, 19, 20];
-    });
+  const isMismatch = !overlapText || overlapText.includes('불일치') || overlapText.includes('미등록') || overlapText.includes('없음') || overlapText.includes('불가');
+
+  if (!isMismatch) {
+    if (Array.isArray(overlapSlots) && overlapSlots.length > 0) {
+      overlapSlots.forEach(slot => {
+        const d = slot.substring(0, 1);
+        const h = parseInt(slot.substring(1), 10);
+        if (dayHours[d] && !isNaN(h)) dayHours[d].push(h);
+      });
+    } else if (overlapText && typeof overlapText === 'string') {
+      const matched = DAYS_ORDER.filter(d => overlapText.includes(`${d}요일`) || overlapText.includes(`${d},`) || overlapText.includes(`${d} `));
+      matched.forEach(d => {
+        dayHours[d] = (d === '토' || d === '일') ? [14, 15, 16] : [18, 19, 20];
+      });
+    }
   }
 
   const pills = [];
@@ -46,7 +50,7 @@ function getOverlapDetails(overlapText, overlapSlots) {
     }
   });
 
-  return { dayHours, pills };
+  return { dayHours, pills, isMismatch };
 }
 
 function ContestDetailPage() {
@@ -625,30 +629,40 @@ function ContestDetailPage() {
                       
                       <div className="progress" style={{ margin: '0 0 14px', background: 'var(--bg2)' }}><div className="bar" style={{ width: `${u.totalScore || 70}%` }} /></div>
                       
-                      {/* 가용시간 중복 안내 및 요일별 블록 뱃지 */}
-                      {u.overlapText && (
-                        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', marginBottom: '12px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed var(--brd2)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', whiteSpace: 'nowrap' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--ac)' }}>⏱️ TIME MATCH</span>
-                            <span style={{ fontSize: '11px', color: 'var(--tx)', fontWeight: '700' }}>{u.overlapText}</span>
-                          </div>
-                          {/* 요일/시간대 직관적 블록 뱃지 */}
-                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                            {getOverlapDetails(u.overlapText, u.overlapSlots).pills.map(p => (
-                              <span key={p.day} style={{ fontSize: '10px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
-                                🟢 {p.text}
-                              </span>
-                            ))}
-                          </div>
+                      {/* 가용시간 중복 안내 및 요일별 블록 뱃지 (높이 균일화 고정) */}
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', marginBottom: '12px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed var(--brd2)', height: '66px', minHeight: '66px', maxHeight: '66px', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--ac)' }}>⏱️ TIME MATCH</span>
+                          <span style={{ fontSize: '11px', color: 'var(--tx)', fontWeight: '700' }}>{u.overlapText || '상호 가용시간 불일치'}</span>
                         </div>
-                      )}
+                        {/* 요일/시간대 직관적 블록 뱃지 */}
+                        {(() => {
+                          const details = getOverlapDetails(u.overlapText, u.overlapSlots);
+                          if (!details.isMismatch && details.pills.length > 0) {
+                            return (
+                              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', overflow: 'hidden', height: '24px' }}>
+                                {details.pills.slice(0, 3).map(p => (
+                                  <span key={p.day} style={{ fontSize: '10px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+                                    🟢 {p.text}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          }
+                          return (
+                            <div style={{ fontSize: '11px', color: 'var(--tx3)', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              상호 겹치는 공강 시간 없음 (일정 조율 필요)
+                            </div>
+                          );
+                        })()}
+                      </div>
 
-                      {/* 태그 목록 (공통 태그 강조) */}
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap', flex: 1 }}>
+                      {/* 태그 목록 (공통 태그 강조, 높이 56px 고정 슬롯으로 높낮이 완벽 정렬) */}
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap', alignContent: 'flex-start', height: '56px', minHeight: '56px', maxHeight: '56px', overflow: 'hidden' }}>
                         {u.commonTags && u.commonTags.map(t => (
                           <span key={t} style={{ fontSize: '11px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--ac)' }}>🔥 {t}</span>
                         ))}
-                        {(u.tags || ['#IT', '#개발']).filter(t => !u.commonTags?.includes(t)).slice(0, 5).map(t => (
+                        {(u.tags || ['#IT', '#개발']).filter(t => !u.commonTags?.includes(t)).slice(0, 6).map(t => (
                           <span key={t} style={{ fontSize: '11px', fontWeight: '600', color: 'var(--tx2)', background: 'var(--bg)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--brd2)' }}>#{t}</span>
                         ))}
                       </div>
