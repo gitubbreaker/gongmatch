@@ -6,11 +6,43 @@ const NOTICES_DATA = [
     id: 1,
     quarter: 'Q4',
     quarterLabel: '2026 4분기',
-    version: 'v3.0 Final',
-    date: '2026.10.13',
+    version: 'v3.5 Final',
+    date: '2026.10.26',
     tag: '최종 릴리즈',
     tagColor: 'var(--ac)',
     tagBg: 'var(--ac-dim)',
+    title: '🎯 가용시간 4축 정량 매칭 엔진(40+30+20+10) 전방위 통합 및 공모전 라이프사이클 생태계 완성',
+    targetRoute: '/candidates',
+    buttonText: '스마트 매칭 & 팀원 찾기(S5) 바로가기 ↗',
+    summary: '시간표(40)+직무·기술(30)+경험(20)+신뢰(10)의 단일 4축 정량 매칭 엔진을 플랫폼 전 화면에 일원화하고, 접수 중/지난 공모전 라이프사이클 분리 및 대회 매칭룸 실시간 스마트 정렬 엔진을 완성했습니다.',
+    details: [
+      {
+        heading: '가용시간 4축 정량 매칭 엔진(40+30+20+10) 전방위 통합',
+        text: '백엔드(StudentService, MatchingService) 및 프론트엔드(S4 매칭룸, S5 팀원 찾기, S6 프로필, S7 수락함) 전반의 매칭 점수를 시간표(40점) + 직무·기술(30점) + 경험치(20점) + 신뢰도(10점) = 100점 단일 공식으로 완벽 일원화하여 알고리즘 투명성과 신뢰성을 극대화했습니다.'
+      },
+      {
+        heading: 'S4 공모전 라이프사이클(접수 중 vs 지난 공모전) 탭 분리 및 D-Day 인텔리전스',
+        text: '마감된 공모전으로 인한 헛걸음을 방지하기 위해 [🔥 접수 중인 공모전]과 [📦 지난 공모전 (AI 기출 분석)] 탭을 명확히 분리하고, 지난 공모전 진입 시 경고 배너 및 [🎓 스터디 / 차기 팀 모집] 자동 전환 파이프라인을 구축했습니다.'
+      },
+      {
+        heading: '대회 전용 매칭룸 스마트 정렬 토글 및 4축 브레이크다운 뱃지',
+        text: '공모전 상세 매칭룸에서 [⏱️ 가용시간 우선(40점)], [🏷️ 기술스택 우선(30점)] 실시간 스마트 정렬 토글을 제공하며, 각 후보자 카드마다 4축 세부 지표, 겹치는 가용시간 텍스트(🎯), 공통 해시태그(🔥)를 시각화했습니다.'
+      },
+      {
+        heading: '실시간 DB 동적 학과 필터 및 증빙 시스템 v2.0 사전 예고',
+        text: 'S5 소속 학과 필터를 MariaDB 등록 회원 기준 실시간 동적 추출(Dynamic Extraction)로 연동하고, 사용자 혼란을 방지하기 위해 [공모전 수상·참여 증빙 인증 시스템 v2.0 오픈 예정] 안내를 정직하게 명시했습니다.'
+      }
+    ]
+  },
+  {
+    id: 2,
+    quarter: 'Q4',
+    quarterLabel: '2026 4분기',
+    version: 'v3.0 Final',
+    date: '2026.10.13',
+    tag: '주요 릴리즈',
+    tagColor: 'var(--green)',
+    tagBg: 'var(--green-dim)',
     title: '🎯 S5-2 팀 모집(팀룸) 라이프사이클 완성 및 전방위 실시간 알림 시스템 구축',
     targetRoute: '/team-rooms',
     buttonText: '팀 모집(팀룸) 대시보드 바로가기 ↗',
@@ -35,7 +67,7 @@ const NOTICES_DATA = [
     ]
   },
   {
-    id: 2,
+    id: 3,
     quarter: 'Q4',
     quarterLabel: '2026 4분기',
     version: 'v2.9',
@@ -63,7 +95,7 @@ const NOTICES_DATA = [
     ]
   },
   {
-    id: 3,
+    id: 4,
     quarter: 'Q3',
     quarterLabel: '2026 3분기',
     version: 'v2.6',
@@ -91,7 +123,7 @@ const NOTICES_DATA = [
     ]
   },
   {
-    id: 4,
+    id: 5,
     quarter: 'Q3',
     quarterLabel: '2026 3분기',
     version: 'v2.4',
@@ -119,7 +151,7 @@ const NOTICES_DATA = [
     ]
   },
   {
-    id: 5,
+    id: 6,
     quarter: 'Q2',
     quarterLabel: '2026 2분기',
     version: 'v2.2',
@@ -147,7 +179,7 @@ const NOTICES_DATA = [
     ]
   },
   {
-    id: 6,
+    id: 7,
     quarter: 'Q2',
     quarterLabel: '2026 2분기',
     version: 'v2.1.5',
@@ -171,7 +203,7 @@ const NOTICES_DATA = [
     ]
   },
   {
-    id: 7,
+    id: 8,
     quarter: 'Q2',
     quarterLabel: '2026 2분기',
     version: 'v2.1',
@@ -254,7 +286,7 @@ function NoticePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div>
               <div style={{ fontSize: '11px', color: 'var(--tx3)', fontWeight: '700' }}>CURRENT VERSION</div>
-              <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--ac)' }}>v3.0 Final</div>
+              <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--ac)' }}>v3.5 Final</div>
             </div>
             <div style={{ width: '1px', height: '24px', background: 'var(--brd2)' }}></div>
             <div>
