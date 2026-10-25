@@ -25,7 +25,15 @@ const Card = styled.div`
 
 function SignupPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ name: '', id: '', pw: '', pwConfirm: '', openChatUrl: '' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    id: '', 
+    pw: '', 
+    pwConfirm: '', 
+    openChatUrl: '',
+    major: 'IT융합응용공학과',
+    grade: 4
+  });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -56,8 +64,8 @@ function SignupPage() {
         loginId: formData.id,
         password: formData.pw,
         openChatUrl: formData.openChatUrl,
-        grade: 4,
-        major: 'IT응용공학과'
+        grade: parseInt(formData.grade) || 4,
+        major: formData.major || 'IT융합응용공학과'
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -95,6 +103,21 @@ function SignupPage() {
             <div>
               <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>이름</label>
               <input className="field" type="text" name="name" placeholder="홍길동" value={formData.name} onChange={handleChange} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>소속 학과</label>
+                <input className="field" type="text" name="major" placeholder="IT융합응용공학과" value={formData.major} onChange={handleChange} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>학년</label>
+                <select className="field" name="grade" value={formData.grade} onChange={handleChange} style={{ background: 'var(--card)', color: 'var(--tx)' }}>
+                  <option value={1}>1학년</option>
+                  <option value={2}>2학년</option>
+                  <option value={3}>3학년</option>
+                  <option value={4}>4학년</option>
+                </select>
+              </div>
             </div>
             <div>
               <label style={{ fontSize: '12px', color: 'var(--tx2)', marginBottom: '6px', display: 'block' }}>아이디 (이메일)</label>

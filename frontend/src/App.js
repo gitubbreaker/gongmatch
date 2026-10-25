@@ -45,19 +45,40 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body.light-mode {
-    --bg:#F7F8FA; --bg2:#FFFFFF; --bg3:#EAECEF;
-    --card:#FFFFFF; --card2:#F2F4F7; --card3:#E8EBF0;
-    --ac:#85B311; --ac2:#719B0D; --ac-dim:rgba(133,179,17,.15); --ac-brd:rgba(133,179,17,.3);
-    --tx:#1D1D21; --tx2:#4A4A57; --tx3:#717185; --tx4:#9E9EA8;
-    --brd:rgba(0,0,0,.08); --brd2:rgba(0,0,0,.12); --brd3:rgba(0,0,0,.18);
-    --red:#E63946; --red-dim:rgba(230,57,70,.1); --red-brd:rgba(230,57,70,.25);
-    --orange:#F77F00; --orange-dim:rgba(247,127,0,.1);
-    --blue:#0077B6; --blue-dim:rgba(0,119,182,.1);
-    --green:#2A9D8F; --green-dim:rgba(42,157,143,.1);
-    --purple:#6D597A; --purple-dim:rgba(109,89,122,.1);
-    --yellow:#E9C46A; --yellow-dim:rgba(233,196,106,.15);
-    --nav-bg: rgba(255,255,255,.9);
-    --tab-bg: rgba(247,248,250,.95);
+    --bg:#F8FAFC; --bg2:#FFFFFF; --bg3:#F1F5F9;
+    --card:#FFFFFF; --card2:#F8FAFC; --card3:#F1F5F9;
+    --ac:#10B981; --ac2:#059669; --ac-dim:rgba(16,185,129,.12); --ac-brd:rgba(16,185,129,.3);
+    --tx:#0F172A; --tx2:#334155; --tx3:#64748B; --tx4:#94A3B8;
+    --brd:rgba(0,0,0,.09); --brd2:rgba(0,0,0,.14); --brd3:rgba(0,0,0,.22);
+    --red:#EF4444; --red-dim:rgba(239,68,68,.1); --red-brd:rgba(239,68,68,.25);
+    --orange:#F97316; --orange-dim:rgba(249,115,22,.1);
+    --blue:#2563EB; --blue-dim:rgba(37,99,235,.1);
+    --green:#10B981; --green-dim:rgba(16,185,129,.1);
+    --purple:#8B5CF6; --purple-dim:rgba(139,92,246,.1);
+    --yellow:#F59E0B; --yellow-dim:rgba(245,158,11,.15);
+    --nav-bg: rgba(255,255,255,.94);
+    --tab-bg: rgba(248,250,252,.96);
+  }
+  body.light-mode .btn-prim {
+    color: #FFFFFF !important;
+    background: #059669;
+  }
+  body.light-mode .btn-prim:hover {
+    background: #047857;
+  }
+  body.light-mode .tabbt.on {
+    background: rgba(16,185,129,0.12);
+    border-color: #10B981;
+    color: #047857;
+    box-shadow: 0 0 10px rgba(16,185,129,0.2);
+  }
+  body.light-mode .livepill {
+    color: #047857;
+    background: rgba(16,185,129,0.12);
+    border-color: rgba(16,185,129,0.3);
+  }
+  body.light-mode .livepill::before {
+    background: #10B981;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }

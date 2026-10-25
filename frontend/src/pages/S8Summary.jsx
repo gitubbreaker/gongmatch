@@ -59,7 +59,35 @@ function S8Summary() {
         </div>
 
         <div className="card2" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <p className="slabel">대화 내용 입력 (텍스트 붙여넣기)</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <p className="slabel" style={{ margin: 0 }}>대화 내용 입력 (텍스트 붙여넣기)</p>
+            <button
+              type="button"
+              onClick={() => {
+                setChatText(`--------------- 2026년 5월 7일 목요일 ---------------
+[김지원] [오후 2:01] 여러분 안녕하세요! 이번 2026 AI 해커톤 대회 준비 회의 언제 할까요?
+[이수현] [오후 2:03] 안녕하세요! 이번주 토요일 오후 2시에 디스코드로 모이는 거 어떠세요?
+[정성원] [오후 2:04] 토요일 2시 좋습니다. 제가 백엔드 Spring Boot API랑 DB 스키마 설계 파트 맡겠습니다.
+[김지원] [오후 2:05] 네! 그럼 제가 기획이랑 발표자료 준비할게요.
+[이수현] [오후 2:06] 저는 프론트엔드 React UI 컴포넌트 개발이랑 Figma 디자인 전담하겠습니다!
+[정성원] [오후 2:08] 토요일 회의 전까지 각자 사전 자료 디스코드에 공유해 두면 더 빠르게 진행될 것 같아요.
+[김지원] [오후 2:09] 좋습니다! 그럼 이번주 토요일(5월 9일) 오후 2시 디스코드 1번 회의실에서 뵙겠습니다!`);
+                showToast('시연용 카카오톡 대화 내용이 입력되었습니다 💡');
+              }}
+              style={{
+                background: 'var(--ac-dim)',
+                color: 'var(--ac)',
+                border: '1px solid var(--ac-brd)',
+                borderRadius: '6px',
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: '800',
+                cursor: 'pointer'
+              }}
+            >
+              💡 시연용 대화 예시 불러오기
+            </button>
+          </div>
           <textarea
             className="field"
             style={{ flex: 1, minHeight: '300px', fontSize: '13px', lineHeight: '1.6', resize: 'vertical' }}

@@ -78,8 +78,8 @@ function ContestDetailPage() {
   const [candidates, setCandidates] = useState([]);
   const [sortMode, setSortMode] = useState('score');
   const [roleFilter, setRoleFilter] = useState(['전체']);
-  const [timeMatchPriority, setTimeMatchPriority] = useState(true);
-  const [tagMatchPriority, setTagMatchPriority] = useState(true);
+  const [timeMatchPriority, setTimeMatchPriority] = useState(false);
+  const [tagMatchPriority, setTagMatchPriority] = useState(false);
 
   // 역할 필터 토글
   const toggleRole = (role) => {
@@ -120,27 +120,23 @@ function ContestDetailPage() {
       result = result.filter(u => roleFilter.some(rf => matchesRole(u.role, rf)));
     }
 
-    // 2. 스마트 매칭 옵션 (실제 필터로 동작)
-    if (timeMatchPriority) {
-      // 가용시간이 겹치는 사람만 표시 (timeScore > 0)
-      result = result.filter(u => (u.timeScore || 0) > 0);
-    }
-    if (tagMatchPriority) {
-      // 기술스택/해시태그가 일치하는 사람만 표시 (tagScore > 0)
-      result = result.filter(u => (u.tagScore || 0) > 0);
-    }
-
-    // 3. 정렬 적용
-    if (sortMode === 'recent') {
-      result.sort((a, b) => {
+    // 2. 스마트 매칭 정렬 (우선순위 기반 정렬로 전환하여 후보자 실종 버그 해결)
+    result.sort((a, b) => {
+      if (timeMatchPriority) {
+        const timeDiff = (b.timeScore || 0) - (a.timeScore || 0);
+        if (timeDiff !== 0) return timeDiff;
+      }
+      if (tagMatchPriority) {
+        const tagDiff = (b.tagScore || 0) - (a.tagScore || 0);
+        if (tagDiff !== 0) return tagDiff;
+      }
+      if (sortMode === 'recent') {
         const aTime = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
         const bTime = b.lastLoginAt ? new Date(b.lastLoginAt).getTime() : 0;
         return bTime - aTime;
-      });
-    } else {
-      // 매칭 점수 높은 순
-      result.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
-    }
+      }
+      return (b.totalScore || 0) - (a.totalScore || 0);
+    });
 
     return result;
   }, [candidates, sortMode, roleFilter, timeMatchPriority, tagMatchPriority]);
@@ -329,7 +325,7 @@ function ContestDetailPage() {
         <div onClick={() => setActiveTab('info')} style={{ padding: '16px 0', fontSize: '18px', fontWeight: '900', color: activeTab === 'info' ? 'var(--ac)' : 'var(--tx3)', cursor: 'pointer', borderBottom: activeTab === 'info' ? '3px solid var(--ac)' : '3px solid transparent' }}>대회 상세정보</div>
         <div onClick={() => setActiveTab('matching')} style={{ padding: '16px 0', fontSize: '18px', fontWeight: '900', color: activeTab === 'matching' ? 'var(--ac)' : 'var(--tx3)', cursor: 'pointer', borderBottom: activeTab === 'matching' ? '3px solid var(--ac)' : '3px solid transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
           대회 전용 매칭룸
-          <span style={{ background: 'var(--ac)', color: 'var(--bg)', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '900' }}>{isJoined ? candidates.length + 1 : candidates.length}명 대기중</span>
+          <span style={{ background: 'var(--ac)', color: 'var(--bg)', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '900' }}>{filteredCandidates.length}명 대기중</span>
         </div>
       </div>
 

@@ -162,7 +162,7 @@ function S5Candidates() {
           <p style={{ fontSize: '24px', fontWeight: '900', letterSpacing:'-0.5px' }}>나와 꼭 맞는 최고의 팀원 후보들</p>
         </div>
         <div style={{ display: 'flex', gap: '32px' }}>
-          <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>매칭 후보군</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--ac)' }}>{candidates.length}<span style={{fontSize:'14px', fontWeight:'500'}}>명</span></div></div>
+          <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>매칭 후보군</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--ac)' }}>{filtered.length}<span style={{fontSize:'14px', fontWeight:'500'}}>명</span></div></div>
           <div style={{width:'1px', height:'40px', background:'var(--brd)', marginTop:'10px'}}></div>
           <div style={{textAlign:'center'}}><div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom:'4px' }}>접수 마감</div><div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--red)' }}>{projectDDay}</div></div>
         </div>

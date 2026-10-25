@@ -185,8 +185,17 @@ function S1Home() {
                 return (
                   <div key={req.requestId} style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--brd)' }}>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)' }}>{otherPerson?.name || '익명'}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>매칭을 기다리고 있습니다</div>
+                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{otherPerson?.name || '익명'}</span>
+                        {req.targetProjectTitle && (
+                          <span style={{ fontSize: '11px', color: 'var(--tx3)', fontWeight: 'normal', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            [{req.targetProjectTitle}]
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>
+                        {req.type === 'sent' ? '내가 보낸 매칭 요청' : '도착한 매칭 요청'}
+                      </div>
                     </div>
                     {req.status === 'ACCEPTED' && <span style={{ fontSize: '11px', background: 'var(--green-dim)', color: 'var(--green)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>수락완료</span>}
                     {req.status === 'PENDING' && req.type === 'sent' && <span style={{ fontSize: '11px', background: 'var(--card2)', border: '1px solid var(--purple)', color: 'var(--purple)', padding: '6px 12px', borderRadius: '20px', fontWeight: '800' }}>응답 대기 중</span>}

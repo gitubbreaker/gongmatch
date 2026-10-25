@@ -6,9 +6,9 @@ import { showToast } from '../App';
 
 const Container = styled.div`
   padding: 40px 8%;
-  background: #0b0c10;
+  background: var(--bg);
   min-height: 100vh;
-  color: #fff;
+  color: var(--tx);
 `;
 
 const Header = styled.div`
@@ -16,13 +16,13 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;
-  h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
-  p { color: #8a8b91; font-size: 16px; }
+  h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; color: var(--tx); }
+  p { color: var(--tx3); font-size: 16px; }
 `;
 
 const CreateBtn = styled.button`
-  background: #c4ff00;
-  color: #0b0c10;
+  background: var(--ac);
+  color: #080F00;
   padding: 15px 25px;
   border-radius: 10px;
   font-weight: bold;
@@ -30,7 +30,7 @@ const CreateBtn = styled.button`
   cursor: pointer;
   border: none;
   transition: all 0.2s;
-  &:hover { background: #b0e600; transform: translateY(-2px); }
+  &:hover { background: var(--ac2); transform: translateY(-2px); }
 `;
 
 const Grid = styled.div`
@@ -40,16 +40,16 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
-  background: #15161d;
+  background: var(--card);
   border-radius: 18px;
   padding: 26px;
-  border: 1px solid #2a2b36;
+  border: 1px solid var(--brd);
   opacity: ${props => props.isClosed ? 0.75 : 1};
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  &:hover { transform: translateY(-4px); border-color: #3d3e4f; }
+  &:hover { transform: translateY(-4px); border-color: var(--brd3); }
 `;
 
 const CardHeader = styled.div`
@@ -57,12 +57,12 @@ const CardHeader = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 14px;
-  h3 { font-size: 20px; font-weight: 700; color: #fff; margin: 0; line-height: 1.4; word-break: keep-all; }
+  h3 { font-size: 20px; font-weight: 700; color: var(--tx); margin: 0; line-height: 1.4; word-break: keep-all; }
 `;
 
 const Badge = styled.span`
-  background: ${props => props.isClosed ? '#2a2b36' : 'rgba(196, 255, 0, 0.1)'};
-  color: ${props => props.isClosed ? '#8a8b91' : '#c4ff00'};
+  background: ${props => props.isClosed ? 'var(--card2)' : 'var(--ac-dim)'};
+  color: ${props => props.isClosed ? 'var(--tx3)' : 'var(--ac)'};
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;

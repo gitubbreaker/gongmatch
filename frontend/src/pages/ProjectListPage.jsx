@@ -488,6 +488,32 @@ function ProjectListPage() {
         </svg>
       </SearchContainer>
 
+      {/* 상단 필터 & 현황 바 (항상 노출되어 필터 해제 불가 버그 원천 방지) */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
+        <p style={{ fontSize: '13px', color: 'var(--tx3)', margin: 0 }}>
+          현재 <b>{filteredProjects.length}건</b>의 IT 프로젝트가 표시 중입니다.
+          <span style={{ marginLeft: '12px', padding: '2px 8px', background: 'var(--ac-dim)', color: 'var(--ac)', borderRadius: '4px', fontSize: '11px', fontWeight: '800' }}>실시간 동기화 완료</span>
+        </p>
+        <button 
+          onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
+          style={{
+            background: showBookmarkedOnly ? 'var(--ac-dim)' : 'var(--card)',
+            color: showBookmarkedOnly ? 'var(--ac)' : 'var(--tx2)',
+            border: showBookmarkedOnly ? '1px solid var(--ac)' : '1px solid var(--brd)',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: '800',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+          {showBookmarkedOnly ? '💖 전체 공고 보기' : '🤍 내가 찜한 공고만 보기'}
+        </button>
+      </div>
+
       {isLoading ? (
         <Grid>
           {[1, 2, 3, 4, 5, 6].map(i => (
@@ -499,39 +525,28 @@ function ProjectListPage() {
           ))}
         </Grid>
       ) : filteredProjects.length === 0 ? (
-        <EmptyState style={{ padding: '60px 20px', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '40px' }}>
+        <EmptyState style={{ padding: '60px 20px', background: 'var(--card2)', borderRadius: '16px', border: '1px dashed var(--brd2)', marginTop: '20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'float 3s ease-in-out infinite' }}>👻</div>
-          <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>해당하는 공고가 없습니다.</h3>
-          <p style={{ fontSize: '14px', color: 'var(--tx3)' }}>필터를 해제하거나 나중에 다시 확인해 주세요.</p>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--tx)', marginBottom: '8px' }}>
+            {showBookmarkedOnly ? '찜한 공고가 없습니다.' : '해당하는 공고가 없습니다.'}
+          </h3>
+          <p style={{ fontSize: '14px', color: 'var(--tx3)', marginBottom: '20px' }}>
+            {showBookmarkedOnly ? '공고 카드의 하트(🤍)를 눌러 찜 목록을 채워보세요!' : '검색어를 변경하거나 필터를 초기화해 보세요.'}
+          </p>
+          <button
+            className="btn-prim"
+            style={{ padding: '10px 24px', fontSize: '13px' }}
+            onClick={() => {
+              setShowBookmarkedOnly(false);
+              setSearchQuery('');
+            }}
+          >
+            전체 공고 보러가기 →
+          </button>
           <style>{`@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }`}</style>
         </EmptyState>
       ) : (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '24px', gap: '16px' }}>
-            <p style={{ fontSize: '13px', color: 'var(--tx3)', margin: 0 }}>
-              현재 <b>{filteredProjects.length}건</b>의 IT 프로젝트가 당신을 기다리고 있습니다.
-              <span style={{ marginLeft: '12px', padding: '2px 8px', background: 'var(--ac-dim)', color: 'var(--ac)', borderRadius: '4px', fontSize: '11px', fontWeight: '800' }}>실시간 동기화 완료</span>
-            </p>
-            <button 
-              onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
-              style={{
-                background: showBookmarkedOnly ? 'var(--ac-dim)' : 'var(--card)',
-                color: showBookmarkedOnly ? 'var(--ac)' : 'var(--tx2)',
-                border: showBookmarkedOnly ? '1px solid var(--ac)' : '1px solid var(--brd)',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: '800',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-              {showBookmarkedOnly ? '💖 전체 공고 보기' : '🤍 내가 찜한 공고만 보기'}
-            </button>
-          </div>
-          <Grid>
+        <Grid>
             {filteredProjects.map(project => {
               const dDay = calculateDDay(project.endDate);
               const isUrgent = dDay === 'D-DAY' || (dDay && dDay.startsWith('D-') && parseInt(dDay.split('-')[1]) <= 7);
@@ -582,7 +597,6 @@ function ProjectListPage() {
               );
             })}
           </Grid>
-        </>
       )}
 
       <Toast $show={toastMsg !== ""}>

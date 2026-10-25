@@ -25,9 +25,10 @@ function S9Review() {
   const [showModal, setShowModal] = useState(false);
   useEffect(() => {
     api.get('/api/reviews/accepted-teams').then(res => {
-      setProjects(res.data || []);
-      if (res.data && res.data.length > 0) {
-        setSelectedProject(res.data[0]);
+      const data = res.data || [];
+      setProjects(data);
+      if (data.length > 0) {
+        setSelectedProject(data[0]);
       }
     }).catch(e => {
       console.error('리뷰 대상 가져오기 실패', e);

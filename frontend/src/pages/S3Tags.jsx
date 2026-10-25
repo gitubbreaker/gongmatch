@@ -25,6 +25,8 @@ function S3Tags() {
   const [chosen, setChosen] = useState(new Set());
   const [intro, setIntro] = useState('');
   const [role, setRole] = useState('');
+  const [major, setMajor] = useState('IT융합응용공학과');
+  const [grade, setGrade] = useState(4);
   const [loading, setLoading] = useState(true);
   const [timeScore, setTimeScore] = useState(0); 
 
@@ -34,10 +36,12 @@ function S3Tags() {
 
   const fetchInitialData = async () => {
     try {
-      // 1. 내 정보(자기소개, 역할) 불러오기
+      // 1. 내 정보(자기소개, 역할, 학과, 학년) 불러오기
       const studentRes = await api.get('/api/students/me');
       if (studentRes.data.introduction) setIntro(studentRes.data.introduction);
       if (studentRes.data.role) setRole(studentRes.data.role);
+      if (studentRes.data.major) setMajor(studentRes.data.major);
+      if (studentRes.data.grade) setGrade(studentRes.data.grade);
 
       // 2. 내 태그 목록 불러오기
       const tagRes = await api.get('/api/tags/me');
@@ -89,10 +93,12 @@ function S3Tags() {
 
       await api.put('/api/tags/me', { tags: tagRequests });
 
-      // 2. 자기소개 및 역할 정보 저장
+      // 2. 자기소개, 역할, 학과, 학년 정보 저장
       await api.patch('/api/students/me', { 
         introduction: intro,
-        role: role
+        role: role,
+        major: major || 'IT융합응용공학과',
+        grade: parseInt(grade) || 4
       });
 
       showToast('프로필이 완성되었어요 🎉');
@@ -178,6 +184,37 @@ function S3Tags() {
                   }}
                 >{opt}</button>
               ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <p className="slabel" style={{color:'var(--ac)'}}>🎓 소속 학과 및 학년</p>
+            <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:'12px'}}>
+              <div>
+                <label style={{fontSize:'11px', color:'var(--tx3)', display:'block', marginBottom:'6px'}}>소속 학과</label>
+                <input
+                  type="text"
+                  className="field"
+                  placeholder="예) IT융합응용공학과"
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
+                  style={{padding:'10px 14px', fontSize:'13px'}}
+                />
+              </div>
+              <div>
+                <label style={{fontSize:'11px', color:'var(--tx3)', display:'block', marginBottom:'6px'}}>학년</label>
+                <select
+                  className="field"
+                  value={grade}
+                  onChange={(e) => setGrade(Number(e.target.value))}
+                  style={{padding:'10px 14px', fontSize:'13px', background:'var(--bg)', color:'var(--tx)'}}
+                >
+                  <option value={1}>1학년</option>
+                  <option value={2}>2학년</option>
+                  <option value={3}>3학년</option>
+                  <option value={4}>4학년</option>
+                </select>
+              </div>
             </div>
           </div>
 

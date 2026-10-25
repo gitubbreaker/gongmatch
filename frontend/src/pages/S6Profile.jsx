@@ -176,7 +176,7 @@ function S6Profile() {
                 <span className="tag" style={{ fontSize: '13px', padding: '5px 13px', fontWeight: '800' }}>매칭 점수 {totalScore}점</span>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--tx3)' }}>
-                {student?.major} · {student?.grade}학년 · {student?.region || '전국'} · 가입 {formatSafeDate(student?.createdAt)}
+                {student?.major || '전공 미설정'} · {student?.grade ? `${student.grade}학년` : '학년 미설정'} · {student?.region || '전국'} · 가입 {formatSafeDate(student?.createdAt, '최근')}
               </p>
             </div>
             <button className="btn-ghost btn-sm" onClick={() => navigate('/candidates')}>후보 목록 탐색 →</button>
