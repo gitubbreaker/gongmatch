@@ -249,10 +249,60 @@ function ContestDetailPage() {
     }
   };
 
+  const isExpired = (() => {
+    if (!project || !project.endDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(project.endDate);
+    end.setHours(0, 0, 0, 0);
+    return end < today;
+  })();
+
+  const handleStartTeamRecruit = () => {
+    if (isExpired) {
+      const proceed = window.confirm(
+        `⚠️ [접수 마감된 공모전 안내]\n\n'${project.title}' 대회는 공식 접수가 마감되었습니다.\n\n사후 프로젝트 진행, 차기 대회 준비, 또는 관련 기술 스터디 목적으로 팀원을 모집하시겠습니까?`
+      );
+      if (!proceed) return;
+    }
+    navigate('/team-rooms', { 
+      state: { 
+        selectedProjectId: project.id, 
+        selectedProjectTitle: project.title,
+        selectedProject: project,
+        isExpiredContest: isExpired
+      } 
+    });
+  };
+
   if(!project) return <div style={{padding: '100px', textAlign: 'center', color: 'var(--tx)'}}>Loading...</div>;
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
+      {/* 🚨 접수 마감된 공모전 안내 배너 */}
+      {isExpired && (
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.08)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: '16px',
+          padding: '18px 24px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px'
+        }}>
+          <span style={{ fontSize: '28px' }}>🚨</span>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--red)', marginBottom: '4px' }}>
+              해당 공모전은 공식 접수가 마감되었습니다 (마감일: {project.endDate})
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>
+              공식 접수 기간은 종료되었으나, 제공되는 <b>AI 공모전 완전 분석 리포트</b>와 <b>출제 인사이트</b>는 차기 대회 공략 및 포트폴리오 스터디 참고용으로 열람하실 수 있습니다.
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ background: 'var(--card)', padding: '40px', borderRadius: '20px', border: '1px solid var(--brd)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
           <div style={{ width: '160px', height: '220px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--brd2)' }}>
@@ -265,7 +315,7 @@ function ContestDetailPage() {
             <h2 style={{fontSize:'32px', fontWeight:'900', color:'var(--tx)', marginBottom:'16px', lineHeight: '1.3'}}>{project.title}</h2>
             <div style={{display:'flex', gap:'20px', color:'var(--tx2)', fontSize:'14px', marginBottom: '16px'}}>
               <span><b style={{color:'var(--tx)', fontWeight:'800'}}>주관:</b> {project.host}</span>
-              <span><b style={{color:'var(--tx)', fontWeight:'800'}}>마감일:</b> <span style={{color:'var(--orange)'}}>{project.endDate}</span></span>
+              <span><b style={{color:'var(--tx)', fontWeight:'800'}}>마감일:</b> <span style={{color: isExpired ? 'var(--red)' : 'var(--orange)', fontWeight: '800'}}>{project.endDate} {isExpired ? '(접수 마감)' : ''}</span></span>
             </div>
             <button onClick={() => window.open(project.officialUrl || project.detailUrl, '_blank')} style={{ background: 'var(--card2)', border: '1px solid var(--brd2)', color: 'var(--tx)', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '800', cursor: 'pointer', transition: '0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }} onMouseOver={e=>e.target.style.background='var(--brd)'} onMouseOut={e=>e.target.style.background='var(--card2)'}>
               {project.officialUrl && !project.officialUrl.includes('wevity.com') ? '🌐 공식 홈페이지 가기' : '🔗 원본 공고 가기'}
@@ -278,15 +328,11 @@ function ContestDetailPage() {
           </button>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button 
-              onClick={() => navigate('/team-rooms', { 
-                state: { 
-                  selectedProjectId: project.id, 
-                  selectedProjectTitle: project.title,
-                  selectedProject: project 
-                } 
-              })} 
+              onClick={handleStartTeamRecruit} 
               style={{
-                background: 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)',
+                background: isExpired 
+                  ? 'linear-gradient(135deg, #475569 0%, #64748B 100%)' 
+                  : 'linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%)',
                 color: '#fff',
                 border: 'none',
                 padding: '18px 24px',
@@ -294,7 +340,7 @@ function ContestDetailPage() {
                 fontSize: '15px',
                 fontWeight: '900',
                 cursor: 'pointer',
-                boxShadow: '0 8px 20px rgba(108, 92, 231, 0.3)',
+                boxShadow: isExpired ? '0 8px 20px rgba(71, 85, 105, 0.25)' : '0 8px 20px rgba(108, 92, 231, 0.3)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -303,11 +349,11 @@ function ContestDetailPage() {
               onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
             >
-              🚀 이 공모전으로 팀 모집하기
+              {isExpired ? '🎓 스터디 / 차기 팀 모집하기' : '🚀 이 공모전으로 팀 모집하기'}
             </button>
             {!isJoined ? (
               <button onClick={handleJoin} className="btn-prim" style={{padding:'18px 28px', borderRadius:'16px', fontSize:'15px', fontWeight:'900', boxShadow: '0 8px 24px rgba(196,255,0,0.25)', transition: 'transform 0.1s'}}>
-                🤝 팀 빌딩 대기실 입장하기
+                {isExpired ? '👀 대기실 인원 열람하기' : '🤝 팀 빌딩 대기실 입장하기'}
               </button>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
@@ -389,6 +435,26 @@ function ContestDetailPage() {
 
       {activeTab === 'matching' && (
         <>
+          {isExpired && (
+            <div style={{
+              background: 'rgba(245, 158, 11, 0.1)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              borderRadius: '14px',
+              padding: '14px 20px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              color: 'var(--orange)',
+              fontSize: '13px'
+            }}>
+              <span style={{ fontSize: '18px' }}>ℹ️</span>
+              <span>
+                <b>대회 공식 접수가 종료되었습니다.</b> 본 매칭룸의 대기자 목록은 스터디 팀 결성 및 차기 대회 준비 참고용으로 제공됩니다.
+              </span>
+            </div>
+          )}
+
           {!isJoined && (
             <div style={{ textAlign: 'center', padding: '80px 0', background: 'var(--card)', borderRadius: '20px', border: '1px dashed var(--brd2)', marginBottom: '40px' }}>
               <div style={{ fontSize: '48px', marginBottom: '20px' }}>🔒</div>

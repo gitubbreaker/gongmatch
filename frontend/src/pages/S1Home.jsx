@@ -116,9 +116,18 @@ function S1Home() {
     .sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
     .slice(0, 3);
     
-  const latestProject = projects.length > 0 
-    ? [...projects].filter(p => !p.title.includes('피우다프로젝트')).sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] 
-    : null;
+  const activeProjects = [...projects]
+    .filter(p => !p.title.includes('피우다프로젝트'))
+    .filter(p => {
+      if (!p.endDate) return true;
+      const end = new Date(p.endDate);
+      end.setHours(23, 59, 59, 999);
+      return end >= new Date();
+    });
+
+  const latestProject = activeProjects.length > 0 
+    ? [...activeProjects].sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] 
+    : (projects.length > 0 ? projects[0] : null);
 
   return (
     <div className="grid-2col">

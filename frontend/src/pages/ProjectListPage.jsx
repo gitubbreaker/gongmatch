@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import api from '../api';
@@ -228,15 +228,15 @@ const DDayBadge = styled.div`
   position: absolute;
   top: 16px;
   left: 16px;
-  background: ${props => props.$isUrgent ? 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)' : 'var(--bg)'};
-  color: ${props => props.$isUrgent ? '#fff' : 'var(--tx)'};
+  background: ${props => props.$isExpired ? 'rgba(239, 68, 68, 0.2)' : props.$isUrgent ? 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)' : 'var(--bg)'};
+  color: ${props => props.$isExpired ? 'var(--red)' : props.$isUrgent ? '#fff' : 'var(--tx)'};
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 900;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 10;
-  border: ${props => props.$isUrgent ? 'none' : '1px solid var(--brd)'};
+  border: ${props => props.$isExpired ? '1px solid rgba(239, 68, 68, 0.4)' : props.$isUrgent ? 'none' : '1px solid var(--brd)'};
 `;
 
 const Toast = styled.div`
@@ -300,6 +300,8 @@ function ProjectListPage() {
   const [timeLeft, setTimeLeft] = useState(0); 
   const [showBanner, setShowBanner] = useState(false);
   const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false); // 찜 필터 상태
+  const [activeTab, setActiveTab] = useState('ACTIVE'); // 'ACTIVE' (접수중), 'EXPIRED' (지난 공모전), 'ALL' (전체)
+  const [sortOrder, setSortOrder] = useState('URGENT'); // 'URGENT' (마감임박순), 'LATEST' (최신등록순)
   const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태
   const [toastMsg, setToastMsg] = useState(""); // 토스트 메시지
 
@@ -308,15 +310,19 @@ function ProjectListPage() {
     setTimeout(() => setToastMsg(""), 3000);
   };
 
-  const calculateDDay = (endDateStr) => {
+  const getProjectDDayNumber = (endDateStr) => {
     if (!endDateStr) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const end = new Date(endDateStr);
     end.setHours(0, 0, 0, 0);
     const diffTime = end - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const calculateDDay = (endDateStr) => {
+    const diffDays = getProjectDDayNumber(endDateStr);
+    if (diffDays === null) return null;
     if (diffDays < 0) return '마감됨';
     if (diffDays === 0) return 'D-DAY';
     return `D-${diffDays}`;
@@ -453,23 +459,68 @@ function ProjectListPage() {
     });
   };
 
-  // 대학생 맞춤 필터링 및 검색 로직
-  const filteredProjects = projects.filter(p => {
-    if (showBookmarkedOnly && !bookmarkedIds.includes(p.id)) return false;
-    
+  // 1. 접수 중 / 지난 공모전 분류
+  const ongoingProjects = useMemo(() => {
+    return projects.filter(p => {
+      const dDayNum = getProjectDDayNumber(p.endDate);
+      return dDayNum === null || dDayNum >= 0;
+    });
+  }, [projects]);
+
+  const expiredProjects = useMemo(() => {
+    return projects.filter(p => {
+      const dDayNum = getProjectDDayNumber(p.endDate);
+      return dDayNum !== null && dDayNum < 0;
+    });
+  }, [projects]);
+
+  // 검색어에 매칭되는 지난 공모전 개수 (사용자 탐색 보조용)
+  const matchedExpiredCount = useMemo(() => {
+    if (!searchQuery.trim()) return 0;
+    const q = searchQuery.toLowerCase();
+    return expiredProjects.filter(p => 
+      p.title?.toLowerCase().includes(q) || p.host?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q)
+    ).length;
+  }, [expiredProjects, searchQuery]);
+
+  // 대학생 맞춤 필터링 및 정렬 로직
+  const filteredProjects = useMemo(() => {
+    let pool = projects;
+    if (activeTab === 'ACTIVE') pool = ongoingProjects;
+    else if (activeTab === 'EXPIRED') pool = expiredProjects;
+
+    if (showBookmarkedOnly) {
+      pool = pool.filter(p => bookmarkedIds.includes(p.id));
+    }
+
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
-      if (!(p.title?.toLowerCase().includes(q) || p.host?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q))) {
-        return false;
-      }
+      pool = pool.filter(p => 
+        p.title?.toLowerCase().includes(q) || p.host?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q)
+      );
     }
-    return true;
-  });
+
+    return [...pool].sort((a, b) => {
+      if (activeTab === 'ACTIVE' && sortOrder === 'URGENT') {
+        const d1 = getProjectDDayNumber(a.endDate);
+        const d2 = getProjectDDayNumber(b.endDate);
+        if (d1 === null && d2 === null) return (b.id || 0) - (a.id || 0);
+        if (d1 === null) return 1;
+        if (d2 === null) return -1;
+        return d1 - d2; // 마감 임박한 순
+      } else if (activeTab === 'EXPIRED') {
+        const d1 = new Date(a.endDate || 0);
+        const d2 = new Date(b.endDate || 0);
+        return d2 - d1; // 최근 마감순
+      } else {
+        return (b.id || 0) - (a.id || 0); // 최신 등록순
+      }
+    });
+  }, [projects, ongoingProjects, expiredProjects, activeTab, sortOrder, showBookmarkedOnly, bookmarkedIds, searchQuery]);
 
   return (
     <Container>
-      {/* 시스템 최적화 실시간 상황판 */}
-
+      {/* 헤더 섹션 */}
       <HeaderSection>
         <Title>실시간 <span>공모전 & 해커톤</span></Title>
         <Subtitle>대학생 여러분을 위한 최신 IT 프로젝트 및 대외활동 정보를 실시간으로 수집합니다.</Subtitle>
@@ -488,21 +539,152 @@ function ProjectListPage() {
         </svg>
       </SearchContainer>
 
-      {/* 상단 필터 & 현황 바 (항상 노출되어 필터 해제 불가 버그 원천 방지) */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
+      {/* 🎯 [핵심] 공모전 수명주기 탭 네비게이션 */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '18px', gap: '10px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setActiveTab('ACTIVE')}
+          style={{
+            background: activeTab === 'ACTIVE' ? 'var(--ac)' : 'var(--card)',
+            color: activeTab === 'ACTIVE' ? '#ffffff' : 'var(--tx2)',
+            border: activeTab === 'ACTIVE' ? '1px solid var(--ac)' : '1px solid var(--brd)',
+            padding: '10px 20px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '800',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: activeTab === 'ACTIVE' ? '0 4px 14px rgba(16,185,129,0.3)' : 'none'
+          }}
+        >
+          <span>🔥 접수 중인 공모전</span>
+          <span style={{
+            background: activeTab === 'ACTIVE' ? 'rgba(255,255,255,0.25)' : 'var(--card2)',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontSize: '11px',
+            fontWeight: '900'
+          }}>
+            {ongoingProjects.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('EXPIRED')}
+          style={{
+            background: activeTab === 'EXPIRED' ? 'rgba(245, 158, 11, 0.15)' : 'var(--card)',
+            color: activeTab === 'EXPIRED' ? 'var(--orange)' : 'var(--tx2)',
+            border: activeTab === 'EXPIRED' ? '1px solid var(--orange)' : '1px solid var(--brd)',
+            padding: '10px 20px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '800',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>📦 지난 공모전 (AI 기출 분석)</span>
+          <span style={{
+            background: activeTab === 'EXPIRED' ? 'rgba(245, 158, 11, 0.3)' : 'var(--card2)',
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontSize: '11px',
+            fontWeight: '900'
+          }}>
+            {expiredProjects.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ALL')}
+          style={{
+            background: activeTab === 'ALL' ? 'var(--ac-dim)' : 'var(--card)',
+            color: activeTab === 'ALL' ? 'var(--ac)' : 'var(--tx2)',
+            border: activeTab === 'ALL' ? '1px solid var(--ac)' : '1px solid var(--brd)',
+            padding: '10px 18px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '800',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>전체 ({projects.length})</span>
+        </button>
+      </div>
+
+      {/* 지난 공모전 아카이브 가이드 배너 */}
+      {activeTab === 'EXPIRED' && (
+        <div style={{
+          maxWidth: '820px',
+          margin: '0 auto 24px auto',
+          background: 'rgba(245, 158, 11, 0.08)',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
+          borderRadius: '14px',
+          padding: '14px 20px',
+          color: 'var(--tx2)',
+          fontSize: '13px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          lineHeight: '1.5'
+        }}>
+          <span style={{ fontSize: '22px' }}>💡</span>
+          <div>
+            <b style={{ color: 'var(--orange)' }}>공식 접수가 종료된 지난 공모전 아카이브입니다.</b>
+            <div style={{ marginTop: '2px' }}>
+              공모전 상세 페이지에서 <b>AI 완전 분석 리포트</b>와 <b>출제 심사기준·공략법</b>을 열람하여 차기 공모전 준비 및 프로젝트 포트폴리오 스터디에 자유롭게 활용하실 수 있습니다.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 상단 필터 & 현황 바 */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '24px', gap: '14px', flexWrap: 'wrap' }}>
         <p style={{ fontSize: '13px', color: 'var(--tx3)', margin: 0 }}>
           현재 <b>{filteredProjects.length}건</b>의 IT 프로젝트가 표시 중입니다.
-          <span style={{ marginLeft: '12px', padding: '2px 8px', background: 'var(--ac-dim)', color: 'var(--ac)', borderRadius: '4px', fontSize: '11px', fontWeight: '800' }}>실시간 동기화 완료</span>
+          <span style={{ marginLeft: '10px', padding: '2px 8px', background: 'var(--ac-dim)', color: 'var(--ac)', borderRadius: '4px', fontSize: '11px', fontWeight: '800' }}>실시간 동기화 완료</span>
         </p>
+
+        {activeTab === 'ACTIVE' && (
+          <button
+            onClick={() => setSortOrder(prev => prev === 'URGENT' ? 'LATEST' : 'URGENT')}
+            style={{
+              background: 'var(--card)',
+              color: 'var(--tx2)',
+              border: '1px solid var(--brd)',
+              padding: '7px 14px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '800',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            {sortOrder === 'URGENT' ? '🔥 마감임박순 정렬 중' : '🕒 최신등록순 정렬 중'}
+          </button>
+        )}
+
         <button 
           onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
           style={{
             background: showBookmarkedOnly ? 'var(--ac-dim)' : 'var(--card)',
             color: showBookmarkedOnly ? 'var(--ac)' : 'var(--tx2)',
             border: showBookmarkedOnly ? '1px solid var(--ac)' : '1px solid var(--brd)',
-            padding: '8px 16px',
+            padding: '7px 14px',
             borderRadius: '8px',
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: '800',
             cursor: 'pointer',
             transition: 'all 0.2s',
@@ -533,12 +715,35 @@ function ProjectListPage() {
           <p style={{ fontSize: '14px', color: 'var(--tx3)', marginBottom: '20px' }}>
             {showBookmarkedOnly ? '공고 카드의 하트(🤍)를 눌러 찜 목록을 채워보세요!' : '검색어를 변경하거나 필터를 초기화해 보세요.'}
           </p>
+
+          {/* 🔍 검색어가 지난 공모전에 존재하는 경우 원클릭 이동 안내 */}
+          {matchedExpiredCount > 0 && activeTab === 'ACTIVE' && (
+            <div style={{ marginBottom: '20px' }}>
+              <button
+                onClick={() => setActiveTab('EXPIRED')}
+                style={{
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid var(--orange)',
+                  color: 'var(--orange)',
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  cursor: 'pointer'
+                }}
+              >
+                📦 지난 공모전 아카이브에서 '{searchQuery}' 관련 대회 {matchedExpiredCount}건 발견! 바로 확인하기 →
+              </button>
+            </div>
+          )}
+
           <button
             className="btn-prim"
             style={{ padding: '10px 24px', fontSize: '13px' }}
             onClick={() => {
               setShowBookmarkedOnly(false);
               setSearchQuery('');
+              setActiveTab('ACTIVE');
             }}
           >
             전체 공고 보러가기 →
@@ -549,13 +754,18 @@ function ProjectListPage() {
         <Grid>
             {filteredProjects.map(project => {
               const dDay = calculateDDay(project.endDate);
+              const isExpired = dDay === '마감됨';
               const isUrgent = dDay === 'D-DAY' || (dDay && dDay.startsWith('D-') && parseInt(dDay.split('-')[1]) <= 7);
               // 원본 공고 링크(officialUrl)를 우선시하고, 없을 경우에만 위비티(detailUrl)로 연결
               const shareUrl = project.officialUrl || project.detailUrl;
 
               return (
                 <ProjectCard key={project.id} onClick={() => handleApply(project.id)}>
-                  {dDay && <DDayBadge $isUrgent={isUrgent}>{dDay === 'D-DAY' ? '🔥 오늘 마감' : dDay}</DDayBadge>}
+                  {dDay && (
+                    <DDayBadge $isUrgent={isUrgent} $isExpired={isExpired}>
+                      {isExpired ? '🚨 접수 마감' : dDay === 'D-DAY' ? '🔥 오늘 마감' : dDay}
+                    </DDayBadge>
+                  )}
                   <BookmarkBtn onClick={(e) => toggleBookmark(e, project.id)}>
                     {bookmarkedIds.includes(project.id) ? '💖' : '🤍'}
                   </BookmarkBtn>

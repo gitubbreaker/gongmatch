@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 # 빌드 캐시 강제 무력화 (매번 최신 코드를 명확히 복사하기 위함)
-RUN echo "Cache bust for Prod Server: 2026-10-26 v2"
+RUN echo "Cache bust for Prod Server: 2026-10-26 v3-contest-lifecycle"
 COPY . .
 RUN npm run build
 EXPOSE 3000

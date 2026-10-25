@@ -202,12 +202,9 @@ const RoleRow = styled.div`
   .remove { background: transparent; border: none; color: #ff4b4b; cursor: pointer; font-size: 18px; font-weight: bold; }
 `;
 
-// 헬퍼: D-Day 안전 계산 (어떤 API 포맷이 와도 D-undefined 방지)
+// 헬퍼: D-Day 안전 계산 (어떤 API 포맷이 와도 D-undefined 방지 및 실시간 로컬 날짜 정합성 보장)
 const getProjectDDay = (p) => {
   if (!p) return null;
-  if (p.dday !== undefined && p.dday !== null) return Number(p.dday);
-  if (p.dDay !== undefined && p.dDay !== null) return Number(p.dDay);
-  if (p.projectDday !== undefined && p.projectDday !== null) return Number(p.projectDday);
   const endStr = p.endDate || p.projectEndDate;
   if (endStr) {
     try {
@@ -216,19 +213,22 @@ const getProjectDDay = (p) => {
       end.setHours(0, 0, 0, 0);
       now.setHours(0, 0, 0, 0);
       const diffDays = Math.round((end - now) / (1000 * 60 * 60 * 24));
-      return isNaN(diffDays) ? null : diffDays;
+      if (!isNaN(diffDays)) return diffDays;
     } catch (e) {
-      return null;
+      // fallback
     }
   }
+  if (p.dday !== undefined && p.dday !== null) return Number(p.dday);
+  if (p.dDay !== undefined && p.dDay !== null) return Number(p.dDay);
+  if (p.projectDday !== undefined && p.projectDday !== null) return Number(p.projectDday);
   return null;
 };
 
 // 헬퍼: D-Day 배지 텍스트 서식
 const formatDDayBadge = (dday) => {
   if (dday === null || dday === undefined || isNaN(dday)) return 'D-Day 미정';
-  if (dday < 0) return '마감';
-  if (dday === 0) return 'D-Day';
+  if (dday < 0) return '🚨 접수 마감';
+  if (dday === 0) return '🔥 D-DAY';
   return `D-${dday}`;
 };
 
@@ -279,19 +279,27 @@ export default function TeamRoomDashboard() {
     fetchProjects();
   }, []);
 
-  // 공모전 선택 핸들러: 선택 시 방 제목을 자동으로 "[공모전명] 팀원 모집"으로 채움 (수정은 언제든 가능)
+  // 공모전 선택 핸들러: 선택 시 방 제목을 자동으로 "[공모전명] 팀원 모집" (마감 대회의 경우 사후 스터디/차기 준비 접두어)으로 채움
   const handleSelectProject = (project) => {
     setSelectedProject(project);
+    const dday = getProjectDDay(project);
+    const isPast = (dday !== null && dday < 0);
     setFormData(prev => ({
       ...prev,
-      title: `[${project.title}] 팀원 모집`
+      title: isPast 
+        ? `[사후 스터디 / 차기 준비: ${project.title}] 팀원 모집` 
+        : `[${project.title}] 팀원 모집`
     }));
   };
 
   // 공모전 선택 취소 핸들러
   const handleDeselectProject = () => {
     const curTitle = formData.title;
-    const defaultTitle = selectedProject ? `[${selectedProject.title}] 팀원 모집` : '';
+    const dday = selectedProject ? getProjectDDay(selectedProject) : null;
+    const isPast = (dday !== null && dday < 0);
+    const defaultTitle = selectedProject 
+      ? (isPast ? `[사후 스터디 / 차기 준비: ${selectedProject.title}] 팀원 모집` : `[${selectedProject.title}] 팀원 모집`) 
+      : '';
     setSelectedProject(null);
     if (curTitle === defaultTitle) {
       setFormData(prev => ({ ...prev, title: '' }));
