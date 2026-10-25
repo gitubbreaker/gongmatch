@@ -134,6 +134,7 @@ const ProjectTitle = styled.h2`
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  word-break: keep-all;
 `;
 
 const InfoRow = styled.div`

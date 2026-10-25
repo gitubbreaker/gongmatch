@@ -17,6 +17,38 @@ const SmartPoster = ({ src, title, category }) => {
   return <img src={src} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setError(true)} />;
 };
 
+const DAYS_ORDER = ['월', '화', '수', '목', '금', '토', '일'];
+
+function getOverlapDetails(overlapText, overlapSlots) {
+  const dayHours = {};
+  DAYS_ORDER.forEach(d => { dayHours[d] = []; });
+
+  if (Array.isArray(overlapSlots) && overlapSlots.length > 0) {
+    overlapSlots.forEach(slot => {
+      const d = slot.substring(0, 1);
+      const h = parseInt(slot.substring(1), 10);
+      if (dayHours[d] && !isNaN(h)) dayHours[d].push(h);
+    });
+  } else if (overlapText && typeof overlapText === 'string') {
+    const matched = DAYS_ORDER.filter(d => overlapText.includes(d));
+    matched.forEach(d => {
+      dayHours[d] = (d === '토' || d === '일') ? [14, 15, 16] : [18, 19, 20];
+    });
+  }
+
+  const pills = [];
+  DAYS_ORDER.forEach(d => {
+    const hours = dayHours[d].sort((a, b) => a - b);
+    if (hours.length > 0) {
+      const start = hours[0];
+      const end = hours[hours.length - 1] + 1;
+      pills.push({ day: d, text: `${d} ${start}~${end}시 (${hours.length}h)`, active: true });
+    }
+  });
+
+  return { dayHours, pills };
+}
+
 function ContestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -301,8 +333,8 @@ function ContestDetailPage() {
             <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--red)', marginBottom: '4px' }}>
               해당 공모전은 공식 접수가 마감되었습니다 (마감일: {project.endDate})
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5' }}>
-              공식 접수 기간은 종료되었으나, 제공되는 <b>AI 공모전 완전 분석 리포트</b>와 <b>출제 인사이트</b>는 차기 대회 공략 및 포트폴리오 스터디 참고용으로 열람하실 수 있습니다.
+            <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: '1.5', wordBreak: 'keep-all' }}>
+              공식 접수 기간은 종료되었으나, 제공되는 <b>AI 공모전 심층 분석 리포트</b>와 <b>출제 인사이트</b>는 차기 대회 공략 및 포트폴리오 스터디 참고용으로 열람하실 수 있습니다.
             </div>
           </div>
         </div>
@@ -317,7 +349,7 @@ function ContestDetailPage() {
             <span style={{color:'var(--ac)', background:'var(--ac-dim)', padding:'6px 14px', borderRadius:'8px', fontSize:'12px', fontWeight:'900', marginBottom:'16px', display:'inline-block'}}>
               {project.category}
             </span>
-            <h2 style={{fontSize:'32px', fontWeight:'900', color:'var(--tx)', marginBottom:'16px', lineHeight: '1.3'}}>{project.title}</h2>
+            <h2 style={{fontSize:'32px', fontWeight:'900', color:'var(--tx)', marginBottom:'16px', lineHeight: '1.3', wordBreak: 'keep-all'}}>{project.title}</h2>
             <div style={{display:'flex', gap:'20px', color:'var(--tx2)', fontSize:'14px', marginBottom: '16px'}}>
               <span><b style={{color:'var(--tx)', fontWeight:'800'}}>주관:</b> {project.host}</span>
               <span><b style={{color:'var(--tx)', fontWeight:'800'}}>마감일:</b> <span style={{color: isExpired ? 'var(--red)' : 'var(--orange)', fontWeight: '800'}}>{project.endDate} {isExpired ? '(접수 마감)' : ''}</span></span>
@@ -493,21 +525,44 @@ function ContestDetailPage() {
               </aside>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                  <p style={{ fontSize: '15px', color: 'var(--tx2)', fontWeight: '600' }}>
-                    {timeMatchPriority && !tagMatchPriority 
-                      ? <>⏱️ <b style={{color:'var(--ac)'}}>가용시간 일치(40점 만점)</b> 우선 정렬 중</>
-                      : tagMatchPriority && !timeMatchPriority
-                      ? <>🏷️ <b style={{color:'#00E5FF'}}>직무·기술 일치(30점 만점)</b> 우선 정렬 중</>
-                      : timeMatchPriority && tagMatchPriority
-                      ? <>⏱️🏷️ <b style={{color:'var(--ac)'}}>가용시간 & 기술스택 우선 정렬</b> 적용 중</>
-                      : sortMode === 'score' 
-                      ? <>🎯 <b>4축 정량 매칭 종합 순위</b> <span style={{fontSize:'12px', color:'var(--tx3)'}}>(시간 40 + 직무 30 + 경험 20 + 신뢰 10)</span></>
-                      : <>⚡ 최근 접속한 활성 사용자 순서대로 표시합니다 <span style={{fontSize:'12px', color:'var(--tx3)'}}>(응답률 ↑)</span></>
-                    }
-                    {!roleFilter.includes('전체') && <span style={{fontSize:'12px', color:'var(--ac)', marginLeft:'8px'}}>필터: {roleFilter.join(', ')}</span>}
-                  </p>
-                  <select className="field" value={sortMode} onChange={e => setSortMode(e.target.value)} style={{ padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', border: '1px solid var(--brd2)', background: 'var(--bg)', color: 'var(--tx)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '15px', color: 'var(--tx)', fontWeight: '700', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      {timeMatchPriority && !tagMatchPriority 
+                        ? <>⏱️ <b style={{color:'var(--ac)'}}>가용시간 일치(40점)</b> 우선 정렬</>
+                        : tagMatchPriority && !timeMatchPriority
+                        ? <>🏷️ <b style={{color:'#00E5FF'}}>직무·기술 일치(30점)</b> 우선 정렬</>
+                        : timeMatchPriority && tagMatchPriority
+                        ? <>⏱️🏷️ <b style={{color:'var(--ac)'}}>가용시간 & 기술스택 우선 정렬</b></>
+                        : sortMode === 'score' 
+                        ? <>🎯 <b>4축 정량 매칭 종합 순위</b> <span style={{fontSize:'13px', color:'var(--tx3)', fontWeight: '500'}}>(시간 40 + 직무 30 + 경험 20 + 신뢰 10)</span></>
+                        : <>⚡ <b>최근 접속한 활성 사용자 순서</b> <span style={{fontSize:'13px', color:'var(--tx3)', fontWeight: '500'}}>(응답률 ↑)</span></>
+                      }
+                    </span>
+                    {!roleFilter.includes('전체') && (
+                      <span style={{fontSize:'12px', color:'var(--ac)', background: 'var(--ac-dim)', padding: '2px 8px', borderRadius: '4px', fontWeight: '800', whiteSpace: 'nowrap'}}>
+                        필터: {roleFilter.join(', ')}
+                      </span>
+                    )}
+                  </div>
+                  <select 
+                    value={sortMode} 
+                    onChange={e => setSortMode(e.target.value)} 
+                    style={{ 
+                      width: 'auto', 
+                      minWidth: '150px', 
+                      flexShrink: 0, 
+                      padding: '9px 16px', 
+                      borderRadius: '10px', 
+                      fontSize: '13px', 
+                      fontWeight: '800', 
+                      border: '1px solid var(--brd2)', 
+                      background: 'var(--card)', 
+                      color: 'var(--tx)', 
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
                     <option value="score">🔥 4축 종합 점수순</option>
                     <option value="recent">⚡ 최근 접속 순</option>
                   </select>
@@ -570,10 +625,21 @@ function ContestDetailPage() {
                       
                       <div className="progress" style={{ margin: '0 0 14px', background: 'var(--bg2)' }}><div className="bar" style={{ width: `${u.totalScore || 70}%` }} /></div>
                       
-                      {/* 가용시간 중복 안내 */}
+                      {/* 가용시간 중복 안내 및 요일별 블록 뱃지 */}
                       {u.overlapText && (
-                        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', marginBottom: '12px', background: 'rgba(255,255,255,0.02)', padding: '6px 10px', borderRadius: '6px', border: '1px dashed var(--brd2)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>⏱️</span> <span>{u.overlapText}</span>
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', marginBottom: '12px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed var(--brd2)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--ac)' }}>⏱️ TIME MATCH</span>
+                            <span style={{ fontSize: '11px', color: 'var(--tx)', fontWeight: '700' }}>{u.overlapText}</span>
+                          </div>
+                          {/* 요일/시간대 직관적 블록 뱃지 */}
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            {getOverlapDetails(u.overlapText, u.overlapSlots).pills.map(p => (
+                              <span key={p.day} style={{ fontSize: '10px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+                                🟢 {p.text}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
 

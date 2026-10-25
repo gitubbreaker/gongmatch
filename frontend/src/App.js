@@ -83,7 +83,7 @@ const GlobalStyle = createGlobalStyle`
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
   html { scroll-behavior: smooth; }
-  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--tx); min-height: 100vh; overflow-x: hidden; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--tx); min-height: 100vh; overflow-x: hidden; word-break: keep-all; }
   a { text-decoration: none; color: inherit; }
   button { font-family: inherit; cursor: pointer; }
   input, textarea, select { font-family: inherit; }
