@@ -3,9 +3,13 @@ package com.example.demo.controller;
 import com.example.demo.entity.Review;
 import com.example.demo.entity.Student;
 import com.example.demo.entity.TeamRequest;
+import com.example.demo.entity.TeamRoom;
+import com.example.demo.entity.TeamRoomMember;
 import com.example.demo.repository.ReviewRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeamRequestRepository;
+import com.example.demo.repository.TeamRoomRepository;
+import com.example.demo.repository.TeamRoomMemberRepository;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -25,26 +29,62 @@ public class ReviewController {
     private final ReviewRepository reviewRepository;
     private final StudentRepository studentRepository;
     private final TeamRequestRepository teamRequestRepository;
+    private final TeamRoomRepository teamRoomRepository;
+    private final TeamRoomMemberRepository teamRoomMemberRepository;
 
     @GetMapping("/accepted-teams")
     public ResponseEntity<List<ProjectTeamDto>> getAcceptedTeams(Authentication auth) {
         String loginId = auth.getName();
         Student me = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId).orElseThrow();
 
+        Map<String, Map<Long, Student>> projectToMembers = new LinkedHashMap<>();
+
+        // 1) 1:1 매칭 수락 건 (TeamRequest)
         List<TeamRequest> acceptedRequests = teamRequestRepository.findAcceptedRequestsByStudent(me);
-        
-        Map<String, List<Student>> projectToMembers = new HashMap<>();
-        
         for (TeamRequest req : acceptedRequests) {
             String projName = req.getTargetProjectTitle() != null ? req.getTargetProjectTitle() : "자유 매칭";
             Student other = req.getSender().getId().equals(me.getId()) ? req.getReceiver() : req.getSender();
-            
-            projectToMembers.computeIfAbsent(projName, k -> new ArrayList<>()).add(other);
+            projectToMembers.computeIfAbsent(projName, k -> new LinkedHashMap<>()).put(other.getId(), other);
+        }
+
+        // 2) 팀 모집방 매칭 건 (TeamRoom - S5-2에서 팀원이 결성된 방)
+        // 2-1) 내가 방장인 경우: 합류한 팀원들에게 후기 작성 가능
+        List<TeamRoom> createdRooms = teamRoomRepository.findByCreatorIdOrderByIdDesc(me.getId());
+        for (TeamRoom room : createdRooms) {
+            List<TeamRoomMember> members = teamRoomMemberRepository.findByTeamRoomId(room.getId());
+            if (!members.isEmpty()) {
+                String projName = room.getTitle() != null ? room.getTitle() : "팀 모집 프로젝트";
+                for (TeamRoomMember m : members) {
+                    if (m.getStudent() != null && !m.getStudent().getId().equals(me.getId())) {
+                        projectToMembers.computeIfAbsent(projName, k -> new LinkedHashMap<>()).put(m.getStudent().getId(), m.getStudent());
+                    }
+                }
+            }
+        }
+
+        // 2-2) 내가 지원자로 합류한 경우: 방장 및 함께 참여한 팀원들에게 후기 작성 가능
+        List<TeamRoomMember> myMemberships = teamRoomMemberRepository.findByStudentIdOrderByIdDesc(me.getId());
+        for (TeamRoomMember membership : myMemberships) {
+            TeamRoom room = membership.getTeamRoom();
+            if (room != null) {
+                String projName = room.getTitle() != null ? room.getTitle() : "팀 모집 프로젝트";
+                // 방장 추가
+                if (room.getCreator() != null && !room.getCreator().getId().equals(me.getId())) {
+                    projectToMembers.computeIfAbsent(projName, k -> new LinkedHashMap<>()).put(room.getCreator().getId(), room.getCreator());
+                }
+                // 다른 팀원들 추가
+                List<TeamRoomMember> roomMembers = teamRoomMemberRepository.findByTeamRoomId(room.getId());
+                for (TeamRoomMember rm : roomMembers) {
+                    if (rm.getStudent() != null && !rm.getStudent().getId().equals(me.getId())) {
+                        projectToMembers.computeIfAbsent(projName, k -> new LinkedHashMap<>()).put(rm.getStudent().getId(), rm.getStudent());
+                    }
+                }
+            }
         }
 
         List<ProjectTeamDto> result = new ArrayList<>();
-        for (Map.Entry<String, List<Student>> entry : projectToMembers.entrySet()) {
-            List<TeamMemberDto> members = entry.getValue().stream().distinct().map(other -> {
+        for (Map.Entry<String, Map<Long, Student>> entry : projectToMembers.entrySet()) {
+            List<TeamMemberDto> members = entry.getValue().values().stream().map(other -> {
                 boolean isReviewed = reviewRepository.existsByReviewerAndRevieweeAndProjectName(me, other, entry.getKey());
                 return TeamMemberDto.builder()
                         .id(other.getId())
@@ -54,11 +94,13 @@ public class ReviewController {
                         .isReviewed(isReviewed)
                         .build();
             }).collect(Collectors.toList());
-            
-            result.add(ProjectTeamDto.builder()
-                    .projectName(entry.getKey())
-                    .members(members)
-                    .build());
+
+            if (!members.isEmpty()) {
+                result.add(ProjectTeamDto.builder()
+                        .projectName(entry.getKey())
+                        .members(members)
+                        .build());
+            }
         }
 
         return ResponseEntity.ok(result);
