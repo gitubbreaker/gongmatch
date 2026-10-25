@@ -20,15 +20,18 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.example.demo.entity.Post;
 import com.example.demo.entity.Comment;
 import com.example.demo.entity.TeamRequest;
 import com.example.demo.entity.Notification;
+import com.example.demo.entity.Review;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.TeamRequestRepository;
 import com.example.demo.repository.NotificationRepository;
+import com.example.demo.repository.ReviewRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -44,10 +47,42 @@ public class DataLoader implements CommandLineRunner {
     private final CommentRepository commentRepository;
     private final TeamRequestRepository teamRequestRepository;
     private final NotificationRepository notificationRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public void run(String... args) throws Exception {
         System.out.println("🌱 샘플 데이터를 점검 및 생성하는 중...");
+
+        // [시연 리셋] 정성원 학생에게 등록된 시연용 매칭 후기 1건 자동 삭제 (클린 시연 상태 복원)
+        try {
+            List<Review> demoReviews = reviewRepository.findAll().stream()
+                    .filter(r -> (r.getProjectName() != null && r.getProjectName().contains("SW기술대상"))
+                            || (r.getReviewText() != null && r.getReviewText().contains("소통이 원활하고 맡은 바를 책임감 있게")))
+                    .collect(Collectors.toList());
+
+            if (!demoReviews.isEmpty()) {
+                for (Review r : demoReviews) {
+                    System.out.println("🗑️ [시연 리셋] 시연용 후기 삭제 완료: " + r.getProjectName() + " (ID: " + r.getId() + ")");
+                    reviewRepository.delete(r);
+                }
+
+                studentRepository.findFirstByName("정성원").ifPresent(student -> {
+                    List<Review> remaining = reviewRepository.findAll().stream()
+                            .filter(rev -> rev.getReviewee().getId().equals(student.getId()))
+                            .collect(Collectors.toList());
+                    if (remaining.isEmpty()) {
+                        student.setRating(4.5f);
+                    } else {
+                        double sum = remaining.stream().mapToDouble(rev -> (rev.getTimeScore() + rev.getCommScore() + rev.getSkillScore() + rev.getMannerScore()) / 4.0).sum();
+                        student.setRating((float) (Math.round((sum / remaining.size()) * 10.0) / 10.0));
+                    }
+                    studentRepository.save(student);
+                    System.out.println("⭐ [시연 리셋] 정성원 학생 평점 재조정 완료");
+                });
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ 시연 리뷰 초기화 중 예외: " + e.getMessage());
+        }
 
         // 1. 공모전 데이터 (이제 크롤러가 전담하므로 하드코딩 샘플 주입은 제거됨)
 

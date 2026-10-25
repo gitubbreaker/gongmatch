@@ -177,6 +177,34 @@ public class ReviewController {
         return ResponseEntity.ok(review);
     }
 
+    @RequestMapping(value = "/demo-reset", method = {RequestMethod.GET, RequestMethod.DELETE})
+    public ResponseEntity<?> resetDemoReview() {
+        List<Review> demoReviews = reviewRepository.findAll().stream()
+                .filter(r -> (r.getProjectName() != null && r.getProjectName().contains("SW기술대상"))
+                        || (r.getReviewText() != null && r.getReviewText().contains("소통이 원활하고 맡은 바를 책임감 있게")))
+                .collect(Collectors.toList());
+
+        int count = demoReviews.size();
+        for (Review r : demoReviews) {
+            reviewRepository.delete(r);
+        }
+
+        studentRepository.findFirstByName("정성원").ifPresent(student -> {
+            List<Review> remaining = reviewRepository.findAll().stream()
+                    .filter(rev -> rev.getReviewee().getId().equals(student.getId()))
+                    .collect(Collectors.toList());
+            if (remaining.isEmpty()) {
+                student.setRating(4.5f);
+            } else {
+                double sum = remaining.stream().mapToDouble(rev -> (rev.getTimeScore() + rev.getCommScore() + rev.getSkillScore() + rev.getMannerScore()) / 4.0).sum();
+                student.setRating((float) (Math.round((sum / remaining.size()) * 10.0) / 10.0));
+            }
+            studentRepository.save(student);
+        });
+
+        return ResponseEntity.ok(Map.of("message", "시연용 후기 " + count + "건 삭제 완료"));
+    }
+
     @Data @Builder
     static class ProjectTeamDto {
         private String projectName;
