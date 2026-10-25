@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/students/seed-test").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/projects", "/api/projects/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tags").permitAll()
+                        .requestMatchers("/api/reviews/demo-reset", "/api/reviews/public/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll() // 업로드된 정적 파일(이미지 등) 누구나 조회 가능
                         .requestMatchers("/error").permitAll()
