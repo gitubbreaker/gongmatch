@@ -142,10 +142,12 @@ function S6Profile() {
     );
   }
 
-  // 매칭 점수 계산 (태그 개수와 시간 개수를 기반으로 임시 계산)
-  const tagScore = Math.min(50, Math.round((tags.length / 10) * 50));
-  const timeScore = Math.min(50, Math.round((times.length / 15) * 50));
-  const totalScore = tagScore + timeScore;
+  // 🎯 공식 4축 정량 지표 점수 산출 (시간 40 + 직무·기술 30 + 경험 20 + 신뢰 10 = 100)
+  const timeScore = Math.min(40, Math.round((times.length / 10) * 40));
+  const tagScore = Math.min(30, Math.round((tags.length / 5) * 30));
+  const expScore = Math.min(20, Math.max(4, ((student?.grade || 1) * 2) + ((student?.contestCount || 0) * 5) + ((student?.awardCount || 0) * 10)));
+  const relScore = student?.rating > 0 ? Math.min(10, Math.round(student.rating * 2)) : 7;
+  const totalScore = Math.min(100, timeScore + tagScore + expScore + relScore);
 
   return (
     <section className="screen on" id="s6" style={{ display: 'grid', gridTemplateColumns: '1fr 310px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
@@ -198,24 +200,36 @@ function S6Profile() {
         </div>
 
         <div className="card">
-          <p className="slabel">매칭 점수 상세</p>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-            <div style={{ flex: '1', background: 'var(--bg2)', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
-              <div style={{ fontSize: '30px', fontWeight: '900', color: 'var(--ac)' }}>{timeScore}<span style={{ fontSize: '13px', color: 'var(--tx3)' }}>/50</span></div>
-              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>가용 시간 점수</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <p className="slabel" style={{ margin: 0 }}>🎯 가용시간 4축 정량 매칭 종합 점수</p>
+            <span style={{ fontSize: '11px', color: 'var(--ac)' }}>정량 알고리즘 연동</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginBottom: '16px' }}>
+            <div style={{ background: 'var(--bg2)', borderRadius: '8px', padding: '12px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: '900', color: 'var(--ac)' }}>{timeScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/40</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>⏱️ 시간표</div>
             </div>
-            <div style={{ flex: '1', background: 'var(--bg2)', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
-              <div style={{ fontSize: '30px', fontWeight: '900', color: 'var(--ac)' }}>{tagScore}<span style={{ fontSize: '13px', color: 'var(--tx3)' }}>/50</span></div>
-              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>관심사 점수</div>
+            <div style={{ background: 'var(--bg2)', borderRadius: '8px', padding: '12px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: '900', color: '#00E5FF' }}>{tagScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/30</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>🏷️ 직무·기술</div>
             </div>
-            <div style={{ flex: '1', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
-              <div style={{ fontSize: '30px', fontWeight: '900', color: 'var(--ac)' }}>{totalScore}<span style={{ fontSize: '13px', color: 'var(--tx3)' }}>/100</span></div>
-              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>총 매칭 점수</div>
+            <div style={{ background: 'var(--bg2)', borderRadius: '8px', padding: '12px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: '900', color: '#a29bfe' }}>{expScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/20</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>🎓 경험치</div>
+            </div>
+            <div style={{ background: 'var(--bg2)', borderRadius: '8px', padding: '12px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: '900', color: '#FFB800' }}>{relScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/10</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '4px' }}>⭐ 신뢰도</div>
+            </div>
+            <div style={{ background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '12px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: '900', color: 'var(--ac)' }}>{totalScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/100</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--ac)', marginTop: '4px', fontWeight: '800' }}>총점</div>
             </div>
           </div>
-          <p style={{ fontSize: '11px', color: 'var(--tx3)', textAlign: 'center' }}>
-            총 <b style={{color:'var(--tx2)'}}>{tags.length}개</b>의 태그와 <b style={{color:'var(--tx2)'}}>{times.length}시간</b>의 가용 시간이 매칭에 반영되고 있습니다.
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--tx3)' }}>
+            <span>등록 태그 {tags.length}개 · 가용 시간 {times.length}블록 · 학년 {student?.grade || 1}학년</span>
+            <span>* 공모전 수상·참여 증빙 인증 시스템 v2.0 오픈 예정</span>
+          </div>
         </div>
 
         <div className="card">
