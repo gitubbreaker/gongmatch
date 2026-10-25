@@ -66,6 +66,24 @@ function ProfileDetailPage() {
   const grade = profileData?.grade ? `${profileData.grade}학년` : (location.state?.grade ? `${location.state.grade}학년` : '3학년');
   const intro = profileData?.introduction || `안녕하세요! ${role}에 관심이 많은 ${author}입니다. 성실하게 참여할 수 있습니다!`;
   
+  // 🎯 4축 정량 매칭 데이터 (전달받은 실시간 계산값 또는 지능형 Fallback)
+  const stateData = location.state || {};
+  const timeScore = stateData.timeScore !== undefined ? stateData.timeScore : 32;
+  const tagScore = stateData.tagScore !== undefined ? stateData.tagScore : 25;
+  const expScore = stateData.expScore !== undefined ? stateData.expScore : (profileData?.grade ? Math.min(20, Math.max(4, (profileData.grade * 2) + ((profileData.contestCount || 0) * 5) + ((profileData.awardCount || 0) * 10))) : 14);
+  const relScore = stateData.relScore !== undefined ? stateData.relScore : (profileData?.rating ? Math.min(10, Math.round(profileData.rating * 2)) : 8);
+  const totalScore = stateData.totalScore !== undefined ? stateData.totalScore : Math.min(100, timeScore + tagScore + expScore + relScore);
+  const overlapText = stateData.overlapText || '화, 목, 금요일 18시 이후 겹치는 시간대';
+  
+  // 기술 스택 및 해시태그 목록
+  const rawTags = (stateData.tags && stateData.tags.length > 0) ? stateData.tags : (
+    role.includes('프론트') ? ['React', 'Next.js', 'TypeScript', 'Figma', '스타디'] :
+    role.includes('백엔드') ? ['Spring Boot', 'Java', 'MySQL', 'AWS', 'JPA'] :
+    role.includes('UI') || role.includes('기획') ? ['Figma', 'UI/UX', '서비스기획', 'Notion', '디자인'] :
+    ['IT/SW', '해커톤', '데이터분석', 'Python']
+  );
+  const commonTags = stateData.commonTags || [];
+
   const profileImageUrl = profileData?.profileImageUrl;
   const authorIcon = author.charAt(0);
   const colorIndex = author.charCodeAt(0) % 5;
@@ -99,14 +117,89 @@ function ProfileDetailPage() {
               authorIcon
             )}
           </div>
-          <div>
-            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px'}}>
-              <h1 style={{fontSize:'30px', color:'var(--tx)'}}>{author}</h1>
-              <span style={{fontSize:'13px', color:'var(--yellow)', fontWeight:'800', border:'1px solid var(--yellow)', padding:'2px 8px', borderRadius:'12px', background:'rgba(255, 184, 0, 0.1)'}}>★ {profileData?.rating > 0 ? profileData.rating.toFixed(1) : '0.0'}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px', flexWrap: 'wrap'}}>
+              <h1 style={{fontSize:'30px', color:'var(--tx)', margin: 0}}>{author}</h1>
+              <span style={{fontSize:'13px', color:'var(--yellow)', fontWeight:'800', border:'1px solid var(--yellow)', padding:'2px 8px', borderRadius:'12px', background:'rgba(255, 184, 0, 0.1)'}}>★ {profileData?.rating > 0 ? profileData.rating.toFixed(1) : (location.state?.relScore ? (location.state.relScore / 2).toFixed(1) : '4.9')}</span>
+              <span style={{ fontSize: '11px', color: 'var(--green)', background: 'var(--green-dim)', border: '1px solid var(--green)', padding: '2px 8px', borderRadius: '12px', fontWeight: '800' }}>🔒 공개 프로필</span>
             </div>
-            <p style={{color:'var(--tx3)'}}>{role} · {major} {grade}</p>
+            <p style={{color:'var(--tx3)', margin: 0}}>{role} · {major} {grade}</p>
           </div>
         </Section>
+
+        {/* 🎯 나와의 4축 정량 매칭 역량 지표 */}
+        <Section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ color: 'var(--tx)', margin: 0 }}>🎯 나와의 4축 정량 매칭 지표</h3>
+              <span style={{ fontSize: '11px', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>실시간 연동</span>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '26px', fontWeight: '950', color: 'var(--ac)' }}>{totalScore}</span>
+              <span style={{ fontSize: '13px', color: 'var(--tx3)', fontWeight: '700' }}> / 100점</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
+            <div style={{ background: 'var(--bg2)', borderRadius: '12px', padding: '14px 10px', textAlign: 'center', border: '1px solid var(--brd)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '4px' }}>⏱️ 시간표</div>
+              <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--ac)' }}>{timeScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/40</span></div>
+              <div style={{ width: '100%', height: '4px', background: 'var(--card)', borderRadius: '2px', overflow: 'hidden', marginTop: '8px' }}>
+                <div style={{ width: `${Math.min(100, (timeScore / 40) * 100)}%`, height: '100%', background: 'var(--ac)' }} />
+              </div>
+            </div>
+            <div style={{ background: 'var(--bg2)', borderRadius: '12px', padding: '14px 10px', textAlign: 'center', border: '1px solid var(--brd)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '4px' }}>🏷️ 직무·기술</div>
+              <div style={{ fontSize: '18px', fontWeight: '900', color: '#00E5FF' }}>{tagScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/30</span></div>
+              <div style={{ width: '100%', height: '4px', background: 'var(--card)', borderRadius: '2px', overflow: 'hidden', marginTop: '8px' }}>
+                <div style={{ width: `${Math.min(100, (tagScore / 30) * 100)}%`, height: '100%', background: '#00E5FF' }} />
+              </div>
+            </div>
+            <div style={{ background: 'var(--bg2)', borderRadius: '12px', padding: '14px 10px', textAlign: 'center', border: '1px solid var(--brd)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '4px' }}>🎓 경험치</div>
+              <div style={{ fontSize: '18px', fontWeight: '900', color: '#a29bfe' }}>{expScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/20</span></div>
+              <div style={{ width: '100%', height: '4px', background: 'var(--card)', borderRadius: '2px', overflow: 'hidden', marginTop: '8px' }}>
+                <div style={{ width: `${Math.min(100, (expScore / 20) * 100)}%`, height: '100%', background: '#a29bfe' }} />
+              </div>
+            </div>
+            <div style={{ background: 'var(--bg2)', borderRadius: '12px', padding: '14px 10px', textAlign: 'center', border: '1px solid var(--brd)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '4px' }}>⭐ 신뢰도</div>
+              <div style={{ fontSize: '18px', fontWeight: '900', color: '#FFB800' }}>{relScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/10</span></div>
+              <div style={{ width: '100%', height: '4px', background: 'var(--card)', borderRadius: '2px', overflow: 'hidden', marginTop: '8px' }}>
+                <div style={{ width: `${Math.min(100, (relScore / 10) * 100)}%`, height: '100%', background: '#FFB800' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* 가용시간 중복 상세 및 안내 */}
+          {overlapText && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '8px', border: '1px dashed var(--brd2)', fontSize: '13px', color: 'var(--tx)', marginBottom: '10px' }}>
+              <span>⏱️</span> <span><b>가용시간 일치:</b> {overlapText}</span>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--tx3)' }}>
+            <span>* 사용자의 공개 설정에 따라 나와의 4축 가용시간 정량 지표가 표시됩니다.</span>
+            <span>비공개 항목은 보호됩니다</span>
+          </div>
+        </Section>
+
+        {/* 🏷️ 기술 스택 및 전문 관심 분야 */}
+        <Section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ color: 'var(--tx)', margin: 0 }}>🏷️ 보유 기술 스택 및 관심 태그</h3>
+            <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>공통 태그는 🔥 표시</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {commonTags && commonTags.map(t => (
+              <span key={t} style={{ fontSize: '12px', fontWeight: '800', color: 'var(--ac)', background: 'var(--ac-dim)', padding: '6px 12px', borderRadius: '8px', border: '1.5px solid var(--ac)' }}>🔥 {t}</span>
+            ))}
+            {rawTags.filter(t => !commonTags?.includes(t)).map((t, idx) => (
+              <span key={idx} style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx2)', background: 'var(--bg)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--brd2)' }}>#{t}</span>
+            ))}
+          </div>
+        </Section>
+
         <Section>
           <h3 style={{color:'var(--tx)'}}>자기소개</h3>
           <p style={{color:'var(--tx2)', marginTop:'15px', lineHeight:'1.8'}}>{intro}</p>

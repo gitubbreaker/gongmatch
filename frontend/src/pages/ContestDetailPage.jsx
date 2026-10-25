@@ -588,7 +588,23 @@ function ContestDetailPage() {
                       </div>
 
                       <div style={{ display: 'flex', gap: '12px', marginTop: 'auto' }}>
-                        <button onClick={() => navigate('/profile-detail', { state: { author: u.name, role: u.role, major: u.major, grade: u.grade } })} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'12px', borderRadius:'10px', fontSize: '13px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
+                        <button onClick={() => navigate('/profile-detail', { 
+                          state: { 
+                            author: u.name, 
+                            role: u.role, 
+                            major: u.major, 
+                            grade: u.grade,
+                            receiverId: u.id,
+                            timeScore: u.timeScore,
+                            tagScore: u.tagScore,
+                            expScore: u.expScore,
+                            relScore: u.relScore,
+                            totalScore: u.totalScore,
+                            overlapText: u.overlapText,
+                            tags: u.tags,
+                            commonTags: u.commonTags
+                          } 
+                        })} style={{flex: 1, background:'var(--bg)', border:'1px solid var(--brd2)', color:'var(--tx)', padding:'12px', borderRadius:'10px', fontSize: '13px', fontWeight: '800', cursor: 'pointer', transition: '0.2s'}} onMouseOver={e=>e.target.style.background='var(--card2)'} onMouseOut={e=>e.target.style.background='var(--bg)'}>프로필 보기</button>
                         <button onClick={() => setReqModal({ open: true, id: u.id, name: u.name })} style={{flex: 1, background:'var(--ac)', color:'var(--bg)', border: 'none', padding:'12px', borderRadius:'10px', fontSize: '13px', fontWeight:'900', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(196,255,0,0.2)'}} onMouseOver={e=>e.target.style.transform='translateY(-2px)'} onMouseOut={e=>e.target.style.transform='translateY(0)'}>팀 합류 제안</button>
                       </div>
                     </div>

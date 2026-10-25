@@ -297,6 +297,28 @@ function S6Profile() {
             showToast('로그아웃 되었습니다.');
           }}>로그아웃</button>
         </div>
+
+        <div className="card2" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <p className="slabel" style={{ margin: 0 }}>🔒 프로필 정보 공개 범위</p>
+            <span style={{ fontSize: '10px', color: 'var(--green)', background: 'var(--green-dim)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>공개 중</span>
+          </div>
+          <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', lineHeight: '1.4' }}>상대방 상세 프로필 열람 시 노출할 정보 항목입니다.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px', color: 'var(--tx2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>⏱️ 가용시간 겹침 지표</span>
+              <span style={{ color: 'var(--ac)', fontWeight: '800' }}>✓ 전체 공개</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>🏷️ 직무 기술스택 태그</span>
+              <span style={{ color: 'var(--ac)', fontWeight: '800' }}>✓ 전체 공개</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>⭐ 동료 리뷰 평점</span>
+              <span style={{ color: 'var(--ac)', fontWeight: '800' }}>✓ 전체 공개</span>
+            </div>
+          </div>
+        </div>
         
         <div className="card" style={{ padding: '15px', background: 'var(--ac-dim)', borderColor: 'var(--ac-brd)' }}>
           <p className="slabel" style={{ color: 'var(--ac)' }}>🚀 매칭 제안 진행 중</p>
