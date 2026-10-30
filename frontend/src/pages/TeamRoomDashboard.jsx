@@ -160,13 +160,81 @@ const AttachedContestBox = styled.div`
 
 const RoleItem = styled.div`
   margin-bottom: 14px;
-  .info { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: #d0d0d5; }
-  .bar-bg { width: 100%; height: 8px; background: #2a2b36; border-radius: 4px; overflow: hidden; display: flex; }
-  .bar-fill { height: 100%; background: ${props => props.isFull ? '#444' : '#c4ff00'}; width: ${props => props.progress}%; }
+  .info { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    font-size: 13px; 
+    margin-bottom: 6px; 
+    color: ${props => props.isFull ? '#9ca3af' : '#e2e8f0'}; 
+  }
+  .role-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .role-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 12px;
+    letter-spacing: -0.2px;
+    background: ${props => props.isFull ? 'rgba(239, 68, 68, 0.15)' : 'rgba(196, 255, 0, 0.12)'};
+    color: ${props => props.isFull ? '#f87171' : '#c4ff00'};
+    border: 1px solid ${props => props.isFull ? 'rgba(239, 68, 68, 0.35)' : 'rgba(196, 255, 0, 0.3)'};
+  }
+  .count-info {
+    font-size: 12px;
+    font-weight: 600;
+    color: ${props => props.isFull ? '#ef4444' : '#94a3b8'};
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .bar-bg { 
+    width: 100%; 
+    height: 8px; 
+    background: #1c1d27; 
+    border-radius: 4px; 
+    overflow: hidden; 
+    display: flex;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .bar-fill { 
+    height: 100%; 
+    background: ${props => props.isFull 
+      ? 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)' 
+      : 'linear-gradient(90deg, #a3e635 0%, #c4ff00 100%)'}; 
+    width: ${props => Math.min(props.progress, 100)}%; 
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    box-shadow: ${props => props.isFull ? '0 0 8px rgba(239, 68, 68, 0.4)' : '0 0 8px rgba(196, 255, 0, 0.3)'};
+  }
   .action { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
-  .join-btn { background: transparent; border: 1px solid #c4ff00; color: #c4ff00; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
-  .join-btn:hover { background: rgba(196,255,0,0.1); }
-  .full-text { color: #8a8b91; font-size: 12px; font-weight: bold; }
+  .join-btn { 
+    background: rgba(196, 255, 0, 0.06); 
+    border: 1px solid #c4ff00; 
+    color: #c4ff00; 
+    padding: 5px 12px; 
+    border-radius: 6px; 
+    font-size: 12px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: all 0.2s;
+    &:hover { background: rgba(196, 255, 0, 0.18); transform: translateY(-1px); }
+  }
+  .full-text { 
+    color: #94a3b8; 
+    font-size: 11px; 
+    font-weight: 600; 
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+  }
 `;
 
 const ModalOverlay = styled.div`
@@ -576,15 +644,30 @@ export default function TeamRoomDashboard() {
                     return (
                       <RoleItem key={role.id} isFull={isFull} progress={(role.currentCount / role.requiredCount) * 100}>
                         <div className="info">
-                          <span>{role.roleName} {isMyRole && <strong style={{ color: '#c4ff00', fontSize: '11px' }}>(내 직무)</strong>}</span>
-                          <span>{role.currentCount} / {role.requiredCount} 명</span>
+                          <div className="role-title">
+                            <span>{role.roleName}</span>
+                            {isMyRole && <strong style={{ color: '#c4ff00', fontSize: '11px' }}>(내 직무)</strong>}
+                            <span className="role-badge">
+                              {isFull ? '🔒 마감' : '✨ 모집 중'}
+                            </span>
+                          </div>
+                          <div className="count-info">
+                            <span>{role.currentCount} / {role.requiredCount} 명</span>
+                          </div>
                         </div>
                         <div className="bar-bg"><div className="bar-fill"></div></div>
-                        {room.status === 'OPEN' && !isFull && !myMembership && !isLeader && (
-                          <div className="action">
-                            <button className="join-btn" onClick={() => handleJoinRoom(room.id, role.roleName)}>지원하기</button>
-                          </div>
-                        )}
+                        <div className="action">
+                          {room.status === 'OPEN' && !isFull && !myMembership && !isLeader && (
+                            <button className="join-btn" onClick={() => handleJoinRoom(room.id, role.roleName)}>
+                              {role.roleName} 지원하기
+                            </button>
+                          )}
+                          {isFull && !isMyRole && (
+                            <span className="full-text">
+                              ✓ 정원 마감 (지원 완료)
+                            </span>
+                          )}
+                        </div>
                       </RoleItem>
                     );
                   })}
