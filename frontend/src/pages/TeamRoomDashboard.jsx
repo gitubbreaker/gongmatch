@@ -166,7 +166,7 @@ const RoleItem = styled.div`
     align-items: center;
     font-size: 13px; 
     margin-bottom: 6px; 
-    color: ${props => props.isFull ? '#9ca3af' : '#e2e8f0'}; 
+    color: ${props => props.isFull ? '#cbd5e1' : '#e2e8f0'}; 
   }
   .role-title {
     display: flex;
@@ -180,14 +180,14 @@ const RoleItem = styled.div`
     padding: 2px 7px;
     border-radius: 12px;
     letter-spacing: -0.2px;
-    background: ${props => props.isFull ? 'rgba(239, 68, 68, 0.15)' : 'rgba(196, 255, 0, 0.12)'};
-    color: ${props => props.isFull ? '#f87171' : '#c4ff00'};
-    border: 1px solid ${props => props.isFull ? 'rgba(239, 68, 68, 0.35)' : 'rgba(196, 255, 0, 0.3)'};
+    background: ${props => props.isFull ? 'rgba(56, 189, 248, 0.15)' : 'rgba(196, 255, 0, 0.12)'};
+    color: ${props => props.isFull ? '#38bdf8' : '#c4ff00'};
+    border: 1px solid ${props => props.isFull ? 'rgba(56, 189, 248, 0.35)' : 'rgba(196, 255, 0, 0.3)'};
   }
   .count-info {
     font-size: 12px;
     font-weight: 600;
-    color: ${props => props.isFull ? '#ef4444' : '#94a3b8'};
+    color: ${props => props.isFull ? '#38bdf8' : '#94a3b8'};
     display: flex;
     align-items: center;
     gap: 4px;
@@ -204,12 +204,12 @@ const RoleItem = styled.div`
   .bar-fill { 
     height: 100%; 
     background: ${props => props.isFull 
-      ? 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)' 
+      ? 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)' 
       : 'linear-gradient(90deg, #a3e635 0%, #c4ff00 100%)'}; 
     width: ${props => Math.min(props.progress, 100)}%; 
     border-radius: 4px;
     transition: width 0.4s ease;
-    box-shadow: ${props => props.isFull ? '0 0 8px rgba(239, 68, 68, 0.4)' : '0 0 8px rgba(196, 255, 0, 0.3)'};
+    box-shadow: ${props => props.isFull ? '0 0 8px rgba(56, 189, 248, 0.35)' : '0 0 8px rgba(196, 255, 0, 0.3)'};
   }
   .action { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
   .join-btn { 
@@ -232,8 +232,10 @@ const RoleItem = styled.div`
     align-items: center;
     gap: 4px;
     padding: 3px 8px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
     border-radius: 4px;
+    color: #7dd3fc;
   }
 `;
 
