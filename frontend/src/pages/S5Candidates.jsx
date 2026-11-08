@@ -481,11 +481,13 @@ function S5Candidates() {
                       style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: '700' }} 
                       onClick={() => navigate(`/profile-detail`, { 
                         state: { 
+                          studentId: c.id,
+                          receiverId: c.id,
                           author: c.name, 
                           role: c.role, 
                           major: c.major, 
                           grade: c.grade,
-                          receiverId: c.id,
+                          profileImageUrl: c.profileImageUrl,
                           timeScore: c.timeScore,
                           tagScore: c.tagScore,
                           expScore: c.expScore,

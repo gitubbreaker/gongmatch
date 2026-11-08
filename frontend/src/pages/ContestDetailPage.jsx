@@ -670,11 +670,13 @@ function ContestDetailPage() {
                       <div style={{ display: 'flex', gap: '12px', marginTop: 'auto' }}>
                         <button onClick={() => navigate('/profile-detail', { 
                           state: { 
+                            studentId: u.id,
+                            receiverId: u.id,
                             author: u.name, 
                             role: u.role, 
                             major: u.major, 
                             grade: u.grade,
-                            receiverId: u.id,
+                            profileImageUrl: u.profileImageUrl,
                             timeScore: u.timeScore,
                             tagScore: u.tagScore,
                             expScore: u.expScore,

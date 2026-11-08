@@ -80,6 +80,16 @@ public class StudentController {
         return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Student> getProfileById(@PathVariable Long id) {
+        Student student = studentService.getStudentById(id);
+        if (student != null) {
+            student.setPassword(null);
+            return ResponseEntity.ok(student);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @PatchMapping("/privacy")
     public ResponseEntity<Student> updatePrivacy(
             Authentication authentication,

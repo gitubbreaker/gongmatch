@@ -139,6 +139,39 @@ public class ReviewController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/public/by-id/{id}")
+    public ResponseEntity<List<PublicReviewDto>> getPublicReviewsById(@PathVariable Long id, Authentication auth) {
+        Student reviewee = studentRepository.findById(id).orElse(null);
+        if (reviewee == null) return ResponseEntity.notFound().build();
+
+        boolean isSelf = auth != null && auth.getName() != null && auth.getName().equals(reviewee.getLoginId());
+        if (!isSelf && Boolean.FALSE.equals(reviewee.getPrivacyRating())) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        List<Review> reviews = reviewRepository.findAll().stream()
+                .filter(r -> r.getReviewee().getId().equals(reviewee.getId()))
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(Collectors.toList());
+        
+        List<PublicReviewDto> dtos = reviews.stream().map(r -> PublicReviewDto.builder()
+                .reviewerName(r.getVisibility().equals("private") ? "익명" : r.getReviewer().getName())
+                .projectName(r.getProjectName())
+                .timeScore(r.getTimeScore())
+                .commScore(r.getCommScore())
+                .skillScore(r.getSkillScore())
+                .mannerScore(r.getMannerScore())
+                .goodTags(r.getGoodTags())
+                .badTags(r.getBadTags())
+                .rematch(r.getRematch())
+                .reviewText(r.getReviewText())
+                .createdAt(r.getCreatedAt())
+                .build()
+        ).collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
     @PostMapping
     public ResponseEntity<?> submitReview(Authentication auth, @RequestBody ReviewSubmitDto dto) {
         String loginId = auth.getName();

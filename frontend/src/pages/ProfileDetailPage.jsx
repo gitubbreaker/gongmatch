@@ -36,7 +36,8 @@ function ProfileDetailPage() {
   const [profileData, setProfileData] = React.useState(null);
   const [publicReviews, setPublicReviews] = React.useState([]);
 
-  // 라우터 state로 넘어온 초기값 (fallback용)
+  // 라우터 state로 넘어온 초기값 (ID 최우선 식별)
+  const targetStudentId = location.state?.studentId || location.state?.receiverId || location.state?.id;
   const authorFromState = location.state?.author || '김지원';
 
   React.useEffect(() => {
@@ -47,8 +48,16 @@ function ProfileDetailPage() {
       setKakaoLink('https://open.kakao.com/o/gQtEJgpi');
     });
 
-    // 상세 프로필 대상자의 실제 데이터 가져오기
-    if (authorFromState) {
+    // 상세 프로필 대상자의 실제 데이터 가져오기 (고유 ID 최우선 조회하여 동명이인 혼선 원천 차단)
+    if (targetStudentId) {
+      api.get(`/api/students/${targetStudentId}`)
+        .then(res => setProfileData(res.data))
+        .catch(e => console.log('프로필을 찾을 수 없습니다.', e));
+        
+      api.get(`/api/reviews/public/by-id/${targetStudentId}`)
+        .then(res => setPublicReviews(res.data))
+        .catch(e => console.log('공개 후기를 가져올 수 없습니다.', e));
+    } else if (authorFromState) {
       api.get(`/api/students/profile/${encodeURIComponent(authorFromState)}`)
         .then(res => setProfileData(res.data))
         .catch(e => console.log('프로필을 찾을 수 없습니다.', e));
@@ -57,7 +66,7 @@ function ProfileDetailPage() {
         .then(res => setPublicReviews(res.data))
         .catch(e => console.log('공개 후기를 가져올 수 없습니다.', e));
     }
-  }, [authorFromState]);
+  }, [targetStudentId, authorFromState]);
 
   // 동적 프로필 정보 (DB 데이터 최우선, 없으면 state, 둘다 없으면 기본값)
   const author = profileData?.name || authorFromState;
@@ -167,7 +176,7 @@ function ProfileDetailPage() {
   );
   const commonTags = stateData.commonTags || [];
 
-  const profileImageUrl = profileData?.profileImageUrl;
+  const profileImageUrl = profileData ? profileData.profileImageUrl : (location.state?.profileImageUrl || null);
   const authorIcon = author.charAt(0);
   const colorIndex = author.charCodeAt(0) % 5;
   const colors = ['#5c7cfa', '#f06595', '#20c997', '#ff922b', '#845ef7'];

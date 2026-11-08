@@ -33,6 +33,9 @@ import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.TeamRequestRepository;
 import com.example.demo.repository.NotificationRepository;
 import com.example.demo.repository.ReviewRepository;
+import com.example.demo.repository.AvailableTimeRepository;
+import com.example.demo.repository.StudentTagRepository;
+import com.example.demo.repository.TeamRoomMemberRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -49,6 +52,9 @@ public class DataLoader implements CommandLineRunner {
     private final TeamRequestRepository teamRequestRepository;
     private final NotificationRepository notificationRepository;
     private final ReviewRepository reviewRepository;
+    private final AvailableTimeRepository availableTimeRepository;
+    private final StudentTagRepository studentTagRepository;
+    private final TeamRoomMemberRepository teamRoomMemberRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -83,6 +89,32 @@ public class DataLoader implements CommandLineRunner {
             }
         } catch (Exception e) {
             System.err.println("⚠️ 시연 리뷰 초기화 중 예외: " + e.getMessage());
+        }
+
+        // [시연 정리] 중복 "정성원" 계정(과거 테스트용으로 남은 sungwon123 등) 자동 정리
+        try {
+            List<Student> duplicateSungwons = studentRepository.findAll().stream()
+                    .filter(s -> "정성원".equals(s.getName()) && !"sungwon3049@naver.com".equals(s.getLoginId()))
+                    .collect(Collectors.toList());
+            for (Student dup : duplicateSungwons) {
+                System.out.println("🧹 [시연 정리] 중복 테스트 계정 정리: " + dup.getLoginId() + " (ID: " + dup.getId() + ")");
+                availableTimeRepository.deleteByStudent(dup);
+                studentTagRepository.deleteByStudent(dup);
+                notificationRepository.findAll().stream()
+                        .filter(n -> n.getReceiver() != null && n.getReceiver().getId().equals(dup.getId()))
+                        .forEach(notificationRepository::delete);
+                teamRequestRepository.findBySender(dup).forEach(teamRequestRepository::delete);
+                teamRequestRepository.findByReceiver(dup).forEach(teamRequestRepository::delete);
+                reviewRepository.findAll().stream()
+                        .filter(r -> (r.getReviewer() != null && r.getReviewer().getId().equals(dup.getId())) 
+                                  || (r.getReviewee() != null && r.getReviewee().getId().equals(dup.getId())))
+                        .forEach(reviewRepository::delete);
+                teamRoomMemberRepository.findByStudentIdOrderByIdDesc(dup.getId()).forEach(teamRoomMemberRepository::delete);
+                studentRepository.delete(dup);
+                System.out.println("✅ 중복 정성원 계정(" + dup.getLoginId() + ") 삭제 완료");
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ 중복 계정 정리 중 예외: " + e.getMessage());
         }
 
         // 1. 공모전 데이터 (이제 크롤러가 전담하므로 하드코딩 샘플 주입은 제거됨)

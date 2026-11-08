@@ -80,6 +80,11 @@ public class StudentService {
         return studentRepository.findFirstByName(name).orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public Student getStudentById(Long id) {
+        return studentRepository.findById(id).orElse(null);
+    }
+
     @Transactional
     public Student updateStudentInfo(String loginId, String introduction, String major, Integer grade, String openChatUrl, String role) {
         Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
