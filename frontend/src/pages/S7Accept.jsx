@@ -230,11 +230,7 @@ function S7Accept() {
                         );
                       })()}
                     </h2>
-                    <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '8px' }}>{getOtherPerson(activeChat)?.major || '학과 미기재'} · 가입 {formatDate(getOtherPerson(activeChat)?.createdAt) || new Date().toLocaleDateString()}</p>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <span style={{ fontSize: '10px', background: 'var(--ac-dim)', color: '#000', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>✓ 학교인증</span>
-                      <span style={{ fontSize: '10px', background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>🏆 대상 수상</span>
-                    </div>
+                    <p style={{ fontSize: '12px', color: 'var(--tx3)', margin: 0 }}>{getOtherPerson(activeChat)?.major || '학과 미기재'} · 가입 {formatDate(getOtherPerson(activeChat)?.createdAt) || new Date().toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
