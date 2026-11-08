@@ -28,7 +28,8 @@ function S3Tags() {
   const [major, setMajor] = useState('IT융합응용공학과');
   const [grade, setGrade] = useState(4);
   const [loading, setLoading] = useState(true);
-  const [timeScore, setTimeScore] = useState(0); 
+  const [timeScore, setTimeScore] = useState(0);
+  const [totalHours, setTotalHours] = useState(0); 
 
   useEffect(() => {
     fetchInitialData();
@@ -66,6 +67,7 @@ function S3Tags() {
             totalHours += 1;
           }
         });
+        setTotalHours(totalHours);
         const calculatedScore = Math.min(50, Math.round((totalHours / 15) * 50));
         setTimeScore(calculatedScore);
       }
@@ -260,26 +262,88 @@ function S3Tags() {
             </div>
           </div>
 
-          <div className="card2">
-            <div style={{display:'flex', alignItems:'center', gap:'6px', marginBottom: '10px'}}>
-              <p className="slabel" style={{marginBottom:0}}>매칭 점수 미리보기</p>
-              <div className="tooltip-icon" title="태그 10개(50점) + 가용시간 15h(50점) = 총 100점 만점으로 계산됩니다." style={{cursor:'help', fontSize:'12px', color:'var(--tx3)', background:'rgba(255,255,255,0.05)', width:'16px', height:'16px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--brd2)'}}>?</div>
-            </div>
-            <div className="sprev" style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
-              <div className="sbox" style={{background:'var(--card)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
-                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{tagScore}</div>
-                <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>관심사 점수</div>
+          {(() => {
+            const roleBonus = role ? 20 : 0;
+            const tagBonus = Math.min(40, chosen.size * 8);
+            const timeBonus = Math.min(40, totalHours * 4);
+            const readinessRate = Math.min(100, roleBonus + tagBonus + timeBonus);
+
+            let statusLabel = '매칭 준비 완료';
+            let statusColor = 'var(--ac)';
+            let statusBg = 'var(--ac-dim)';
+            let statusBrd = 'var(--ac-brd)';
+
+            if (readinessRate < 50) {
+              statusLabel = '보충 권장';
+              statusColor = 'var(--tx3)';
+              statusBg = 'rgba(255,255,255,0.05)';
+              statusBrd = 'var(--brd2)';
+            } else if (readinessRate < 80) {
+              statusLabel = '매칭 가능';
+              statusColor = 'var(--yellow)';
+              statusBg = 'var(--yellow-dim)';
+              statusBrd = 'rgba(245, 158, 11, 0.3)';
+            }
+
+            return (
+              <div className="card2">
+                <div style={{display:'flex', alignItems:'center', justifyContent: 'space-between', marginBottom: '12px'}}>
+                  <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                    <p className="slabel" style={{marginBottom:0}}>📊 프로필 매칭 준비도</p>
+                    <div 
+                      className="tooltip-icon" 
+                      title="팀원과의 실제 시간 겹침(40점) 및 공통 직무/태그 일치(30점) 교집합에 따라 실시간 4축 매칭 점수가 산출됩니다." 
+                      style={{cursor:'help', fontSize:'12px', color:'var(--tx3)', background:'rgba(255,255,255,0.05)', width:'16px', height:'16px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--brd2)'}}
+                    >?</div>
+                  </div>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    color: statusColor,
+                    background: statusBg,
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    border: `1px solid ${statusBrd}`
+                  }}>
+                    {statusLabel}
+                  </span>
+                </div>
+
+                <div className="sprev" style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px'}}>
+                  {/* 1. 관심/직무 태그 수 */}
+                  <div className="sbox" style={{background:'var(--card)', borderRadius:'10px', padding:'12px 6px', textAlign:'center', border:'1px solid var(--brd)'}}>
+                    <div className="snum" style={{fontSize:'24px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>
+                      {chosen.size}<span style={{fontSize:'12px', color:'var(--tx3)', fontWeight:'600'}}>/10</span>
+                    </div>
+                    <div className="slb" style={{fontSize:'11px', color:'var(--tx2)', marginTop:'6px', fontWeight:'600'}}>관심·직무 태그</div>
+                  </div>
+
+                  {/* 2. 주간 가용시간 수 */}
+                  <div className="sbox" style={{background:'var(--card)', borderRadius:'10px', padding:'12px 6px', textAlign:'center', border:'1px solid var(--brd)'}}>
+                    <div className="snum" style={{fontSize:'24px', fontWeight:'900', color:'var(--tx)', lineHeight:'1'}}>
+                      {totalHours}<span style={{fontSize:'12px', color:'var(--tx3)', fontWeight:'600'}}>h</span>
+                    </div>
+                    <div className="slb" style={{fontSize:'11px', color:'var(--tx2)', marginTop:'6px', fontWeight:'600'}}>주간 가용시간</div>
+                  </div>
+
+                  {/* 3. 매칭 시너지 준비율 */}
+                  <div className="sbox" style={{background:'var(--ac-dim)', borderColor:'var(--ac-brd)', borderRadius:'10px', padding:'12px 6px', textAlign:'center', border:'1px solid var(--ac-brd)'}}>
+                    <div className="snum" style={{fontSize:'24px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>
+                      {readinessRate}%
+                    </div>
+                    <div className="slb" style={{fontSize:'11px', color:'var(--ac)', marginTop:'6px', fontWeight:'800'}}>매칭 시너지</div>
+                  </div>
+                </div>
+
+                {/* 하단 동적 4축 매칭 안내 */}
+                <div style={{ marginTop:'12px', padding:'10px 12px', background:'var(--card)', borderRadius:'8px', border:'1px solid var(--brd)' }}>
+                  <p style={{ fontSize:'11px', color:'var(--tx3)', lineHeight:'1.5', margin:0 }}>
+                    💡 <b>실시간 4축 매칭 안내</b>: 공매치의 매칭 점수는 고정 점수가 아니며, 팀원 후보와의 <b>시간 겹침(40점)</b> 및 <b>태그 일치(30점)</b>를 분석하여 실시간 동적으로 계산됩니다.
+                  </p>
+                </div>
               </div>
-              <div className="sbox" style={{background:'var(--card)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
-                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--tx2)', lineHeight:'1'}}>{timeScore}</div>
-                <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>가용시간 점수</div>
-              </div>
-              <div className="sbox" style={{background:'var(--ac-dim)', borderColor:'var(--ac-brd)', borderRadius:'8px', padding:'14px', textAlign:'center', border:'1px solid var(--brd)'}}>
-                <div className="snum" style={{fontSize:'30px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{timeScore + tagScore}</div>
-                <div className="slb" style={{fontSize:'10px', color:'var(--tx3)', marginTop:'4px'}}>예상 총점</div>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
           <div style={{display:'flex', gap:'10px'}}>
             <button className="btn-ghost" style={{flex:1, padding:'12px'}} onClick={() => navigate('/time')}>← 이전</button>
