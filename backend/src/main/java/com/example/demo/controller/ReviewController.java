@@ -107,9 +107,14 @@ public class ReviewController {
     }
 
     @GetMapping("/public/{name}")
-    public ResponseEntity<List<PublicReviewDto>> getPublicReviews(@PathVariable String name) {
+    public ResponseEntity<List<PublicReviewDto>> getPublicReviews(@PathVariable String name, Authentication auth) {
         Student reviewee = studentRepository.findFirstByName(name).orElse(null);
         if (reviewee == null) return ResponseEntity.notFound().build();
+
+        boolean isSelf = auth != null && auth.getName() != null && auth.getName().equals(reviewee.getLoginId());
+        if (!isSelf && Boolean.FALSE.equals(reviewee.getPrivacyRating())) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
 
         List<Review> reviews = reviewRepository.findAll().stream()
                 .filter(r -> r.getReviewee().getId().equals(reviewee.getId()))

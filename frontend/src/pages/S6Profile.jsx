@@ -31,14 +31,18 @@ function S6Profile() {
     }
   });
 
-  const togglePrivacy = (key, label) => {
-    setPrivacySettings(prev => {
-      const nextVal = !prev[key];
-      const updated = { ...prev, [key]: nextVal };
-      localStorage.setItem('gongmatch_privacy_settings', JSON.stringify(updated));
-      showToast(`${label}이(가) '${nextVal ? '전체 공개' : '비공개'}'로 변경되었습니다.`);
-      return updated;
-    });
+  const togglePrivacy = async (key, label) => {
+    const nextVal = !privacySettings[key];
+    const updated = { ...privacySettings, [key]: nextVal };
+    setPrivacySettings(updated);
+    localStorage.setItem('gongmatch_privacy_settings', JSON.stringify(updated));
+    showToast(`${label}이(가) '${nextVal ? '전체 공개' : '비공개'}'로 변경되었습니다.`);
+
+    try {
+      await api.patch('/api/students/privacy', { [key]: nextVal });
+    } catch (err) {
+      console.error('공개 범위 서버 저장 실패:', err);
+    }
   };
 
   useEffect(() => {
@@ -52,6 +56,17 @@ function S6Profile() {
         setStudent(studentRes.data);
         setTags(tagRes.data);
         setTimes(timeRes.data);
+
+        if (studentRes.data) {
+          const s = studentRes.data;
+          const serverPrivacy = {
+            time: s.privacyTime !== undefined && s.privacyTime !== null ? s.privacyTime : true,
+            tags: s.privacyTags !== undefined && s.privacyTags !== null ? s.privacyTags : true,
+            rating: s.privacyRating !== undefined && s.privacyRating !== null ? s.privacyRating : true,
+          };
+          setPrivacySettings(serverPrivacy);
+          localStorage.setItem('gongmatch_privacy_settings', JSON.stringify(serverPrivacy));
+        }
 
         if (studentRes.data?.name) {
           try {

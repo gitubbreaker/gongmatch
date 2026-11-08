@@ -494,7 +494,10 @@ function S5Candidates() {
                           overlapText: c.overlapText,
                           overlapSlots: c.overlapSlots,
                           tags: c.tags,
-                          commonTags: c.commonTags
+                          commonTags: c.commonTags,
+                          privacyTime: c.privacyTime,
+                          privacyTags: c.privacyTags,
+                          privacyRating: c.privacyRating
                         } 
                       })}
                     >

@@ -80,6 +80,19 @@ public class StudentController {
         return ResponseEntity.notFound().build();
     }
 
+    @PatchMapping("/privacy")
+    public ResponseEntity<Student> updatePrivacy(
+            Authentication authentication,
+            @RequestBody Map<String, Boolean> privacySettings) {
+        String loginId = authentication.getName();
+        Boolean time = privacySettings.get("time");
+        Boolean tags = privacySettings.get("tags");
+        Boolean rating = privacySettings.get("rating");
+        Student updated = studentService.updatePrivacySettings(loginId, time, tags, rating);
+        updated.setPassword(null);
+        return ResponseEntity.ok(updated);
+    }
+
     @PostMapping("/profile-image")
     public ResponseEntity<?> uploadProfileImage(@RequestParam("file") MultipartFile file, Authentication authentication) {
         if (file.isEmpty()) {
@@ -179,5 +192,8 @@ public class StudentController {
         private Integer grade;
         private String openChatUrl; 
         private String role; // 추가
+        private Boolean privacyTime;
+        private Boolean privacyTags;
+        private Boolean privacyRating;
     }
 }

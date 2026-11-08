@@ -72,6 +72,15 @@ public class Student {
     @Column(name = "response_rate")
     private int responseRate = 0;
 
+    @Column(name = "privacy_time")
+    private Boolean privacyTime = true;
+
+    @Column(name = "privacy_tags")
+    private Boolean privacyTags = true;
+
+    @Column(name = "privacy_rating")
+    private Boolean privacyRating = true;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

@@ -78,15 +78,36 @@ function ProfileDetailPage() {
   const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
   const TIMES = ['09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'];
 
-  // 로컬 공개 설정 확인
-  const privacySettings = (() => {
-    try {
-      const saved = localStorage.getItem('gongmatch_privacy_settings');
-      return saved ? JSON.parse(saved) : { time: true, tags: true, rating: true };
-    } catch (e) {
-      return { time: true, tags: true, rating: true };
+  // 상대방 사용자의 실제 DB 공개 설정 확인
+  const privacySettings = React.useMemo(() => {
+    // 1. profileData (GET /api/students/profile/{name} 로 조회된 상대방의 실제 DB 설정 최우선)
+    if (profileData && (profileData.privacyTime !== undefined || profileData.privacyTags !== undefined || profileData.privacyRating !== undefined)) {
+      return {
+        time: profileData.privacyTime !== false,
+        tags: profileData.privacyTags !== false,
+        rating: profileData.privacyRating !== false,
+      };
     }
-  })();
+    // 2. stateData (S5/S4 추천 카드에서 넘어온 상대방 객체의 DB 설정)
+    if (location.state && (location.state.privacyTime !== undefined || location.state.privacyTags !== undefined || location.state.privacyRating !== undefined)) {
+      return {
+        time: location.state.privacyTime !== false,
+        tags: location.state.privacyTags !== false,
+        rating: location.state.privacyRating !== false,
+      };
+    }
+    // 3. Fallback: 만약 본인이 본인 프로필 상세를 보고 있는 경우
+    try {
+      const userStr = localStorage.getItem('gongmatch_currentUser');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      if (currentUser && currentUser.name === author) {
+        const saved = localStorage.getItem('gongmatch_privacy_settings');
+        if (saved) return JSON.parse(saved);
+      }
+    } catch (e) {}
+
+    return { time: true, tags: true, rating: true };
+  }, [profileData, location.state, author]);
 
   // 겹치는 슬롯 및 요일별 범위 계산
   const { slotSet, summaryPills, totalOverlapHours, activeDays } = (() => {

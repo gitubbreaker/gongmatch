@@ -95,6 +95,16 @@ public class StudentService {
     }
 
     @Transactional
+    public Student updatePrivacySettings(String loginId, Boolean time, Boolean tags, Boolean rating) {
+        Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        if (time != null) student.setPrivacyTime(time);
+        if (tags != null) student.setPrivacyTags(tags);
+        if (rating != null) student.setPrivacyRating(rating);
+        return studentRepository.save(student);
+    }
+
+    @Transactional
     public Student updateStudentProfileImage(String loginId, String profileImageUrl) {
         Student student = studentRepository.findFirstByLoginIdOrderByIdAsc(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
@@ -192,6 +202,9 @@ public class StudentService {
                     .averageRating(averageRating)
                     .profileImageUrl(other.getProfileImageUrl())
                     .lastLoginAt(other.getLastLoginAt())
+                    .privacyTime(other.getPrivacyTime() != null ? other.getPrivacyTime() : true)
+                    .privacyTags(other.getPrivacyTags() != null ? other.getPrivacyTags() : true)
+                    .privacyRating(other.getPrivacyRating() != null ? other.getPrivacyRating() : true)
                     .build());
         }
 
@@ -333,5 +346,8 @@ public class StudentService {
         private Double averageRating;
         private String profileImageUrl;
         private LocalDateTime lastLoginAt;
+        private Boolean privacyTime;
+        private Boolean privacyTags;
+        private Boolean privacyRating;
     }
 }
