@@ -321,16 +321,36 @@ function S6Profile() {
         <div className="card2" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <p className="slabel" style={{ margin: 0 }}>🔒 프로필 정보 공개 범위 설정</p>
-            <span style={{ 
-              fontSize: '10px', 
-              color: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green)' : 'var(--yellow)', 
-              background: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green-dim)' : 'var(--yellow-dim)', 
-              padding: '2px 8px', 
-              borderRadius: '6px', 
-              fontWeight: '800' 
-            }}>
-              {(privacySettings.time && privacySettings.tags && privacySettings.rating) ? '전체 공개 중' : '일부 비공개'}
-            </span>
+            {(() => {
+              const allPublic = privacySettings.time && privacySettings.tags && privacySettings.rating;
+              const allPrivate = !privacySettings.time && !privacySettings.tags && !privacySettings.rating;
+              let label = '일부 비공개';
+              let color = 'var(--yellow)';
+              let bg = 'var(--yellow-dim)';
+              if (allPublic) {
+                label = '전체 공개 중';
+                color = 'var(--green)';
+                bg = 'var(--green-dim)';
+              } else if (allPrivate) {
+                label = '모두 비공개';
+                color = '#ff6b6b';
+                bg = 'rgba(255, 107, 107, 0.15)';
+              }
+              return (
+                <span style={{ 
+                  fontSize: '10px', 
+                  color: color, 
+                  background: bg, 
+                  padding: '2px 8px', 
+                  borderRadius: '6px', 
+                  fontWeight: '800',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
+                }}>
+                  {label}
+                </span>
+              );
+            })()}
           </div>
           <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', lineHeight: '1.4' }}>
             상대방이 내 상세 프로필을 열람할 때 보여질 정보 범위를 직접 설정하세요. 클릭 시 즉시 변경됩니다.
@@ -343,6 +363,7 @@ function S6Profile() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: '10px',
                 padding: '10px 12px',
                 borderRadius: '8px',
                 background: privacySettings.time ? 'var(--ac-dim)' : 'var(--bg)',
@@ -351,9 +372,9 @@ function S6Profile() {
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '14px' }}>⏱️</span>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)' }}>가용시간 겹침 지표</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <span style={{ fontSize: '14px', flexShrink: 0 }}>⏱️</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)', whiteSpace: 'nowrap' }}>가용시간 겹침 지표</span>
               </div>
               <span style={{
                 fontSize: '11px',
@@ -362,7 +383,9 @@ function S6Profile() {
                 background: privacySettings.time ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
                 padding: '3px 8px',
                 borderRadius: '6px',
-                border: `1px solid ${privacySettings.time ? 'var(--ac-brd)' : 'var(--brd2)'}`
+                border: `1px solid ${privacySettings.time ? 'var(--ac-brd)' : 'var(--brd2)'}`,
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}>
                 {privacySettings.time ? '✓ 전체 공개' : '🔒 비공개'}
               </span>
@@ -375,6 +398,7 @@ function S6Profile() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: '10px',
                 padding: '10px 12px',
                 borderRadius: '8px',
                 background: privacySettings.tags ? 'var(--ac-dim)' : 'var(--bg)',
@@ -383,9 +407,9 @@ function S6Profile() {
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '14px' }}>🏷️</span>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)' }}>직무 기술스택 태그</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <span style={{ fontSize: '14px', flexShrink: 0 }}>🏷️</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)', whiteSpace: 'nowrap' }}>직무 기술스택 태그</span>
               </div>
               <span style={{
                 fontSize: '11px',
@@ -394,7 +418,9 @@ function S6Profile() {
                 background: privacySettings.tags ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
                 padding: '3px 8px',
                 borderRadius: '6px',
-                border: `1px solid ${privacySettings.tags ? 'var(--ac-brd)' : 'var(--brd2)'}`
+                border: `1px solid ${privacySettings.tags ? 'var(--ac-brd)' : 'var(--brd2)'}`,
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}>
                 {privacySettings.tags ? '✓ 전체 공개' : '🔒 비공개'}
               </span>
@@ -407,6 +433,7 @@ function S6Profile() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: '10px',
                 padding: '10px 12px',
                 borderRadius: '8px',
                 background: privacySettings.rating ? 'var(--ac-dim)' : 'var(--bg)',
@@ -415,9 +442,9 @@ function S6Profile() {
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '14px' }}>⭐</span>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)' }}>동료 리뷰 평점</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <span style={{ fontSize: '14px', flexShrink: 0 }}>⭐</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)', whiteSpace: 'nowrap' }}>동료 리뷰 평점</span>
               </div>
               <span style={{
                 fontSize: '11px',
@@ -426,7 +453,9 @@ function S6Profile() {
                 background: privacySettings.rating ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
                 padding: '3px 8px',
                 borderRadius: '6px',
-                border: `1px solid ${privacySettings.rating ? 'var(--ac-brd)' : 'var(--brd2)'}`
+                border: `1px solid ${privacySettings.rating ? 'var(--ac-brd)' : 'var(--brd2)'}`,
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}>
                 {privacySettings.rating ? '✓ 전체 공개' : '🔒 비공개'}
               </span>

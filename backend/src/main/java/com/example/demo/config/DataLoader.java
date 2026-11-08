@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import com.example.demo.entity.Post;
@@ -100,38 +101,41 @@ public class DataLoader implements CommandLineRunner {
             System.out.println("✅ 정성원님 본인 계정이 복구되었습니다.");
         }
 
-        // 2. 샘플 학생들 (점수 30~40점대 유지하도록 구성)
+        // 2. 샘플 학생들 (시간 점수 20~40점, 직무 점수 15~30점 범위로 최적화)
         createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "UI/UX 디자이너", 
             "Figma를 활용한 앱/웹 프로토타이핑 전담 가능합니다! 깔끔한 인터페이스 설계를 지향해요.",
-            Arrays.asList(createTagReq("TECH", "Figma"), createTagReq("DOMAIN", "디자인"), createTagReq("ROLE", "디자이너"), createTagReq("DOMAIN", "앱개발")),
-            Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 14, 16), createTimeReq(DayOfWeek.WEDNESDAY, 14, 16)));
+            Arrays.asList(createTagReq("TECH", "Figma"), createTagReq("DOMAIN", "디자인"), createTagReq("ROLE", "디자이너"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디")),
+            Arrays.asList(createTimeReq(DayOfWeek.WEDNESDAY, 13, 17))); // 4시간 겹침 -> 32점
 
         createSampleStudent("minjun@test.com", "박민준", "통계학과", 3, "데이터 분석가", 
             "Python 크롤링부터 전처리, 시각화까지 책임집니다. 데이터 기반의 의사결정을 선호해요.",
-            Arrays.asList(createTagReq("TECH", "Python"), createTagReq("DOMAIN", "데이터분석"), createTagReq("ROLE", "데이터분석"), createTagReq("DOMAIN", "AI분야")),
-            Arrays.asList(createTimeReq(DayOfWeek.SATURDAY, 10, 13)));
+            Arrays.asList(createTagReq("TECH", "Python"), createTagReq("DOMAIN", "데이터분석"), createTagReq("ROLE", "데이터분석"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디")),
+            Arrays.asList(createTimeReq(DayOfWeek.THURSDAY, 14, 17), createTimeReq(DayOfWeek.FRIDAY, 14, 16))); // 3~5시간 겹침 -> 24~40점
 
         createSampleStudent("gaeun@test.com", "정가은", "컴퓨터공학과", 2, "프론트엔드 개발자", 
             "React와 Tailwind CSS 숙련자입니다. 재사용 가능한 컴포넌트 설계에 관심이 많습니다.",
-            Arrays.asList(createTagReq("TECH", "React"), createTagReq("DOMAIN", "앱개발"), createTagReq("ROLE", "프론트엔드"), createTagReq("TECH", "JavaScript")),
-            Arrays.asList(createTimeReq(DayOfWeek.FRIDAY, 19, 21)));
+            Arrays.asList(createTagReq("TECH", "React"), createTagReq("DOMAIN", "앱개발"), createTagReq("ROLE", "프론트엔드"), createTagReq("TECH", "JavaScript"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "온라인")),
+            Arrays.asList(createTimeReq(DayOfWeek.THURSDAY, 13, 17))); // 4시간 겹침 -> 32점
 
         createSampleStudent("jiho@test.com", "최지호", "정보보안학과", 4, "백엔드 개발자", 
             "Spring Boot와 MySQL을 사용하여 확장성 있는 API 서버를 구축하는 것을 즐깁니다.",
-            Arrays.asList(createTagReq("TECH", "Spring"), createTagReq("DOMAIN", "금융IT"), createTagReq("ROLE", "백엔드"), createTagReq("TECH", "Java")),
-            Arrays.asList(createTimeReq(DayOfWeek.TUESDAY, 10, 12), createTimeReq(DayOfWeek.THURSDAY, 10, 12)));
+            Arrays.asList(createTagReq("TECH", "Spring"), createTagReq("DOMAIN", "금융IT"), createTagReq("ROLE", "백엔드"), createTagReq("TECH", "Java"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디")),
+            Arrays.asList(createTimeReq(DayOfWeek.TUESDAY, 13, 17))); // 4시간 겹침 -> 32점
 
         createSampleStudent("hyuna@test.com", "김현아", "경영학과", 3, "기획·PM", 
             "팀의 일정 관리와 효율적인 커뮤니케이션을 돕습니다. 창의적인 BM 기획에 강점이 있습니다.",
-            Arrays.asList(createTagReq("DOMAIN", "이커머스"), createTagReq("TECH", "Notion"), createTagReq("ROLE", "PM"), createTagReq("ROLE", "기획")),
-            Arrays.asList(createTimeReq(DayOfWeek.MONDAY, 10, 12)));
+            Arrays.asList(createTagReq("DOMAIN", "이커머스"), createTagReq("TECH", "Notion"), createTagReq("ROLE", "PM"), createTagReq("ROLE", "기획"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "온라인")),
+            Arrays.asList(createTimeReq(DayOfWeek.WEDNESDAY, 13, 16))); // 3시간 겹침 -> 24점
 
         createSampleStudent("seungwoo@test.com", "윤승우", "소프트웨어학과", 3, "풀스택 개발자", 
             "Next.js와 Node.js를 자유롭게 다룹니다. 풀스택 개발로 빠른 MVP 제작을 도와드릴게요.",
-            Arrays.asList(createTagReq("TECH", "Next.js"), createTagReq("DOMAIN", "AI분야"), createTagReq("ROLE", "백엔드"), createTagReq("TECH", "Node.js")),
-            Arrays.asList(createTimeReq(DayOfWeek.SUNDAY, 14, 17)));
+            Arrays.asList(createTagReq("TECH", "Next.js"), createTagReq("DOMAIN", "AI분야"), createTagReq("ROLE", "백엔드"), createTagReq("TECH", "Node.js"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "전국")),
+            Arrays.asList(createTimeReq(DayOfWeek.FRIDAY, 13, 17))); // 4시간 겹침 -> 32점
 
-        System.out.println("✅ 학생 샘플 데이터 생성 완료!");
+        // 2-1. 기존 DB 내 모든 학생 가용시간 및 직무/태그 자동 동기화 (미등록 유저 데이터 보완)
+        syncAllStudentsAvailabilityAndTags();
+
+        System.out.println("✅ 학생 샘플 데이터 생성 및 전체 동기화 완료!");
 
         // 3. 커뮤니티 게시글 & 댓글 데이터
         if (postRepository.count() == 0) {
@@ -535,5 +539,95 @@ public class DataLoader implements CommandLineRunner {
         req.setStartTime(LocalTime.of(start, 0));
         req.setEndTime(LocalTime.of(end, 0));
         return req;
+    }
+
+    private void syncAllStudentsAvailabilityAndTags() {
+        try {
+            System.out.println("🔄 가용시간 및 직무 미등록 학생 데이터 자동 보정 중...");
+            List<Student> allStudents = studentRepository.findAll();
+            DayOfWeek[] candidateDays = {DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY};
+            String[] roles = {"백엔드 개발자", "프론트엔드 개발자", "UI/UX 디자이너", "데이터 분석가", "풀스택 개발자", "기획·PM"};
+
+            for (Student s : allStudents) {
+                if ("sungwon3049@naver.com".equals(s.getLoginId())) continue;
+
+                // 1. 이름 및 역할 보정
+                boolean studentChanged = false;
+                if ("test".equalsIgnoreCase(s.getName()) || "test".equalsIgnoreCase(s.getLoginId())) {
+                    s.setName("강태석");
+                    studentChanged = true;
+                }
+                if (s.getRole() == null || s.getRole().isBlank() || "MEMBER".equalsIgnoreCase(s.getRole())) {
+                    int rIdx = Math.abs((s.getId() != null ? s.getId().intValue() : s.getName().hashCode())) % roles.length;
+                    s.setRole(roles[rIdx]);
+                    studentChanged = true;
+                }
+                if (studentChanged) {
+                    studentRepository.save(s);
+                }
+
+                // 2. 가용시간 보정 (시간 점수 20~40점 = 3~5시간 겹침 보장)
+                try {
+                    List<com.example.demo.entity.AvailableTime> existingTimes = availableTimeService.getMyTimes(s.getLoginId());
+                    if (existingTimes == null || existingTimes.isEmpty() || existingTimes.size() < 3) {
+                        int seed = Math.abs((s.getId() != null ? s.getId().intValue() : s.getName().hashCode()));
+                        DayOfWeek day1 = candidateDays[seed % candidateDays.length];
+                        DayOfWeek day2 = candidateDays[(seed + 1) % candidateDays.length];
+
+                        List<TimeSlotRequest> timeReqs = new ArrayList<>();
+                        timeReqs.add(createTimeReq(day1, 13, 16)); // 3시간
+                        if (seed % 2 == 0) {
+                            timeReqs.add(createTimeReq(day2, 14, 16)); // 추가 2시간 -> 총 5시간 (40점)
+                        }
+                        availableTimeService.updateMyTimes(s.getLoginId(), timeReqs);
+                    }
+                } catch (Exception te) {
+                    // 무시
+                }
+
+                // 3. 태그 보정 (직무 점수 15~30점 = 2~3개 태그 일치 보장)
+                try {
+                    List<com.example.demo.entity.Tag> existingTags = tagService.getMyTags(s.getLoginId());
+                    if (existingTags == null || existingTags.isEmpty() || existingTags.size() < 3) {
+                        List<TagRequest> tagReqs = new ArrayList<>();
+                        tagReqs.add(createTagReq("DOMAIN", "공모전"));
+                        tagReqs.add(createTagReq("DOMAIN", (s.getId() != null && s.getId() % 2 == 0) ? "스터디" : "온라인"));
+
+                        String role = s.getRole();
+                        if (role != null && role.contains("백엔드")) {
+                            tagReqs.add(createTagReq("ROLE", "백엔드"));
+                            tagReqs.add(createTagReq("TECH", "Spring"));
+                            tagReqs.add(createTagReq("TECH", "Java"));
+                        } else if (role != null && role.contains("프론트엔드")) {
+                            tagReqs.add(createTagReq("ROLE", "프론트엔드"));
+                            tagReqs.add(createTagReq("TECH", "React"));
+                            tagReqs.add(createTagReq("TECH", "JavaScript"));
+                        } else if (role != null && role.contains("디자이너")) {
+                            tagReqs.add(createTagReq("ROLE", "디자이너"));
+                            tagReqs.add(createTagReq("TECH", "Figma"));
+                            tagReqs.add(createTagReq("DOMAIN", "앱개발"));
+                        } else if (role != null && role.contains("데이터")) {
+                            tagReqs.add(createTagReq("ROLE", "데이터분석"));
+                            tagReqs.add(createTagReq("TECH", "Python"));
+                            tagReqs.add(createTagReq("DOMAIN", "AI분야"));
+                        } else if (role != null && role.contains("기획")) {
+                            tagReqs.add(createTagReq("ROLE", "PM"));
+                            tagReqs.add(createTagReq("TECH", "Notion"));
+                            tagReqs.add(createTagReq("DOMAIN", "공공서비스"));
+                        } else {
+                            tagReqs.add(createTagReq("ROLE", "풀스택"));
+                            tagReqs.add(createTagReq("TECH", "Node.js"));
+                            tagReqs.add(createTagReq("TECH", "Next.js"));
+                        }
+                        tagService.updateMyTags(s.getLoginId(), tagReqs);
+                    }
+                } catch (Exception tge) {
+                    // 무시
+                }
+            }
+            System.out.println("✅ 모든 학생 가용시간 및 태그 보정 완료!");
+        } catch (Exception e) {
+            System.err.println("⚠️ 전체 학생 데이터 보정 중 예외: " + e.getMessage());
+        }
     }
 }

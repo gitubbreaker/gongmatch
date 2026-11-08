@@ -11,7 +11,8 @@ COPY build.gradle settings.gradle ./
 # gradlew 실행 권한 부여 + Windows줄바꿈(CRLF) → Unix줄바꿈(LF) 변환
 RUN chmod +x gradlew && sed -i 's/\r$//' gradlew
 
-# 의존성만 먼저 다운로드
+# Gradle 래퍼 다운로드 및 의존성 캐싱 (네트워크 재시도 포함)
+RUN ./gradlew --version || ./gradlew --version || true
 RUN ./gradlew dependencies --no-daemon || true
 
 # 소스 코드 전체 복사
