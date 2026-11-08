@@ -45,40 +45,55 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body.light-mode {
-    --bg:#F8FAFC; --bg2:#FFFFFF; --bg3:#F1F5F9;
-    --card:#FFFFFF; --card2:#F8FAFC; --card3:#F1F5F9;
-    --ac:#10B981; --ac2:#059669; --ac-dim:rgba(16,185,129,.12); --ac-brd:rgba(16,185,129,.3);
-    --tx:#0F172A; --tx2:#334155; --tx3:#64748B; --tx4:#94A3B8;
-    --brd:rgba(0,0,0,.09); --brd2:rgba(0,0,0,.14); --brd3:rgba(0,0,0,.22);
+    --bg:#F4F6F8; --bg2:#FFFFFF; --bg3:#E9ECEF;
+    --card:#FFFFFF; --card2:#F8F9FA; --card3:#EEF1F4;
+    --ac:#65A30D; --ac2:#4D7C0F; --ac-dim:rgba(101,163,13,.12); --ac-brd:rgba(101,163,13,.28);
+    --tx:#1E293B; --tx2:#475569; --tx3:#64748B; --tx4:#94A3B8;
+    --brd:rgba(0,0,0,.07); --brd2:rgba(0,0,0,.11); --brd3:rgba(0,0,0,.16);
     --red:#EF4444; --red-dim:rgba(239,68,68,.1); --red-brd:rgba(239,68,68,.25);
-    --orange:#F97316; --orange-dim:rgba(249,115,22,.1);
+    --orange:#EA580C; --orange-dim:rgba(234,88,12,.1);
     --blue:#2563EB; --blue-dim:rgba(37,99,235,.1);
-    --green:#10B981; --green-dim:rgba(16,185,129,.1);
+    --green:#65A30D; --green-dim:rgba(101,163,13,.1);
     --purple:#8B5CF6; --purple-dim:rgba(139,92,246,.1);
-    --yellow:#F59E0B; --yellow-dim:rgba(245,158,11,.15);
-    --nav-bg: rgba(255,255,255,.94);
-    --tab-bg: rgba(248,250,252,.96);
+    --yellow:#D97706; --yellow-dim:rgba(217,119,6,.12);
+    --nav-bg: rgba(244,246,248,.94);
+    --tab-bg: rgba(238,240,243,.95);
   }
   body.light-mode .btn-prim {
     color: #FFFFFF !important;
-    background: #059669;
+    background: #65A30D;
+    box-shadow: 0 2px 8px rgba(101,163,13,0.22);
   }
   body.light-mode .btn-prim:hover {
-    background: #047857;
+    background: #4D7C0F;
   }
   body.light-mode .tabbt.on {
-    background: rgba(16,185,129,0.12);
-    border-color: #10B981;
-    color: #047857;
-    box-shadow: 0 0 10px rgba(16,185,129,0.2);
+    background: rgba(101,163,13,0.12);
+    border-color: #65A30D;
+    color: #3F6212;
+    box-shadow: 0 0 10px rgba(101,163,13,0.18);
   }
   body.light-mode .livepill {
-    color: #047857;
-    background: rgba(16,185,129,0.12);
-    border-color: rgba(16,185,129,0.3);
+    color: #3F6212;
+    background: rgba(101,163,13,0.12);
+    border-color: rgba(101,163,13,0.28);
   }
   body.light-mode .livepill::before {
-    background: #10B981;
+    background: #65A30D;
+  }
+  body.light-mode .card:hover,
+  body.light-mode .card2:hover,
+  body.light-mode .card3:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  }
+  body.light-mode .tag.gray {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--tx2);
+  }
+  body.light-mode .toast {
+    background: rgba(30, 41, 59, 0.96);
+    color: #FFFFFF;
+    border-color: rgba(101, 163, 13, 0.4);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }

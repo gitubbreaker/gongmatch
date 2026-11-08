@@ -128,7 +128,7 @@ function S1Home() {
   return (
     <div className="grid-2col">
       <div className="s1-left" style={{ padding: '68px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div className="s1-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(200,242,38,.08)', border: '1px solid var(--ac-brd)', color: 'var(--ac)', borderRadius: '20px', padding: '5px 14px', fontSize: '11px', fontWeight: '700', marginBottom: '28px', width: 'fit-content' }}>
+        <div className="s1-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', color: 'var(--ac)', borderRadius: '20px', padding: '5px 14px', fontSize: '11px', fontWeight: '700', marginBottom: '28px', width: 'fit-content' }}>
           🏆 2026 프로젝트 시즌 오픈
         </div>
         <h1 className="s1-h1" style={{ fontSize: '58px', fontWeight: '900', lineHeight: '1.06', letterSpacing: '-2.5px', color: 'var(--tx)', marginBottom: '4px' }}>
@@ -161,7 +161,7 @@ function S1Home() {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  background: 'rgba(255,255,255,.05)',
+                  background: 'var(--card)',
                   border: '1px solid var(--brd2)',
                   color: 'var(--tx2)',
                   borderRadius: '20px',
@@ -180,7 +180,7 @@ function S1Home() {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'var(--brd2)';
                   e.currentTarget.style.color = 'var(--tx2)';
-                  e.currentTarget.style.background = 'rgba(255,255,255,.05)';
+                  e.currentTarget.style.background = 'var(--card)';
                   e.currentTarget.style.transform = 'none';
                 }}
               >
@@ -277,7 +277,7 @@ function S1Home() {
             </div>
 
             {bestMatch && (
-              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '16px', marginBottom: '16px', border: '1px solid var(--brd2)' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>
+              <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '16px', marginBottom: '16px', border: '1px solid var(--brd2)' }} onClick={(e) => { e.stopPropagation(); navigate('/candidates'); }}>
                 <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '12px', fontWeight: '700' }}>알고리즘 추천 팀원</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -313,7 +313,7 @@ function S1Home() {
           </div>
         )}
 
-        <div className="s1-minipill" style={{ background: 'rgba(200,242,38,.06)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '14px' }}>
+        <div className="s1-minipill" style={{ background: 'var(--ac-dim)', border: '1px solid var(--ac-brd)', borderRadius: '8px', padding: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--ac)' }}></div>
             <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--ac)' }}>실시간 IT 공모전 웹 크롤링 수집</span>

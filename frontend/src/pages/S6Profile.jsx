@@ -170,7 +170,7 @@ function S6Profile() {
   const totalScore = Math.min(100, timeScore + tagScore + expScore + relScore);
 
   return (
-    <section className="screen on" id="s6" style={{ display: 'grid', gridTemplateColumns: '1fr 310px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
+    <section className="screen on" id="s6" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', minHeight: 'calc(100vh - var(--navh) - var(--tabh))' }}>
       <div className="prof-main" style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="card2">
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
@@ -296,7 +296,7 @@ function S6Profile() {
         </div>
       </div>
 
-      <div className="prof-panel" style={{ background: 'var(--bg2)', borderLeft: '1px solid var(--brd)', padding: '26px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
+      <div className="prof-panel" style={{ background: 'var(--bg2)', borderLeft: '1px solid var(--brd)', padding: '24px 18px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
         <div className="card2">
           <p className="slabel">내 프로필 관리</p>
           <p style={{ fontSize: '12px', color: 'var(--tx3)', marginBottom: '16px' }}>내 매칭 정보를 수정하여 더 나은 팀원을 찾아보세요.</p>
@@ -318,7 +318,7 @@ function S6Profile() {
           }}>로그아웃</button>
         </div>
 
-        <div className="card2" style={{ padding: '20px' }}>
+        <div className="card2" style={{ padding: '18px 14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <p className="slabel" style={{ margin: 0 }}>🔒 프로필 정보 공개 범위 설정</p>
             {(() => {
@@ -355,7 +355,7 @@ function S6Profile() {
           <p style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '14px', lineHeight: '1.4' }}>
             상대방이 내 상세 프로필을 열람할 때 보여질 정보 범위를 직접 설정하세요. 클릭 시 즉시 변경됩니다.
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
             {/* 1. 가용시간 */}
             <div 
               onClick={() => togglePrivacy('time', '가용시간 겹침 지표')}
@@ -363,8 +363,8 @@ function S6Profile() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '10px',
-                padding: '10px 12px',
+                gap: '16px',
+                padding: '10px 14px',
                 borderRadius: '8px',
                 background: privacySettings.time ? 'var(--ac-dim)' : 'var(--bg)',
                 border: `1px solid ${privacySettings.time ? 'var(--ac-brd)' : 'var(--brd)'}`,
@@ -372,16 +372,16 @@ function S6Profile() {
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexShrink: 1 }}>
                 <span style={{ fontSize: '14px', flexShrink: 0 }}>⏱️</span>
                 <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)', whiteSpace: 'nowrap' }}>가용시간 겹침 지표</span>
               </div>
               <span style={{
                 fontSize: '11px',
-                fontWeight: '800',
+                fontWeight: '700',
                 color: privacySettings.time ? 'var(--ac)' : 'var(--tx3)',
-                background: privacySettings.time ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
-                padding: '3px 8px',
+                background: privacySettings.time ? 'var(--ac-dim)' : 'rgba(255,255,255,0.06)',
+                padding: '3px 9px',
                 borderRadius: '6px',
                 border: `1px solid ${privacySettings.time ? 'var(--ac-brd)' : 'var(--brd2)'}`,
                 whiteSpace: 'nowrap',
@@ -398,8 +398,8 @@ function S6Profile() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '10px',
-                padding: '10px 12px',
+                gap: '16px',
+                padding: '10px 14px',
                 borderRadius: '8px',
                 background: privacySettings.tags ? 'var(--ac-dim)' : 'var(--bg)',
                 border: `1px solid ${privacySettings.tags ? 'var(--ac-brd)' : 'var(--brd)'}`,
@@ -407,16 +407,16 @@ function S6Profile() {
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexShrink: 1 }}>
                 <span style={{ fontSize: '14px', flexShrink: 0 }}>🏷️</span>
                 <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)', whiteSpace: 'nowrap' }}>직무 기술스택 태그</span>
               </div>
               <span style={{
                 fontSize: '11px',
-                fontWeight: '800',
+                fontWeight: '700',
                 color: privacySettings.tags ? 'var(--ac)' : 'var(--tx3)',
-                background: privacySettings.tags ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
-                padding: '3px 8px',
+                background: privacySettings.tags ? 'var(--ac-dim)' : 'rgba(255,255,255,0.06)',
+                padding: '3px 9px',
                 borderRadius: '6px',
                 border: `1px solid ${privacySettings.tags ? 'var(--ac-brd)' : 'var(--brd2)'}`,
                 whiteSpace: 'nowrap',
@@ -433,8 +433,8 @@ function S6Profile() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '10px',
-                padding: '10px 12px',
+                gap: '16px',
+                padding: '10px 14px',
                 borderRadius: '8px',
                 background: privacySettings.rating ? 'var(--ac-dim)' : 'var(--bg)',
                 border: `1px solid ${privacySettings.rating ? 'var(--ac-brd)' : 'var(--brd)'}`,
@@ -442,16 +442,16 @@ function S6Profile() {
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexShrink: 1 }}>
                 <span style={{ fontSize: '14px', flexShrink: 0 }}>⭐</span>
                 <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--tx)', whiteSpace: 'nowrap' }}>동료 리뷰 평점</span>
               </div>
               <span style={{
                 fontSize: '11px',
-                fontWeight: '800',
+                fontWeight: '700',
                 color: privacySettings.rating ? 'var(--ac)' : 'var(--tx3)',
-                background: privacySettings.rating ? 'rgba(0,229,255,0.1)' : 'rgba(255,255,255,0.06)',
-                padding: '3px 8px',
+                background: privacySettings.rating ? 'var(--ac-dim)' : 'rgba(255,255,255,0.06)',
+                padding: '3px 9px',
                 borderRadius: '6px',
                 border: `1px solid ${privacySettings.rating ? 'var(--ac-brd)' : 'var(--brd2)'}`,
                 whiteSpace: 'nowrap',
