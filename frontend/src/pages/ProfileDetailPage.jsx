@@ -191,14 +191,22 @@ function ProfileDetailPage() {
               </span>
               <span style={{ 
                 fontSize: '11px', 
-                color: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green)' : 'var(--yellow)', 
-                background: (privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green-dim)' : 'var(--yellow-dim)', 
-                border: `1px solid ${(privacySettings.time && privacySettings.tags && privacySettings.rating) ? 'var(--green)' : 'var(--yellow)'}`, 
+                color: (privacySettings.time && privacySettings.tags && privacySettings.rating) 
+                  ? 'var(--green)' 
+                  : (!privacySettings.time && !privacySettings.tags && !privacySettings.rating ? '#ff6b6b' : 'var(--yellow)'), 
+                background: (privacySettings.time && privacySettings.tags && privacySettings.rating) 
+                  ? 'var(--green-dim)' 
+                  : (!privacySettings.time && !privacySettings.tags && !privacySettings.rating ? 'rgba(255, 107, 107, 0.15)' : 'var(--yellow-dim)'), 
+                border: `1px solid ${(privacySettings.time && privacySettings.tags && privacySettings.rating) 
+                  ? 'var(--green)' 
+                  : (!privacySettings.time && !privacySettings.tags && !privacySettings.rating ? '#ff6b6b' : 'var(--yellow)')}`, 
                 padding: '2px 8px', 
                 borderRadius: '12px', 
                 fontWeight: '800' 
               }}>
-                {(privacySettings.time && privacySettings.tags && privacySettings.rating) ? '🔒 전체 공개 프로필' : '🔒 보호된 프로필 (일부 비공개)'}
+                {(privacySettings.time && privacySettings.tags && privacySettings.rating) 
+                  ? '🔒 전체 공개 프로필' 
+                  : (!privacySettings.time && !privacySettings.tags && !privacySettings.rating ? '🔒 모두 비공개 프로필' : '🔒 보호된 프로필 (일부 비공개)')}
               </span>
             </div>
             <p style={{color:'var(--tx3)', margin: 0}}>{role} · {major} {grade}</p>
@@ -242,9 +250,15 @@ function ProfileDetailPage() {
             </div>
             <div style={{ background: 'var(--bg2)', borderRadius: '12px', padding: '14px 10px', textAlign: 'center', border: '1px solid var(--brd)' }}>
               <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '4px' }}>⭐ 신뢰도</div>
-              <div style={{ fontSize: '18px', fontWeight: '900', color: '#FFB800' }}>{relScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/10</span></div>
+              <div style={{ fontSize: '18px', fontWeight: '900', color: '#FFB800' }}>
+                {privacySettings.rating ? (
+                  <>{relScore}<span style={{ fontSize: '11px', color: 'var(--tx3)' }}>/10</span></>
+                ) : (
+                  <span style={{ fontSize: '12px', color: 'var(--tx3)' }}>🔒 비공개</span>
+                )}
+              </div>
               <div style={{ width: '100%', height: '4px', background: 'var(--card)', borderRadius: '2px', overflow: 'hidden', marginTop: '8px' }}>
-                <div style={{ width: `${Math.min(100, (relScore / 10) * 100)}%`, height: '100%', background: '#FFB800' }} />
+                <div style={{ width: privacySettings.rating ? `${Math.min(100, (relScore / 10) * 100)}%` : '0%', height: '100%', background: '#FFB800' }} />
               </div>
             </div>
           </div>
@@ -414,33 +428,49 @@ function ProfileDetailPage() {
           </Timeline>
         </Section>
         <Section>
-          <h3 style={{color:'var(--tx)'}}>동료들의 추천 후기</h3>
-          {publicReviews.length > 0 ? (
-            <div style={{marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
-              {publicReviews.map((r, i) => (
-                <div key={i} style={{padding: '20px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--brd)'}}>
-                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
-                    <div style={{fontSize: '14px', fontWeight: '800', color: 'var(--tx)'}}>{r.projectName}</div>
-                    <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{formatSafeDate(r.createdAt)}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{color:'var(--tx)', margin: 0}}>동료들의 추천 후기</h3>
+            <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>
+              {privacySettings.rating ? `총 ${publicReviews.length}개의 후기` : '비공개 설정됨'}
+            </span>
+          </div>
+          {privacySettings.rating ? (
+            publicReviews.length > 0 ? (
+              <div style={{marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
+                {publicReviews.map((r, i) => (
+                  <div key={i} style={{padding: '20px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--brd)'}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '12px'}}>
+                      <div style={{fontSize: '14px', fontWeight: '800', color: 'var(--tx)'}}>{r.projectName}</div>
+                      <div style={{fontSize: '12px', color: 'var(--tx3)'}}>{formatSafeDate(r.createdAt)}</div>
+                    </div>
+                    {r.reviewText && (
+                      <p style={{fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px'}}>"{r.reviewText}"</p>
+                    )}
+                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px'}}>
+                      {r.goodTags && r.goodTags.split(',').filter(t=>t).map((t, idx) => (
+                        <span key={idx} style={{fontSize: '11px', padding: '4px 8px', borderRadius: '4px', background: 'var(--ac-dim)', color: 'var(--ac)'}}>{t}</span>
+                      ))}
+                    </div>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px'}}>
+                      <span style={{color: 'var(--yellow)', fontWeight: '800'}}>★ {((r.timeScore + r.commScore + r.skillScore + r.mannerScore)/4).toFixed(1)}</span>
+                      <span style={{color: 'var(--tx3)'}}>익명의 동료</span>
+                    </div>
                   </div>
-                  {r.reviewText && (
-                    <p style={{fontSize: '14px', color: 'var(--tx2)', lineHeight: '1.6', marginBottom: '16px'}}>"{r.reviewText}"</p>
-                  )}
-                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px'}}>
-                    {r.goodTags && r.goodTags.split(',').filter(t=>t).map((t, idx) => (
-                      <span key={idx} style={{fontSize: '11px', padding: '4px 8px', borderRadius: '4px', background: 'var(--ac-dim)', color: 'var(--ac)'}}>{t}</span>
-                    ))}
-                  </div>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px'}}>
-                    <span style={{color: 'var(--yellow)', fontWeight: '800'}}>★ {((r.timeScore + r.commScore + r.skillScore + r.mannerScore)/4).toFixed(1)}</span>
-                    <span style={{color: 'var(--tx3)'}}>익명의 동료</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{marginTop: '20px', padding: '30px', textAlign: 'center', background: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--brd)'}}>
+                <p style={{color: 'var(--tx3)', fontSize: '13px'}}>아직 등록된 공개 후기가 없습니다.</p>
+              </div>
+            )
           ) : (
-            <div style={{marginTop: '20px', padding: '30px', textAlign: 'center', background: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--brd)'}}>
-              <p style={{color: 'var(--tx3)', fontSize: '13px'}}>아직 등록된 공개 후기가 없습니다.</p>
+            <div style={{ padding: '36px 20px', textAlign: 'center', background: 'var(--bg2)', borderRadius: '12px', border: '1px dashed var(--brd)' }}>
+              <span style={{ fontSize: '24px' }}>🔒</span>
+              <p style={{ fontSize: '15px', fontWeight: '800', color: 'var(--tx)', marginTop: '10px', marginBottom: '4px' }}>동료 추천 후기 및 평점 비공개</p>
+              <p style={{ fontSize: '12px', color: 'var(--tx3)', maxWidth: '440px', margin: '0 auto', lineHeight: '1.5' }}>
+                상대방 사용자의 프로필 공개 범위 설정에 따라 동료 추천 후기 상세 내역은 비공개 처리되었습니다.
+                단, 4축 매칭 엔진에서 신뢰도 점수(<b>{relScore}/10점</b>)는 정량 계산되어 총점에 정확히 반영되어 있습니다.
+              </p>
             </div>
           )}
         </Section>

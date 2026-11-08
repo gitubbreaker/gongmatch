@@ -217,7 +217,14 @@ function S6Profile() {
             <div className="stb" style={{ flex: '1', textAlign: 'center', padding: '13px', borderRight: '1px solid var(--brd)' }}><div className="stnum" style={{ fontSize: '20px', fontWeight: '900', color: 'var(--ac)' }}>{student?.contestCount || 0}회</div><div className="stlb" style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '3px' }}>공모전 참가</div></div>
             <div className="stb" style={{ flex: '1', textAlign: 'center', padding: '13px', borderRight: '1px solid var(--brd)' }}><div className="stnum" style={{ fontSize: '20px', fontWeight: '900', color: 'var(--ac)' }}>{student?.awardCount || 0}회</div><div className="stlb" style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '3px' }}>수상 경력</div></div>
             <div className="stb" style={{ flex: '1', textAlign: 'center', padding: '13px', borderRight: '1px solid var(--brd)' }}><div className="stnum" style={{ fontSize: '20px', fontWeight: '900', color: 'var(--ac)' }}>{student?.teamCount || 0}팀</div><div className="stlb" style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '3px' }}>함께한 팀</div></div>
-            <div className="stb" style={{ flex: '1', textAlign: 'center', padding: '13px', borderRight: '1px solid var(--brd)' }}><div className="stnum" style={{ fontSize: '20px', fontWeight: '900', color: 'var(--ac)' }}>{student?.rating > 0 ? student.rating.toFixed(1) : '0.0'}★</div><div className="stlb" style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '3px' }}>팀원 평점</div></div>
+            <div className="stb" style={{ flex: '1', textAlign: 'center', padding: '13px', borderRight: '1px solid var(--brd)' }}>
+              <div className="stnum" style={{ fontSize: '20px', fontWeight: '900', color: 'var(--ac)' }}>
+                {student?.rating > 0 ? student.rating.toFixed(1) : '0.0'}★
+              </div>
+              <div className="stlb" style={{ fontSize: '10px', color: privacySettings.rating ? 'var(--tx3)' : 'var(--yellow)', marginTop: '3px', fontWeight: privacySettings.rating ? 'normal' : '700' }}>
+                {privacySettings.rating ? '팀원 평점' : '평점 (상대방에겐 비공개)'}
+              </div>
+            </div>
             <div className="stb" style={{ flex: '1', textAlign: 'center', padding: '13px' }}><div className="stnum" style={{ fontSize: '20px', fontWeight: '900', color: 'var(--green)' }}>{student?.responseRate || 100}%</div><div className="stlb" style={{ fontSize: '10px', color: 'var(--tx3)', marginTop: '3px' }}>응답률</div></div>
           </div>
         </div>
@@ -232,7 +239,14 @@ function S6Profile() {
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <p className="slabel" style={{ margin: 0 }}>🎯 가용시간 4축 정량 매칭 종합 점수</p>
-            <span style={{ fontSize: '11px', color: 'var(--ac)' }}>정량 알고리즘 연동</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {!privacySettings.time && (
+                <span style={{ fontSize: '11px', color: 'var(--yellow)', background: 'var(--yellow-dim)', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
+                  🔒 상대방에게 시간표 상세 비공개
+                </span>
+              )}
+              <span style={{ fontSize: '11px', color: 'var(--ac)' }}>정량 알고리즘 연동</span>
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginBottom: '16px' }}>
             <div style={{ background: 'var(--bg2)', borderRadius: '8px', padding: '12px 8px', textAlign: 'center' }}>
@@ -263,7 +277,14 @@ function S6Profile() {
         </div>
 
         <div className="card">
-          <p className="slabel">내 기술 스택 및 관심사</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <p className="slabel" style={{ margin: 0 }}>내 기술 스택 및 관심사</p>
+            {!privacySettings.tags && (
+              <span style={{ fontSize: '11px', color: 'var(--yellow)', background: 'var(--yellow-dim)', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
+                🔒 상대방에게 태그 비공개
+              </span>
+            )}
+          </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {tags.length === 0 ? (
               <p style={{fontSize:'13px', color:'var(--tx3)'}}>등록된 태그가 없습니다.</p>
@@ -274,7 +295,24 @@ function S6Profile() {
         </div>
 
         <div className="card">
-          <p className="slabel">동료들의 추천 후기</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <p className="slabel" style={{ margin: 0 }}>동료들의 추천 후기</p>
+            {!privacySettings.rating ? (
+              <span style={{ fontSize: '11px', color: 'var(--yellow)', background: 'var(--yellow-dim)', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
+                🔒 상대방에게 비공개 설정됨
+              </span>
+            ) : (
+              <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>
+                총 {publicReviews.length}개의 후기
+              </span>
+            )}
+          </div>
+          {!privacySettings.rating && (
+            <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(255, 184, 0, 0.08)', borderRadius: '8px', border: '1px dashed var(--yellow)', fontSize: '12px', color: 'var(--tx2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🔒</span>
+              <span>현재 <b>동료 리뷰 및 평점이 비공개</b>로 설정되어 있어, 다른 사용자(팀원 후보)가 내 프로필을 열람할 때 이 후기 목록이 숨겨집니다. (본인에게만 표시 중)</span>
+            </div>
+          )}
           {publicReviews.length > 0 ? (
             <div style={{marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
               {publicReviews.map((r, i) => (
