@@ -56,7 +56,16 @@ function S3Tags() {
       // 3. 내 가용시간 불러와서 점수 계산
       const timeRes = await api.get('/api/available-time/me');
       if (timeRes.data && timeRes.data.length > 0) {
-        const totalHours = timeRes.data.length;
+        let totalHours = 0;
+        timeRes.data.forEach(slot => {
+          if (slot.startTime && slot.endTime) {
+            const sh = parseInt(slot.startTime.split(':')[0], 10);
+            const eh = parseInt(slot.endTime.split(':')[0], 10);
+            totalHours += Math.max(1, eh - sh);
+          } else {
+            totalHours += 1;
+          }
+        });
         const calculatedScore = Math.min(50, Math.round((totalHours / 15) * 50));
         setTimeScore(calculatedScore);
       }

@@ -163,7 +163,17 @@ function S6Profile() {
   }
 
   // 🎯 공식 4축 정량 지표 점수 산출 (시간 40 + 직무·기술 30 + 경험 20 + 신뢰 10 = 100)
-  const timeScore = Math.min(40, Math.round((times.length / 10) * 40));
+  let totalAvailableHours = 0;
+  times.forEach(slot => {
+    if (slot.startTime && slot.endTime) {
+      const sh = parseInt(slot.startTime.split(':')[0], 10);
+      const eh = parseInt(slot.endTime.split(':')[0], 10);
+      totalAvailableHours += Math.max(1, eh - sh);
+    } else {
+      totalAvailableHours += 1;
+    }
+  });
+  const timeScore = Math.min(40, Math.round((totalAvailableHours / 10) * 40));
   const tagScore = Math.min(30, Math.round((tags.length / 5) * 30));
   const expScore = Math.min(20, Math.max(4, ((student?.grade || 1) * 2) + ((student?.contestCount || 0) * 5) + ((student?.awardCount || 0) * 10)));
   const relScore = student?.rating > 0 ? Math.min(10, Math.round(student.rating * 2)) : 7;

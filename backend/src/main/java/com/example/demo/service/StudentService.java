@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.util.HashSet;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -134,24 +136,14 @@ public class StudentService {
                     .collect(Collectors.toSet());
 
             // 🎯 공식 가용시간 4축 정량 매칭 엔진 (시간표 40 + 직무/관심사 30 + 경험 20 + 신뢰 10 = 100점)
-            // 1. 시간표 점수 (최대 40점) - 겹치는 1시간당 8점 (최소 20점 ~ 최대 40점 자연스러운 분포)
+            // 1. 시간표 점수 (최대 40점) - 실제 겹치는 1시간당 8점 (순수 DB 데이터 기반)
             int overlapHours = calculateOverlapHours(myTimes, otherTimes);
             int timeScore = Math.min(40, overlapHours * 8);
-            if (timeScore < 20) {
-                int seed = (other.getId() != null ? other.getId().intValue() : other.getName().hashCode());
-                int[] allowedTimes = {24, 28, 32, 36, 40};
-                timeScore = allowedTimes[Math.abs(seed) % allowedTimes.length];
-            }
 
-            // 2. 직무/관심사 점수 (최대 30점) - 일치하는 해시태그 1개당 10점 (최소 15점 ~ 최대 30점 자연스러운 분포)
+            // 2. 직무/관심사 점수 (최대 30점) - 실제 일치하는 해시태그 1개당 10점 (순수 DB 데이터 기반)
             long commonTagsContent = (myTagNames == null || otherTagNames == null) ? 0 : 
                     myTagNames.stream().filter(otherTagNames::contains).count();
             int tagScore = (int) Math.min(30, commonTagsContent * 10);
-            if (tagScore < 15) {
-                int seed = (other.getId() != null ? other.getId().intValue() * 37 : other.getName().hashCode());
-                int[] allowedTags = {18, 20, 22, 25, 28, 30};
-                tagScore = allowedTags[Math.abs(seed) % allowedTags.length];
-            }
 
             // 리뷰 평점 계산
             List<Review> otherReviews = reviewRepository.findAll().stream()
@@ -241,94 +233,83 @@ public class StudentService {
         return filtered;
     }
 
-    private String getOverlapSummary(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
-        if (myTimes == null || otherTimes == null) return "가용 시간이 등록되지 않음";
-        List<String> days = new ArrayList<>();
-        int totalOverlap = 0;
+    private Set<String> getOverlappingSlotSet(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
+        if (myTimes == null || otherTimes == null) return Collections.emptySet();
+        Set<String> mySlots = new HashSet<>();
         for (AvailableTime mt : myTimes) {
-            for (AvailableTime ot : otherTimes) {
-                if (mt.getDayOfWeek() == ot.getDayOfWeek() && 
-                    mt.getStartTime() != null && mt.getEndTime() != null && 
-                    ot.getStartTime() != null && ot.getEndTime() != null) {
-                    
-                    LocalTime start = mt.getStartTime().isAfter(ot.getStartTime()) ? mt.getStartTime() : ot.getStartTime();
-                    LocalTime end = mt.getEndTime().isBefore(ot.getEndTime()) ? mt.getEndTime() : ot.getEndTime();
-                    
-                    if (start.isBefore(end)) {
-                        totalOverlap += (end.getHour() - start.getHour());
-                        String dayName = switch (mt.getDayOfWeek()) {
-                            case MONDAY -> "월"; case TUESDAY -> "화"; case WEDNESDAY -> "수";
-                            case THURSDAY -> "목"; case FRIDAY -> "금"; case SATURDAY -> "토"; case SUNDAY -> "일";
-                        };
-                        if (!days.contains(dayName)) days.add(dayName);
+            if (mt.getDayOfWeek() != null && mt.getStartTime() != null && mt.getEndTime() != null) {
+                for (int h = mt.getStartTime().getHour(); h < mt.getEndTime().getHour(); h++) {
+                    mySlots.add(mt.getDayOfWeek().name() + "_" + h);
+                }
+            }
+        }
+
+        Set<String> overlap = new HashSet<>();
+        for (AvailableTime ot : otherTimes) {
+            if (ot.getDayOfWeek() != null && ot.getStartTime() != null && ot.getEndTime() != null) {
+                for (int h = ot.getStartTime().getHour(); h < ot.getEndTime().getHour(); h++) {
+                    String key = ot.getDayOfWeek().name() + "_" + h;
+                    if (mySlots.contains(key)) {
+                        overlap.add(key);
                     }
                 }
             }
         }
-        if (days.isEmpty()) {
-            int seed = Math.abs(myTimes.hashCode() + (otherTimes != null ? otherTimes.hashCode() : 0));
-            String[] pairs = {"화, 목", "수, 금", "화, 수", "목, 금", "화, 금"};
-            int hours = 3 + (seed % 3);
-            return pairs[Math.abs(seed) % pairs.length] + "요일에 겹치는 시간 " + hours + "시간";
-        }
-        return String.join(", ", days) + "요일에 겹치는 시간 " + totalOverlap + "시간";
+        return overlap;
     }
 
     private int calculateOverlapHours(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
-        if (myTimes == null || otherTimes == null) return 0;
-        int total = 0;
-        for (AvailableTime mt : myTimes) {
-            for (AvailableTime ot : otherTimes) {
-                if (mt.getDayOfWeek() == ot.getDayOfWeek() && 
-                    mt.getStartTime() != null && mt.getEndTime() != null && 
-                    ot.getStartTime() != null && ot.getEndTime() != null) {
-                    
-                    LocalTime start = mt.getStartTime().isAfter(ot.getStartTime()) ? mt.getStartTime() : ot.getStartTime();
-                    LocalTime end = mt.getEndTime().isBefore(ot.getEndTime()) ? mt.getEndTime() : ot.getEndTime();
-                    
-                    if (start.isBefore(end)) {
-                        total += (end.getHour() - start.getHour());
-                    }
-                }
+        return getOverlappingSlotSet(myTimes, otherTimes).size();
+    }
+
+    private String getOverlapSummary(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
+        if (myTimes == null || myTimes.isEmpty() || otherTimes == null || otherTimes.isEmpty()) {
+            return "가용 시간이 등록되지 않음";
+        }
+        Set<String> overlap = getOverlappingSlotSet(myTimes, otherTimes);
+        if (overlap.isEmpty()) {
+            return "상호 가용시간 불일치";
+        }
+
+        DayOfWeek[] order = {
+            DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY
+        };
+        List<String> days = new ArrayList<>();
+        for (DayOfWeek dow : order) {
+            boolean hasDay = overlap.stream().anyMatch(s -> s.startsWith(dow.name() + "_"));
+            if (hasDay) {
+                String dayName = switch (dow) {
+                    case MONDAY -> "월"; case TUESDAY -> "화"; case WEDNESDAY -> "수";
+                    case THURSDAY -> "목"; case FRIDAY -> "금"; case SATURDAY -> "토"; case SUNDAY -> "일";
+                };
+                days.add(dayName);
             }
         }
-        return total;
+        return String.join(", ", days) + "요일에 겹치는 시간 " + overlap.size() + "시간";
     }
 
     private List<String> calculateOverlapSlots(List<AvailableTime> myTimes, List<AvailableTime> otherTimes) {
-        if (myTimes == null || otherTimes == null) return Collections.emptyList();
-        List<String> slots = new ArrayList<>();
-        for (AvailableTime mt : myTimes) {
-            for (AvailableTime ot : otherTimes) {
-                if (mt.getDayOfWeek() == ot.getDayOfWeek() && 
-                    mt.getStartTime() != null && mt.getEndTime() != null && 
-                    ot.getStartTime() != null && ot.getEndTime() != null) {
-                    
-                    LocalTime start = mt.getStartTime().isAfter(ot.getStartTime()) ? mt.getStartTime() : ot.getStartTime();
-                    LocalTime end = mt.getEndTime().isBefore(ot.getEndTime()) ? mt.getEndTime() : ot.getEndTime();
-                    
-                    if (start.isBefore(end)) {
-                        String dayName = switch (mt.getDayOfWeek()) {
-                            case MONDAY -> "월"; case TUESDAY -> "화"; case WEDNESDAY -> "수";
-                            case THURSDAY -> "목"; case FRIDAY -> "금"; case SATURDAY -> "토"; case SUNDAY -> "일";
-                        };
-                        for (int h = start.getHour(); h < end.getHour(); h++) {
-                            String slot = dayName + String.format("%02d", h);
-                            if (!slots.contains(slot)) slots.add(slot);
-                        }
-                    }
+        Set<String> overlap = getOverlappingSlotSet(myTimes, otherTimes);
+        if (overlap.isEmpty()) return Collections.emptyList();
+
+        List<String> result = new ArrayList<>();
+        DayOfWeek[] order = {
+            DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY
+        };
+        for (DayOfWeek dow : order) {
+            String dayName = switch (dow) {
+                case MONDAY -> "월"; case TUESDAY -> "화"; case WEDNESDAY -> "수";
+                case THURSDAY -> "목"; case FRIDAY -> "금"; case SATURDAY -> "토"; case SUNDAY -> "일";
+            };
+            for (int h = 0; h < 24; h++) {
+                if (overlap.contains(dow.name() + "_" + h)) {
+                    result.add(dayName + String.format("%02d", h));
                 }
             }
         }
-        if (slots.isEmpty()) {
-            int seed = Math.abs(myTimes.hashCode() + (otherTimes != null ? otherTimes.hashCode() : 0));
-            String[] days = {"화", "수", "목", "금"};
-            String day = days[seed % days.length];
-            slots.add(day + "14");
-            slots.add(day + "15");
-            slots.add(day + "16");
-        }
-        return slots;
+        return result;
     }
 
     @Getter @Setter @Builder

@@ -42,10 +42,13 @@ function S2Time() {
         
         response.data.forEach(slot => {
           const day = REVERSE_DAY_MAP[slot.dayOfWeek];
-          // startTime에서 앞의 두 자리(시간)만 추출 (예: "09:00" -> "09")
-          const hour = slot.startTime.split(':')[0];
-          if (day && hour) {
-            newSel[day + hour] = true;
+          if (day && slot.startTime) {
+            const startHour = parseInt(slot.startTime.split(':')[0], 10);
+            const endHour = slot.endTime ? parseInt(slot.endTime.split(':')[0], 10) : startHour + 1;
+            for (let h = startHour; h < endHour; h++) {
+              const hourStr = String(h).padStart(2, '0');
+              newSel[day + hourStr] = true;
+            }
           }
         });
         setSel(newSel);

@@ -101,36 +101,66 @@ public class DataLoader implements CommandLineRunner {
             System.out.println("✅ 정성원님 본인 계정이 복구되었습니다.");
         }
 
-        // 2. 샘플 학생들 (시간 점수 20~40점, 직무 점수 15~30점 범위로 최적화)
+        // 2. 샘플 학생들 - 1시간 단위 슬롯으로 실제 DB에 정확히 저장 (점수와 실제 가용시간/태그 100% 일치)
+        // 1) 이수현 (UI/UX 디자이너, 4학년) - 목 13~16(3h), 금 14~16(2h), 화 17~20(3h), 토 09~12(3h) -> 총 11시간 설정 (목, 금 5h 겹침: 시간 40점, 태그 공통 2개: 직무 20점 -> 총점 78점)
+        List<TimeSlotRequest> suhyunTimes = new ArrayList<>();
+        suhyunTimes.addAll(createTimeSlots(DayOfWeek.THURSDAY, 13, 16));
+        suhyunTimes.addAll(createTimeSlots(DayOfWeek.FRIDAY, 14, 16));
+        suhyunTimes.addAll(createTimeSlots(DayOfWeek.TUESDAY, 17, 20));
+        suhyunTimes.addAll(createTimeSlots(DayOfWeek.SATURDAY, 9, 12));
         createSampleStudent("suhyun@test.com", "이수현", "시각디자인과", 4, "UI/UX 디자이너", 
             "Figma를 활용한 앱/웹 프로토타이핑 전담 가능합니다! 깔끔한 인터페이스 설계를 지향해요.",
             Arrays.asList(createTagReq("TECH", "Figma"), createTagReq("DOMAIN", "디자인"), createTagReq("ROLE", "디자이너"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디")),
-            Arrays.asList(createTimeReq(DayOfWeek.WEDNESDAY, 13, 17))); // 4시간 겹침 -> 32점
+            suhyunTimes);
 
+        // 2) 박민준 (데이터 분석가, 3학년) - 목 14~17(3h), 금 14~16(2h), 토 09~12(3h) -> 총 8시간 설정 (목, 금 4h 겹침: 시간 32점, 태그 3개 일치: 직무 30점 -> 총점 75점)
+        List<TimeSlotRequest> minjunTimes = new ArrayList<>();
+        minjunTimes.addAll(createTimeSlots(DayOfWeek.THURSDAY, 14, 17));
+        minjunTimes.addAll(createTimeSlots(DayOfWeek.FRIDAY, 14, 16));
+        minjunTimes.addAll(createTimeSlots(DayOfWeek.SATURDAY, 9, 12));
         createSampleStudent("minjun@test.com", "박민준", "통계학과", 3, "데이터 분석가", 
             "Python 크롤링부터 전처리, 시각화까지 책임집니다. 데이터 기반의 의사결정을 선호해요.",
             Arrays.asList(createTagReq("TECH", "Python"), createTagReq("DOMAIN", "데이터분석"), createTagReq("ROLE", "데이터분석"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디")),
-            Arrays.asList(createTimeReq(DayOfWeek.THURSDAY, 14, 17), createTimeReq(DayOfWeek.FRIDAY, 14, 16))); // 3~5시간 겹침 -> 24~40점
+            minjunTimes);
 
+        // 3) 정가은 (프론트엔드 개발자, 2학년) - 화 13~16(3h), 수 14~16(2h), 금 18~21(3h) -> 총 8시간 설정 (화, 수 5h 겹침: 시간 40점, 태그 2개 일치: 직무 20점 -> 총점 73점)
+        List<TimeSlotRequest> gaeunTimes = new ArrayList<>();
+        gaeunTimes.addAll(createTimeSlots(DayOfWeek.TUESDAY, 13, 16));
+        gaeunTimes.addAll(createTimeSlots(DayOfWeek.WEDNESDAY, 14, 16));
+        gaeunTimes.addAll(createTimeSlots(DayOfWeek.FRIDAY, 18, 21));
         createSampleStudent("gaeun@test.com", "정가은", "컴퓨터공학과", 2, "프론트엔드 개발자", 
             "React와 Tailwind CSS 숙련자입니다. 재사용 가능한 컴포넌트 설계에 관심이 많습니다.",
             Arrays.asList(createTagReq("TECH", "React"), createTagReq("DOMAIN", "앱개발"), createTagReq("ROLE", "프론트엔드"), createTagReq("TECH", "JavaScript"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "온라인")),
-            Arrays.asList(createTimeReq(DayOfWeek.THURSDAY, 13, 17))); // 4시간 겹침 -> 32점
+            gaeunTimes);
 
+        // 4) 최지호 (백엔드 개발자, 4학년) - 수 13~16(3h), 목 09~12(3h), 토 09~12(3h) -> 총 9시간 설정 (수 3h 겹침: 시간 24점, 태그 5개 일치: 직무 30점 -> 총점 69점)
+        List<TimeSlotRequest> jihoTimes = new ArrayList<>();
+        jihoTimes.addAll(createTimeSlots(DayOfWeek.WEDNESDAY, 13, 16));
+        jihoTimes.addAll(createTimeSlots(DayOfWeek.THURSDAY, 9, 12));
+        jihoTimes.addAll(createTimeSlots(DayOfWeek.SATURDAY, 9, 12));
         createSampleStudent("jiho@test.com", "최지호", "정보보안학과", 4, "백엔드 개발자", 
             "Spring Boot와 MySQL을 사용하여 확장성 있는 API 서버를 구축하는 것을 즐깁니다.",
             Arrays.asList(createTagReq("TECH", "Spring"), createTagReq("DOMAIN", "금융IT"), createTagReq("ROLE", "백엔드"), createTagReq("TECH", "Java"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디")),
-            Arrays.asList(createTimeReq(DayOfWeek.TUESDAY, 13, 17))); // 4시간 겹침 -> 32점
+            jihoTimes);
 
+        // 5) 김현아 (기획·PM, 3학년) - 목 13~16(3h), 금 14~16(2h), 수 09~12(3h) -> 총 8시간 설정 (목, 금 5h 겹침: 시간 40점, 태그 2개 일치: 직무 20점 -> 총점 73점)
+        List<TimeSlotRequest> hyunaTimes = new ArrayList<>();
+        hyunaTimes.addAll(createTimeSlots(DayOfWeek.THURSDAY, 13, 16));
+        hyunaTimes.addAll(createTimeSlots(DayOfWeek.FRIDAY, 14, 16));
+        hyunaTimes.addAll(createTimeSlots(DayOfWeek.WEDNESDAY, 9, 12));
         createSampleStudent("hyuna@test.com", "김현아", "경영학과", 3, "기획·PM", 
             "팀의 일정 관리와 효율적인 커뮤니케이션을 돕습니다. 창의적인 BM 기획에 강점이 있습니다.",
             Arrays.asList(createTagReq("DOMAIN", "이커머스"), createTagReq("TECH", "Notion"), createTagReq("ROLE", "PM"), createTagReq("ROLE", "기획"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "온라인")),
-            Arrays.asList(createTimeReq(DayOfWeek.WEDNESDAY, 13, 16))); // 3시간 겹침 -> 24점
+            hyunaTimes);
 
+        // 6) 윤승우 (풀스택 개발자, 3학년) - 금 13~16(3h), 토 09~12(3h) -> 총 6시간 설정 (금 3h 겹침: 시간 24점, 태그 3개 일치: 직무 30점 -> 총점 68점)
+        List<TimeSlotRequest> seungwooTimes = new ArrayList<>();
+        seungwooTimes.addAll(createTimeSlots(DayOfWeek.FRIDAY, 13, 16));
+        seungwooTimes.addAll(createTimeSlots(DayOfWeek.SATURDAY, 9, 12));
         createSampleStudent("seungwoo@test.com", "윤승우", "소프트웨어학과", 3, "풀스택 개발자", 
             "Next.js와 Node.js를 자유롭게 다룹니다. 풀스택 개발로 빠른 MVP 제작을 도와드릴게요.",
             Arrays.asList(createTagReq("TECH", "Next.js"), createTagReq("DOMAIN", "AI분야"), createTagReq("ROLE", "백엔드"), createTagReq("TECH", "Node.js"), createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "전국")),
-            Arrays.asList(createTimeReq(DayOfWeek.FRIDAY, 13, 17))); // 4시간 겹침 -> 32점
+            seungwooTimes);
 
         // 2-1. 기존 DB 내 모든 학생 가용시간 및 직무/태그 자동 동기화 (미등록 유저 데이터 보완)
         syncAllStudentsAvailabilityAndTags();
@@ -533,12 +563,16 @@ public class DataLoader implements CommandLineRunner {
         return req;
     }
 
-    private TimeSlotRequest createTimeReq(DayOfWeek day, int start, int end) {
-        TimeSlotRequest req = new TimeSlotRequest();
-        req.setDayOfWeek(day);
-        req.setStartTime(LocalTime.of(start, 0));
-        req.setEndTime(LocalTime.of(end, 0));
-        return req;
+    private List<TimeSlotRequest> createTimeSlots(DayOfWeek day, int startHour, int endHour) {
+        List<TimeSlotRequest> list = new ArrayList<>();
+        for (int h = startHour; h < endHour; h++) {
+            TimeSlotRequest req = new TimeSlotRequest();
+            req.setDayOfWeek(day);
+            req.setStartTime(LocalTime.of(h, 0));
+            req.setEndTime(LocalTime.of(h + 1, 0));
+            list.add(req);
+        }
+        return list;
     }
 
     private void syncAllStudentsAvailabilityAndTags() {
@@ -548,15 +582,97 @@ public class DataLoader implements CommandLineRunner {
             DayOfWeek[] candidateDays = {DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY};
             String[] roles = {"백엔드 개발자", "프론트엔드 개발자", "UI/UX 디자이너", "데이터 분석가", "풀스택 개발자", "기획·PM"};
 
+            // 0. 정성원 계정의 가용시간 및 태그가 누락되어 있다면 24시간 블록과 9개 태그 복구
+            try {
+                List<com.example.demo.entity.AvailableTime> sungwonTimes = availableTimeService.getMyTimes("sungwon3049@naver.com");
+                if (sungwonTimes == null || sungwonTimes.isEmpty()) {
+                    List<TimeSlotRequest> swTimeReqs = new ArrayList<>();
+                    swTimeReqs.addAll(createTimeSlots(DayOfWeek.TUESDAY, 12, 16));
+                    swTimeReqs.addAll(createTimeSlots(DayOfWeek.WEDNESDAY, 12, 17));
+                    swTimeReqs.addAll(createTimeSlots(DayOfWeek.THURSDAY, 12, 16));
+                    swTimeReqs.addAll(createTimeSlots(DayOfWeek.FRIDAY, 12, 17));
+                    swTimeReqs.addAll(createTimeSlots(DayOfWeek.SATURDAY, 13, 19));
+                    availableTimeService.updateMyTimes("sungwon3049@naver.com", swTimeReqs);
+                }
+                List<com.example.demo.entity.Tag> sungwonTags = tagService.getMyTags("sungwon3049@naver.com");
+                if (sungwonTags == null || sungwonTags.isEmpty()) {
+                    tagService.updateMyTags("sungwon3049@naver.com", Arrays.asList(
+                        createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디"),
+                        createTagReq("TECH", "Python"), createTagReq("TECH", "Java"), createTagReq("TECH", "Spring"),
+                        createTagReq("DOMAIN", "전국"), createTagReq("DOMAIN", "부산"),
+                        createTagReq("DOMAIN", "온라인"), createTagReq("ROLE", "백엔드")
+                    ));
+                }
+            } catch (Exception se) {
+                // 무시
+            }
+
             for (Student s : allStudents) {
                 if ("sungwon3049@naver.com".equals(s.getLoginId())) continue;
 
-                // 1. 이름 및 역할 보정
-                boolean studentChanged = false;
-                if ("test".equalsIgnoreCase(s.getName()) || "test".equalsIgnoreCase(s.getLoginId())) {
+                // 1. 기존 주요 시연 학생들은 고정 프로필 데이터로 동기화
+                String name = s.getName();
+                if ("황증경".equals(name)) {
+                    s.setRole("프론트엔드 개발자");
+                    studentRepository.save(s);
+                    List<TimeSlotRequest> t = new ArrayList<>();
+                    t.addAll(createTimeSlots(DayOfWeek.TUESDAY, 12, 15));
+                    t.addAll(createTimeSlots(DayOfWeek.WEDNESDAY, 12, 17));
+                    t.addAll(createTimeSlots(DayOfWeek.THURSDAY, 15, 16));
+                    t.addAll(createTimeSlots(DayOfWeek.SATURDAY, 9, 12));
+                    availableTimeService.updateMyTimes(s.getLoginId(), t);
+                    tagService.updateMyTags(s.getLoginId(), Arrays.asList(
+                        createTagReq("TECH", "Java"), createTagReq("DOMAIN", "스터디"), createTagReq("TECH", "Spring"),
+                        createTagReq("DOMAIN", "AI분야"), createTagReq("DOMAIN", "이커머스"), createTagReq("DOMAIN", "경기"),
+                        createTagReq("TECH", "Next.js"), createTagReq("DOMAIN", "빅데이터")
+                    ));
+                    continue;
+                } else if ("김철수".equals(name)) {
+                    s.setRole("백엔드 개발자");
+                    studentRepository.save(s);
+                    List<TimeSlotRequest> t = new ArrayList<>();
+                    t.addAll(createTimeSlots(DayOfWeek.TUESDAY, 12, 16));
+                    t.addAll(createTimeSlots(DayOfWeek.THURSDAY, 12, 16));
+                    t.addAll(createTimeSlots(DayOfWeek.FRIDAY, 12, 16));
+                    availableTimeService.updateMyTimes(s.getLoginId(), t);
+                    tagService.updateMyTags(s.getLoginId(), Arrays.asList(
+                        createTagReq("DOMAIN", "공모전"), createTagReq("TECH", "Java"), createTagReq("DOMAIN", "전국"),
+                        createTagReq("ROLE", "백엔드"), createTagReq("DOMAIN", "스터디"), createTagReq("TECH", "Python"),
+                        createTagReq("DOMAIN", "서울")
+                    ));
+                    continue;
+                } else if ("이병찬".equals(name)) {
+                    s.setRole("풀스택 개발자");
+                    studentRepository.save(s);
+                    List<TimeSlotRequest> t = new ArrayList<>();
+                    t.addAll(createTimeSlots(DayOfWeek.THURSDAY, 14, 17));
+                    t.addAll(createTimeSlots(DayOfWeek.WEDNESDAY, 14, 16));
+                    t.addAll(createTimeSlots(DayOfWeek.TUESDAY, 10, 12));
+                    availableTimeService.updateMyTimes(s.getLoginId(), t);
+                    tagService.updateMyTags(s.getLoginId(), Arrays.asList(
+                        createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디"), createTagReq("TECH", "Spring"),
+                        createTagReq("TECH", "Python"), createTagReq("DOMAIN", "금융IT"), createTagReq("DOMAIN", "이커머스"),
+                        createTagReq("TECH", "Swift"), createTagReq("TECH", "Next.js")
+                    ));
+                    continue;
+                } else if ("강태석".equals(name) || "test".equalsIgnoreCase(name) || "test".equalsIgnoreCase(s.getLoginId())) {
                     s.setName("강태석");
-                    studentChanged = true;
+                    s.setRole("UI/UX 디자이너");
+                    studentRepository.save(s);
+                    List<TimeSlotRequest> t = new ArrayList<>();
+                    t.addAll(createTimeSlots(DayOfWeek.THURSDAY, 13, 16));
+                    t.addAll(createTimeSlots(DayOfWeek.FRIDAY, 14, 16));
+                    t.addAll(createTimeSlots(DayOfWeek.TUESDAY, 10, 13));
+                    availableTimeService.updateMyTimes(s.getLoginId(), t);
+                    tagService.updateMyTags(s.getLoginId(), Arrays.asList(
+                        createTagReq("DOMAIN", "공모전"), createTagReq("DOMAIN", "스터디"),
+                        createTagReq("TECH", "Figma"), createTagReq("ROLE", "디자이너"), createTagReq("DOMAIN", "앱개발")
+                    ));
+                    continue;
                 }
+
+                // 2. 기타 일반 등록 학생 보정
+                boolean studentChanged = false;
                 if (s.getRole() == null || s.getRole().isBlank() || "MEMBER".equalsIgnoreCase(s.getRole())) {
                     int rIdx = Math.abs((s.getId() != null ? s.getId().intValue() : s.getName().hashCode())) % roles.length;
                     s.setRole(roles[rIdx]);
@@ -566,26 +682,21 @@ public class DataLoader implements CommandLineRunner {
                     studentRepository.save(s);
                 }
 
-                // 2. 가용시간 보정 (시간 점수 20~40점 = 3~5시간 겹침 보장)
+                // 가용시간 보정 (1시간 단위 슬롯 저장: 목 13~16, 금 14~16)
                 try {
                     List<com.example.demo.entity.AvailableTime> existingTimes = availableTimeService.getMyTimes(s.getLoginId());
-                    if (existingTimes == null || existingTimes.isEmpty() || existingTimes.size() < 3) {
-                        int seed = Math.abs((s.getId() != null ? s.getId().intValue() : s.getName().hashCode()));
-                        DayOfWeek day1 = candidateDays[seed % candidateDays.length];
-                        DayOfWeek day2 = candidateDays[(seed + 1) % candidateDays.length];
-
+                    if (existingTimes == null || existingTimes.isEmpty() || existingTimes.size() < 5) {
                         List<TimeSlotRequest> timeReqs = new ArrayList<>();
-                        timeReqs.add(createTimeReq(day1, 13, 16)); // 3시간
-                        if (seed % 2 == 0) {
-                            timeReqs.add(createTimeReq(day2, 14, 16)); // 추가 2시간 -> 총 5시간 (40점)
-                        }
+                        timeReqs.addAll(createTimeSlots(DayOfWeek.THURSDAY, 13, 16));
+                        timeReqs.addAll(createTimeSlots(DayOfWeek.FRIDAY, 14, 16));
+                        timeReqs.addAll(createTimeSlots(DayOfWeek.TUESDAY, 10, 13));
                         availableTimeService.updateMyTimes(s.getLoginId(), timeReqs);
                     }
                 } catch (Exception te) {
                     // 무시
                 }
 
-                // 3. 태그 보정 (직무 점수 15~30점 = 2~3개 태그 일치 보장)
+                // 태그 보정
                 try {
                     List<com.example.demo.entity.Tag> existingTags = tagService.getMyTags(s.getLoginId());
                     if (existingTags == null || existingTags.isEmpty() || existingTags.size() < 3) {
@@ -625,7 +736,7 @@ public class DataLoader implements CommandLineRunner {
                     // 무시
                 }
             }
-            System.out.println("✅ 모든 학생 가용시간 및 태그 보정 완료!");
+            System.out.println("✅ 모든 학생 가용시간 및 태그 1시간 단위 슬롯 동기화 완료!");
         } catch (Exception e) {
             System.err.println("⚠️ 전체 학생 데이터 보정 중 예외: " + e.getMessage());
         }
