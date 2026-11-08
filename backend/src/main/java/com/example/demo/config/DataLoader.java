@@ -117,6 +117,19 @@ public class DataLoader implements CommandLineRunner {
             System.err.println("⚠️ 중복 계정 정리 중 예외: " + e.getMessage());
         }
 
+        // [날짜 보정] 서버가 UTC 시간대로 저장하여 2026-11-08로 잘못 기록된 오늘(11월 9일 KST) 작성 후기 자동 KST(+9시간) 보정
+        try {
+            reviewRepository.findAll().forEach(r -> {
+                if (r.getCreatedAt() != null && r.getCreatedAt().getYear() == 2026 && r.getCreatedAt().getMonthValue() == 11 && r.getCreatedAt().getDayOfMonth() == 8 && r.getCreatedAt().getHour() >= 15) {
+                    r.setCreatedAt(r.getCreatedAt().plusHours(9));
+                    reviewRepository.save(r);
+                    System.out.println("⏰ [후기 날짜 보정] 11월 8일(UTC) -> 11월 9일(KST) 보정 완료: " + r.getProjectName());
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("⚠️ 후기 날짜 보정 중 예외: " + e.getMessage());
+        }
+
         // 1. 공모전 데이터 (이제 크롤러가 전담하므로 하드코딩 샘플 주입은 제거됨)
 
         // [중요] 정성원님 본인 계정 복구 (데이터 분석가)

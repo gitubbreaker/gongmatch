@@ -13,10 +13,11 @@ export function parseSafeDate(dateVal) {
       return new Date(dateVal);
     }
     if (typeof dateVal === 'string') {
-      if (dateVal.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateVal)) {
-        return new Date(dateVal);
+      const cleanVal = dateVal.trim().replace(' ', 'T');
+      if (cleanVal.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(cleanVal)) {
+        return new Date(cleanVal);
       }
-      return new Date(dateVal);
+      return new Date(cleanVal);
     }
     return new Date(dateVal);
   } catch (e) {
@@ -26,7 +27,8 @@ export function parseSafeDate(dateVal) {
 
 export function formatSafeDate(dateVal, fallback = '') {
   const d = parseSafeDate(dateVal);
-  return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : fallback;
+  if (!d || isNaN(d.getTime())) return fallback;
+  return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
 }
 
 export function formatSafeDateTime(dateVal, fallback = '') {

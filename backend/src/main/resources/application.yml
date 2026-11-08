@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://127.0.0.1:3306/railway?useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://127.0.0.1:3306/railway?useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul}
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:dangwon1391!!}
     driver-class-name: org.mariadb.jdbc.Driver
@@ -21,6 +21,8 @@ spring:
         format_sql: true
     open-in-view: true
   jackson:
+    time-zone: Asia/Seoul
+    locale: ko_KR
     serialization:
       write-dates-as-timestamps: false
       fail-on-empty-beans: false
