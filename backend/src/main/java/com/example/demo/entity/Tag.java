@@ -16,7 +16,6 @@ public class Tag {
     @Column(name = "tag_id")
     private Long tagId;
 
-    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private TagCategory category; // ROLE, TECH, DOMAIN
 
