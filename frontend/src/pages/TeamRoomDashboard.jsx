@@ -517,7 +517,13 @@ export default function TeamRoomDashboard() {
     }
   };
 
-  const filteredProjects = projects.filter(p => {
+  // 새 모집방 생성 및 공모전 변경 시 '접수 마감된(D-Day < 0)' 공모전은 제외하고 현재 접수 중인 공모전만 표시
+  const activeProjectsOnly = projects.filter(p => {
+    const dday = getProjectDDay(p);
+    return dday === null || dday >= 0;
+  });
+
+  const filteredProjects = activeProjectsOnly.filter(p => {
     if (!searchKeyword.trim()) return true;
     const kw = searchKeyword.toLowerCase();
     return (p.title && p.title.toLowerCase().includes(kw)) ||
@@ -525,7 +531,7 @@ export default function TeamRoomDashboard() {
            (p.category && p.category.toLowerCase().includes(kw));
   });
 
-  const filteredEditProjects = projects.filter(p => {
+  const filteredEditProjects = activeProjectsOnly.filter(p => {
     if (!editSearchKeyword.trim()) return true;
     const kw = editSearchKeyword.toLowerCase();
     return (p.title && p.title.toLowerCase().includes(kw)) ||
@@ -794,8 +800,8 @@ export default function TeamRoomDashboard() {
                         })
                       )}
                     </div>
-                    <p style={{ fontSize: '11px', color: '#666', marginTop: '6px', marginBottom: '16px' }}>
-                      💡 공모전을 선택하지 않으면 '자유 스터디 / 프로젝트' 모집방으로 개설됩니다.
+                    <p style={{ fontSize: '11px', color: '#8a8b91', marginTop: '6px', marginBottom: '16px' }}>
+                      💡 현재 접수 중인 공모전만 표시됩니다. 공모전을 선택하지 않으면 '자유 스터디 / 프로젝트' 모집방으로 개설됩니다.
                     </p>
                   </div>
                 )}
