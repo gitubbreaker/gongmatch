@@ -42,7 +42,10 @@ function getOverlapDetails(overlapText, overlapSlots) {
 function S5Candidates() {
   const navigate = useNavigate();
   const location = useLocation();
-  const projectTitle = location.state?.projectTitle || '맞춤형 프로젝트 팀원 찾기';
+  const initialTag = location.state?.selectedTag || null;
+  const projectTitle = initialTag 
+    ? `#${initialTag} 맞춤 추천 동료` 
+    : (location.state?.projectTitle || '맞춤형 프로젝트 팀원 찾기');
   const projectDDay = location.state?.dDay || '상시';
   
   const [candidates, setCandidates] = useState([]);
@@ -53,7 +56,7 @@ function S5Candidates() {
     grades: [],
     roles: [],
     majors: [],
-    tags: []
+    tags: initialTag ? [initialTag] : []
   });
   const [myRole, setMyRole] = useState('');
   const [reqModal, setReqModal] = useState({ open: false, id: null, name: '', score: 0 });
@@ -62,6 +65,15 @@ function S5Candidates() {
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.selectedTag) {
+      setFilters(prev => ({
+        ...prev,
+        tags: [location.state.selectedTag]
+      }));
+    }
+  }, [location.state]);
 
   useEffect(() => {
     applyFilters();
@@ -100,7 +112,10 @@ function S5Candidates() {
       list = list.filter(c => filters.majors.includes(c.major));
     }
     if (filters.tags.length > 0) {
-      list = list.filter(c => (c.tags || []).some(t => filters.tags.includes(t)));
+      list = list.filter(c => 
+        (c.tags || []).some(t => filters.tags.includes(t)) ||
+        filters.tags.some(ft => (c.role || '').toLowerCase().includes(ft.toLowerCase()))
+      );
     }
 
     // 정렬 적용 (내 분야 우선 추천 선택 시)
@@ -148,7 +163,8 @@ function S5Candidates() {
   const availableRoles = Array.from(new Set(candidates.map(c => c.role))).filter(Boolean);
   const availableMajors = Array.from(new Set(candidates.map(c => c.major))).filter(Boolean);
   // 태그는 너무 많을 수 있으니 상위 8개 또는 겹치는 태그 위주로 (여기선 간단히 전체에서 추출)
-  const availableTags = Array.from(new Set(candidates.flatMap(c => c.tags || []))).slice(0, 8);
+  const allCandidateTags = Array.from(new Set(candidates.flatMap(c => c.tags || []))).filter(Boolean);
+  const availableTags = Array.from(new Set([...filters.tags, ...allCandidateTags])).slice(0, 16);
 
   const openModal = (id, name, score) => {
     setReqModal({ open: true, id, name, score });

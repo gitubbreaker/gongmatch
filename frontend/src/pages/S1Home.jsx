@@ -27,8 +27,11 @@ function CountUpNumber({ end }) {
 
 function S1Home() {
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState('');
-  const [selectedChip, setSelectedChip] = useState('#공모전');
+  const popularTags = [
+    '공모전', '해커톤', '스터디', '온라인',
+    'Spring', 'React', 'Java', 'Python', 'Figma',
+    'Node.js', 'Next.js', 'TypeScript', '백엔드', '프론트엔드', 'UI/UX', '데이터분석', '기획·PM'
+  ];
   const [projects, setProjects] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [bestMatch, setBestMatch] = useState(null);
@@ -91,15 +94,8 @@ function S1Home() {
     }
   };
 
-  const handleSearch = () => {
-    if (searchValue.trim()) {
-      navigate('/candidates');
-    }
-  };
-
-  const handleChipClick = (tag) => {
-    setSelectedChip(tag);
-    setSearchValue(tag);
+  const handleChipClick = (cleanTag) => {
+    navigate('/candidates', { state: { selectedTag: cleanTag } });
   };
 
   const calculateDaysLeft = (endDateStr) => {
@@ -147,29 +143,51 @@ function S1Home() {
           <button className="btn-ghost" style={{ padding: '14px 28px', fontSize: '14px' }} onClick={() => navigate('/announcements')}>프로젝트 둘러보기</button>
         </div>
 
-        <div className="s1-search" style={{ display: 'flex', background: 'var(--card2)', border: '1px solid var(--brd2)', borderRadius: '11px', overflow: 'hidden', marginBottom: '14px' }}>
-          <input
-            type="text"
-            placeholder="관심 해시태그 검색  —  예) #해커톤  #공모전  #UI/UX"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--tx)', fontSize: '13px', padding: '14px 18px', outline: 'none' }}
-          />
-          <button className="btn-prim" style={{ borderRadius: '0', padding: '0 24px', fontSize: '13px' }} onClick={handleSearch}>검색</button>
-        </div>
- 
-        <div className="s1-chips" style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
-          {['#해커톤', '#UI/UX', '#기획', '#Python', '#React', '#스터디', '#공모전'].map((tag) => (
-            <span
-              key={tag}
-              className={`chip ${selectedChip === tag ? 'on' : ''}`}
-              onClick={() => handleChipClick(tag)}
-              style={{ display: 'inline-flex', background: selectedChip === tag ? 'var(--ac-dim)' : 'rgba(255,255,255,.04)', border: '1px solid', borderColor: selectedChip === tag ? 'var(--ac-brd)' : 'var(--brd2)', color: selectedChip === tag ? 'var(--ac)' : 'var(--tx3)', borderRadius: '20px', padding: '5px 13px', fontSize: '12px', cursor: 'pointer' }}
-            >
-              {tag}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--tx3)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🏷️</span> <span>관심 해시태그로 팀원 바로 찾기</span>
             </span>
-          ))}
+            <span style={{ fontSize: '11px', color: 'var(--ac)', fontWeight: '600' }}>태그 클릭 시 맞춤 팀원 바로 연결 →</span>
+          </div>
+
+          <div className="s1-chips" style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+            {popularTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                className="chip"
+                onClick={() => handleChipClick(tag)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  background: 'rgba(255,255,255,.05)',
+                  border: '1px solid var(--brd2)',
+                  color: 'var(--tx2)',
+                  borderRadius: '20px',
+                  padding: '6px 14px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--ac)';
+                  e.currentTarget.style.color = 'var(--ac)';
+                  e.currentTarget.style.background = 'var(--ac-dim)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--brd2)';
+                  e.currentTarget.style.color = 'var(--tx2)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,.05)';
+                  e.currentTarget.style.transform = 'none';
+                }}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginTop: '36px' }}>
