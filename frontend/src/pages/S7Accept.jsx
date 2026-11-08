@@ -383,7 +383,7 @@ function S7Accept() {
         )}
       </div>
 
-      {/* 오른쪽 사이드바 (내 매칭 요약 및 현재 프로젝트 팀 현황) */}
+      {/* 오른쪽 사이드바 (내 매칭 요약) */}
       {activeChat && (
         <div style={{ width: '320px', background: 'var(--bg)', borderLeft: '1px solid var(--brd)', padding: '32px 24px', display: 'flex', flexDirection: 'column' }}>
           
@@ -411,84 +411,6 @@ function S7Accept() {
             </div>
           </div>
 
-          {/* 현재 팀 구성 현황 (선택된 프로젝트 기준) */}
-          <div style={{ background: 'var(--card2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--brd2)', marginTop: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-              <span style={{ fontSize: '13px' }}>👥</span>
-              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)' }}>해당 프로젝트 팀 구성 현황</span>
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--ac)', fontWeight: '800', marginBottom: '16px', lineHeight: '1.4', wordBreak: 'keep-all' }}>
-              {activeChat.targetProjectTitle || activeChat.project?.title || '자유 매칭'}
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-              {(() => {
-                const getProjectTitle = (req) => req?.targetProjectTitle || req?.project?.title || '자유 매칭';
-                const currentProjectTitle = getProjectTitle(activeChat);
-                const projectAcceptedRequests = [
-                  ...safeReceived.filter(r => r && r.status === 'ACCEPTED'),
-                  ...safeSent.filter(r => r && r.status === 'ACCEPTED')
-                ].filter(r => getProjectTitle(r) === currentProjectTitle);
-                
-                const uniqueMembersMap = new Map();
-                projectAcceptedRequests.forEach(r => {
-                  const other = getOtherPerson(r);
-                  if (other && other.id && !uniqueMembersMap.has(other.id)) {
-                    uniqueMembersMap.set(other.id, other);
-                  }
-                });
-                const currentTeamMembers = Array.from(uniqueMembersMap.values());
-                const totalConfirmed = 1 + currentTeamMembers.length;
-
-                return (
-                  <>
-                    {/* Me */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--brd2)' }}>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ac-dim)', color: 'var(--ac)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px solid var(--ac-brd)' }}>{currentUser?.name?.charAt(0) || '나'}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{currentUser?.name || '본인'} <span style={{fontSize:'10px', color:'var(--ac)', background:'var(--ac-dim)', padding:'2px 6px', borderRadius:'4px'}}>👑 본인</span></div>
-                        <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{currentUser?.role || '직무 미기재'}</div>
-                      </div>
-                    </div>
-                    
-                    {/* Accepted Members */}
-                    {currentTeamMembers.map((member, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--brd2)' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--green-dim)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px solid rgba(0,255,0,0.2)' }}>{member.name?.charAt(0) || '?'}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{member.name} <span style={{fontSize:'10px', color:'var(--green)', background:'var(--green-dim)', padding:'2px 6px', borderRadius:'4px'}}>✅ 확정</span></div>
-                          <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{member.role || '직무 미기재'}</div>
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Pending active member if not accepted yet */}
-                    {activeChat.status === 'PENDING' && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--ac-brd)', boxShadow: '0 0 0 1px var(--ac) inset' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--card2)', color: 'var(--tx2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900', border: '1px dashed var(--tx3)' }}>{getOtherPerson(activeChat)?.name?.charAt(0) || '?'}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: '6px' }}>{getOtherPerson(activeChat)?.name || '알 수 없음'} <span style={{fontSize:'10px', color:'var(--tx2)', background:'var(--card2)', border:'1px solid var(--brd)', padding:'2px 6px', borderRadius:'4px'}}>⏳ 검토중</span></div>
-                          <div style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '2px' }}>{getOtherPerson(activeChat)?.role || '직무 미기재'}</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Empty Slots */}
-                    {Array.from({ length: Math.max(0, 5 - (totalConfirmed + (activeChat.status === 'PENDING' ? 1 : 0))) }).map((_, idx) => (
-                      <div key={`empty-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '12px', border: '1px dashed var(--brd3)' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'transparent', color: 'var(--tx3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', border: '1px dashed var(--tx3)' }}>+</div>
-                        <div style={{ flex: 1, fontSize: '12px', color: 'var(--tx3)' }}>빈 자리 (역할 미정)</div>
-                      </div>
-                    ))}
-                    
-                    <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--tx3)', marginTop: '8px' }}>
-                      나 포함 {totalConfirmed}명 확정 · {Math.max(0, 5 - totalConfirmed)}자리 남음
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          </div>
         </div>
       )}
     </section>

@@ -7,18 +7,18 @@ function NotificationPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('전체');
   const [realNotifs, setRealNotifs] = useState([]);
-  const [hiddenNotifIds, setHiddenNotifIds] = useState(new Set());
-  const [readNotifIds, setReadNotifIds] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('readNotifIds') || '[]')); } catch { return new Set(); }
-  });
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, e) => {
+    if (e) e.stopPropagation();
     try {
-      await api.delete(`/api/notifications/${id}`);
-      setRealNotifs(realNotifs.filter(n => n.id !== id));
+      // 1. UI에서 즉각 제거하여 지연 없이 체감되도록 처리
+      setRealNotifs(prev => prev.filter(n => n.id !== id));
       window.dispatchEvent(new Event('notifRead'));
+      
+      // 2. 백엔드 DB에서 영구 삭제
+      await api.delete(`/api/notifications/${id}`);
     } catch(e) {
-      console.error(e);
+      console.error('알림 삭제 실패', e);
     }
   };
 
@@ -32,7 +32,18 @@ function NotificationPage() {
             actions.push({
               label: notif.type === '매칭' ? '수락함으로 이동' : '이동하기',
               style: 'btn-prim btn-sm',
-              onClick: () => {
+              onClick: async () => {
+                // 클릭 시 읽음 처리 동기화
+                if (notif.isNew) {
+                  try {
+                    await api.patch(`/api/notifications/${notif.id}/read`);
+                    setRealNotifs(prev => prev.map(n => n.id === notif.id ? { ...n, isNew: false } : n));
+                    window.dispatchEvent(new Event('notifRead'));
+                  } catch (err) {
+                    console.error('알림 읽음 처리 실패', err);
+                  }
+                }
+
                 if (notif.targetUrl.startsWith('/board/')) {
                   // 게시글 상세 → 커뮤니티 페이지에 postId를 전달하여 모달 열기
                   const postId = notif.targetUrl.split('/').pop();
@@ -79,7 +90,6 @@ function NotificationPage() {
     fetchNotifications();
   }, [navigate]);
 
-  const allNotifs = [...realNotifs];
   const handleMarkAllRead = async () => {
     try {
       await api.patch('/api/notifications/read-all');
@@ -91,7 +101,7 @@ function NotificationPage() {
     }
   };
 
-  const unreadCount = allNotifs.filter(n => !hiddenNotifIds.has(n.id) && n.isNew && !readNotifIds.has(n.id)).length;
+  const unreadCount = realNotifs.filter(n => n.isNew).length;
 
   return (
     <section className="screen on" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - var(--navh) - var(--tabh))', background: 'var(--bg)' }}>
@@ -126,9 +136,7 @@ function NotificationPage() {
           <h3 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--tx)', marginBottom: '16px' }}>오늘</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {(() => {
-              const filtered = allNotifs
-                .map(n => ({ ...n, isNew: n.isNew && !readNotifIds.has(n.id) }))
-                .filter(n => !hiddenNotifIds.has(n.id))
+              const filtered = realNotifs
                 .filter(n => {
                   if (activeTab === '전체') return true;
                   if (activeTab === '매칭 요청' && n.type === '매칭') return true;
@@ -158,7 +166,29 @@ function NotificationPage() {
                 transition: 'all 0.3s ease'
               }}>
                 {notif.isNew && <div style={{ position: 'absolute', top: '20px', right: '40px', padding: '4px 10px', borderRadius: '20px', background: 'var(--ac)', color: '#000', fontSize: '11px', fontWeight: '900', boxShadow: '0 0 10px rgba(205, 255, 0, 0.4)' }}>NEW</div>}
-                <button onClick={() => setHiddenNotifIds(prev => new Set([...prev, notif.id]))} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'var(--tx3)', fontSize: '20px', cursor: 'pointer', padding: '4px', zIndex: 1 }}>&times;</button>
+                <button
+                  onClick={(e) => handleDelete(notif.id, e)}
+                  title="알림 삭제"
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--tx3)',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    zIndex: 2,
+                    lineHeight: '1',
+                    borderRadius: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.background = 'rgba(255, 75, 75, 0.1)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--tx3)'; e.currentTarget.style.background = 'none'; }}
+                >
+                  &times;
+                </button>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                     {notif.icon}

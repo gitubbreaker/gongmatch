@@ -126,10 +126,24 @@ public class NotificationController {
         return ResponseEntity.ok("모든 알림을 읽음 처리했습니다.");
     }
 
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        notificationRepository.findById(id).ifPresent(n -> {
+            if (n.isNew()) {
+                n.setNew(false);
+                notificationRepository.save(n);
+            }
+        });
+        return ResponseEntity.ok("읽음 처리되었습니다.");
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteNotification(@PathVariable Long id, Authentication authentication) {
         if (authentication == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        notificationRepository.deleteById(id);
+        if (notificationRepository.existsById(id)) {
+            notificationRepository.deleteById(id);
+        }
         return ResponseEntity.ok("삭제되었습니다.");
     }
 }
