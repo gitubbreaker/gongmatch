@@ -120,7 +120,29 @@ function S2Time() {
     if (ts.length) byDay[d] = ts;
   });
   const totalHours = Object.values(byDay).reduce((s, ts) => s + ts.length, 0);
-  const score = Math.min(50, Math.round((totalHours / 15) * 50));
+  const activityRate = Math.min(100, Math.round((totalHours / 15) * 100));
+
+  let statusLabel = '충실도 우수';
+  let statusColor = 'var(--ac)';
+  let statusBg = 'var(--ac-dim)';
+  let statusBrd = 'var(--ac-brd)';
+
+  if (totalHours === 0) {
+    statusLabel = '시간 미설정';
+    statusColor = 'var(--tx3)';
+    statusBg = 'rgba(255,255,255,0.05)';
+    statusBrd = 'var(--brd2)';
+  } else if (totalHours < 6) {
+    statusLabel = '시간대 추가 권장';
+    statusColor = 'var(--tx3)';
+    statusBg = 'rgba(255,255,255,0.05)';
+    statusBrd = 'var(--brd2)';
+  } else if (totalHours < 12) {
+    statusLabel = '활동성 양호';
+    statusColor = 'var(--yellow)';
+    statusBg = 'var(--yellow-dim)';
+    statusBrd = 'rgba(245, 158, 11, 0.3)';
+  }
 
   if (loading) {
     return (
@@ -206,28 +228,54 @@ function S2Time() {
             </div>
           </div>
 
-          <div className="card" style={{padding:'14px', position: 'relative'}}>
-            <div style={{display:'flex', alignItems:'center', gap:'6px', marginBottom: '4px'}}>
-              <p className="slabel" style={{marginBottom:0}}>가용시간 점수 예측</p>
-              <div className="tooltip-icon" title="주 15시간 이상 설정 시 활동성 만점(50점)이 부여됩니다." style={{cursor:'help', fontSize:'12px', color:'var(--tx3)', background:'rgba(255,255,255,0.05)', width:'16px', height:'16px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--brd2)'}}>?</div>
+          <div className="card2" style={{padding:'16px', position: 'relative'}}>
+            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: '10px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                <p className="slabel" style={{marginBottom:0}}>⏱️ 가용시간 등록 충실도</p>
+                <div 
+                  className="tooltip-icon" 
+                  title="공매치 4축 매칭 엔진에서 시간 점수(최대 40점)는 팀원 후보와의 실제 공강 시간 교집합을 기반으로 산출됩니다. 가용시간을 폭넓게 등록할수록 다양한 팀원과의 시간 매칭 점수가 극대화됩니다." 
+                  style={{cursor:'help', fontSize:'12px', color:'var(--tx3)', background:'rgba(255,255,255,0.05)', width:'16px', height:'16px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--brd2)'}}
+                >?</div>
+              </div>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '800',
+                color: statusColor,
+                background: statusBg,
+                padding: '2px 8px',
+                borderRadius: '6px',
+                border: `1px solid ${statusBrd}`
+              }}>
+                {statusLabel}
+              </span>
             </div>
-            <div style={{display:'flex', alignItems:'baseline', gap:'4px', marginBottom:'8px'}}>
-              <span style={{fontSize:'32px', fontWeight:'900', color:'var(--ac)'}}>{score}</span>
-              <span style={{fontSize:'13px', color:'var(--tx3)'}}>/ 50점</span>
+
+            <div style={{display:'flex', alignItems:'baseline', gap:'6px', marginBottom:'10px'}}>
+              <span style={{fontSize:'32px', fontWeight:'900', color:'var(--ac)', lineHeight:'1'}}>{activityRate}%</span>
+              <span style={{fontSize:'13px', color:'var(--tx2)', fontWeight:'600'}}>({totalHours}시간 등록)</span>
             </div>
-            <div className="bar-track" style={{height:'8px', position: 'relative'}}>
-              <div className="bar-fill" style={{width: `${(score/50)*100}%`, transition: 'width 0.3s ease'}}></div>
-              {/* 만점 가이드 마커 */}
-              <div style={{position: 'absolute', right: '0', top: '-4px', bottom: '-4px', width: '2px', background: 'var(--ac)', opacity: 0.5}} title="만점 기준(15h)"></div>
+
+            <div className="bar-track" style={{height:'8px', position: 'relative', borderRadius:'4px', background:'var(--bg3)', overflow:'hidden'}}>
+              <div className="bar-fill" style={{width: `${activityRate}%`, height:'100%', background:'var(--ac)', borderRadius:'4px', transition: 'width 0.3s ease'}}></div>
             </div>
-            <div style={{display:'flex', justifyContent:'space-between', marginTop:'8px'}}>
-              <p style={{fontSize:'11px', color:'var(--tx3)'}}>현재: <b>{totalHours}시간</b></p>
-              <p style={{fontSize:'11px', color:'var(--ac)', fontWeight:'600'}}>목표: 15시간</p>
+
+            <div style={{display:'flex', justifyContent:'space-between', marginTop:'8px', fontSize:'11px'}}>
+              <p style={{margin:0, color:'var(--tx3)'}}>선택 시간: <b style={{color:'var(--tx)'}}>{totalHours}시간</b></p>
+              <p style={{margin:0, color:'var(--ac)', fontWeight:'600'}}>권장: 주 12~15시간</p>
+            </div>
+
+            <div style={{ marginTop:'14px', padding:'10px 12px', background:'var(--card)', borderRadius:'8px', border:'1px solid var(--brd)' }}>
+              <p style={{ fontSize:'11px', color:'var(--tx3)', lineHeight:'1.55', margin:0 }}>
+                💡 <b>시간 매칭 산출 원리 (최대 40점)</b><br />
+                공매치의 시간 점수는 단독 점수가 아닌, 팀원 후보와의 <b>실제 겹치는 공강 시간</b>을 기반으로 산출됩니다. 가용시간을 폭넓게 설정할수록 팀원 후보들과의 겹치는 시간이 많아져 점수가 극대화됩니다.
+              </p>
             </div>
           </div>
 
-          <div className="card" style={{padding:'14px', fontSize:'12px', color:'var(--tx2)', lineHeight:'1.7'}}>
-            선택 데이터는 <span style={{color:'var(--ac)', fontWeight:'600'}}>REST API</span>로 전송되어 매칭 알고리즘 점수 산출에 사용됩니다.<br/>(PUT /api/available-time/me)
+          <div className="card" style={{padding:'12px 14px', fontSize:'11px', color:'var(--tx3)', lineHeight:'1.6', display:'flex', alignItems:'center', gap:'8px'}}>
+            <span style={{fontSize:'14px'}}>⚡</span>
+            <span>설정한 가용시간은 저장 즉시 <b style={{color:'var(--tx2)'}}>4축 스마트 매칭 엔진</b>에 실시간 반영되어 최적의 팀원을 찾아드립니다.</span>
           </div>
 
           <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
